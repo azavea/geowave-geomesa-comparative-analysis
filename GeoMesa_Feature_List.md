@@ -32,7 +32,7 @@
     - Pointer: [StreamDataStore.scala](https://github.com/locationtech/geomesa/blob/master/geomesa-stream/geomesa-stream-datastore/src/main/scala/org/locationtech/geomesa/stream/datastore/StreamDataStore.scala)
     - A generic apache-camel based implementation](https://github.com/locationtech/geomesa/blob/b7056fae4988ef524913bf3dc33d9ff2a3476b09/geomesa-stream/geomesa-stream-generic/src/main/scala/org/locationtech/geomesa/stream/generic/GenericSimpleFeatureStreamSourceFactory.scala)
   - Hooks for updating GeoServer on stream update
-    - Pointer: In docs but not implemented? [stub pomfile](https://github.com/locationtech/geomesa/tree/b7056fae4988ef524913bf3dc33d9ff2a3476b09/geomesa-gs-plugin/geomesa-stream-gs-plugin)
+    - Pointer: Implemented? [pomfile](https://github.com/locationtech/geomesa/tree/b7056fae4988ef524913bf3dc33d9ff2a3476b09/geomesa-gs-plugin/geomesa-stream-gs-plugin)
 
 ## Data Processing
 
