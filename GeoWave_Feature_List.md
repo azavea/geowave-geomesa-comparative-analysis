@@ -34,16 +34,43 @@
    - avro
    - gdelt
    - geolife
-   - geotools-raster
-   - geotools-vector
+   - geotools-raster (GeoTools-supported raster data)
+   - geotools-vector (GeoTools-supported vector data)
    - gpx
    - stanag4676
    - tdrive
+   - Via Extensions:
+      - [Landsat 8](https://github.com/ngageoint/geowave/tree/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/extensions/cli/landsat8)
+      - [OpenStreetMap](https://github.com/ngageoint/geowave/tree/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/extensions/cli/osm)
 
 ## Backends ##
 
 - HBase
 - Accumulo
+
+## Integrations ##
+
+- [mrgeo](https://github.com/ngageoint/mrgeo/tree/master/mrgeo-dataprovider/mrgeo-dataprovider-geowave) (reading)
+- [GeoTrellis (prospective)](https://github.com/geotrellis/geotrellis/pull/1542) (reading and writing)
+- Via [C++ bindings](https://ngageoint.github.io/geowave/documentation.html#jace-jni-proxies-2)
+   - [PDAL](https://github.com/PDAL/PDAL/tree/master/plugins/geowave) ([reading and writing](https://ngageoint.github.io/geowave/documentation.html#pdal))
+   - mapnik ([reading](https://ngageoint.github.io/geowave/documentation.html#mapnik))
+
+## Secondary Indices ##
+
+- Numerical
+   - Pointer: [NumericSecondaryIndexConfiguration.java](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/extensions/adapters/vector/src/main/java/mil/nga/giat/geowave/adapter/vector/index/NumericSecondaryIndexConfiguration.java)
+- Temporal
+   - Pointer: [TemporalSecondaryIndexConfiguration.java](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/extensions/adapters/vector/src/main/java/mil/nga/giat/geowave/adapter/vector/index/TemporalSecondaryIndexConfiguration.java)
+- Textual
+   - Pointer: [TextSecondaryIndexConfiguration.java](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/extensions/adapters/vector/src/main/java/mil/nga/giat/geowave/adapter/vector/index/TextSecondaryIndexConfiguration.java)
+- User Defined
+   - Pointer: [SimpleFeatureUserDataConfiguration.java](https://github.com/ngageoint/geowave/blob/a367dbed823417f8bf2ace7e6a180522d4018d55/extensions/adapters/vector/src/main/java/mil/nga/giat/geowave/adapter/vector/utils/SimpleFeatureUserDataConfiguration.java)
+   - Examples:
+      - [TimeDescriptionConfiguration](https://github.com/ngageoint/geowave/blob/master/extensions/adapters/vector/src/main/java/mil/nga/giat/geowave/adapter/vector/utils/TimeDescriptors.java#L147-L283) allows indexing over intervals
+      - [VisibilityConfiguration.java](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/extensions/adapters/vector/src/main/java/mil/nga/giat/geowave/adapter/vector/plugin/visibility/VisibilityConfiguration.java)
+      - [StatsConfigurationCollection.java](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/extensions/adapters/vector/src/main/java/mil/nga/giat/geowave/adapter/vector/stats/StatsConfigurationCollection.java)
+- [No Cost-Based Optimization](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/core/store/src/main/java/mil/nga/giat/geowave/core/store/index/SecondaryIndexQueryManager.java#L8-L9)
 
 ## Processing ##
 
