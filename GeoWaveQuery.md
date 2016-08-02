@@ -7,10 +7,11 @@
 ![accumulo](https://cloud.githubusercontent.com/assets/11281373/17036141/fbff35c6-4f58-11e6-913f-db1a82be2cac.png)
 
 In the simplest case, if the entire Hilbert index is viewed as a tree, each "tier" can be [identified with a level of that tree](https://github.com/ngageoint/geowave/blob/master/core/index/src/main/java/mil/nga/giat/geowave/core/index/sfc/tiered/TieredSFCIndexFactory.java#L130).
-This is configurable (one tier, tiers that are not related to one another, &c), so that interpretation is not invincible.
+This is configurable (one tier, tiers that are not related to one another, &c), so that interpretation is not certainly true.
 
-The "bin" is a function of space (and time).
-In the most basic case, as in the case of [BasicDimensionDefinition](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/core/index/src/main/java/mil/nga/giat/geowave/core/index/dimension/BasicDimensionDefinition.java#L47-L56), it is just a clamping of the range of the data to some already given range (encoded within a descendant of NumericDimensionDefinition [e.g. BasicDimensionDefinition]).
+The "bin" is a function of space and time.
+In the most basic case, as in the case of [BasicDimensionDefinition](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/core/index/src/main/java/mil/nga/giat/geowave/core/index/dimension/BasicDimensionDefinition.java#L47-L56),
+it is just a clamping of the range of the data to some already given range (encoded within a descendant of NumericDimensionDefinition [e.g. BasicDimensionDefinition]).
 
 The number of tiers and the precision of the dimensions within those tiers is [configurable](https://github.com/ngageoint/geowave/blob/master/core/index/src/main/java/mil/nga/giat/geowave/core/index/sfc/tiered/TieredSFCIndexFactory.java).
 
@@ -25,12 +26,14 @@ The following chain of events sketches how row IDs are generated in the case of 
 4. [TieredSFCIndexStrategy.getRowIdsAtTier](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/core/index/src/main/java/mil/nga/giat/geowave/core/index/sfc/tiered/TieredSFCIndexStrategy.java#L391-L420)
 5. [TieredSFCIndexStrategy.decomposeRangesForEntry](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/core/index/src/main/java/mil/nga/giat/geowave/core/index/sfc/tiered/TieredSFCIndexStrategy.java#L422-L469)
 
-In the majority of cases, [it is expected](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/core/index/src/main/java/mil/nga/giat/geowave/core/index/sfc/tiered/TieredSFCIndexStrategy.java#L366-L368) that an entry will intersect only a single key in the GeoWave index (in some appropriate tier).
+In the majority of cases, [it is expected](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/core/index/src/main/java/mil/nga/giat/geowave/core/index/sfc/tiered/TieredSFCIndexStrategy.java#L366-L368) that an entry will intersect only a single key (or a constant number of keys?) in the GeoWave index (in some appropriate tier).
 
 
 ## Query Planning ##
 
-This document assumes a query of the `dataStore.query(...)` style on an Accumulo-backed instance of GeoWave.
+### Primary Index ###
+
+This section assumes a purely geometry query of the `dataStore.query(...)` style on an Accumulo-backed instance of GeoWave.
 It appears that the HBase backend works in a substantially similar way.
 
 ```scala
@@ -64,3 +67,28 @@ restricting attention to query planning, the code above leads to sequence below
 10. [SpaceFillingCurve.decomposeRange](https://github.com/ngageoint/geowave/blob/302092385d841a83addcb30c120b03148dfe8a5d/core/index/src/main/java/mil/nga/giat/geowave/core/index/sfc/SpaceFillingCurve.java#L68-L86) which is actually [HilbertSFC.decomposeRange](https://github.com/ngageoint/geowave/blob/302092385d841a83addcb30c120b03148dfe8a5d/core/index/src/main/java/mil/nga/giat/geowave/core/index/sfc/hilbert/HilbertSFC.java#L134-L154) which is actually [HilbertSFCOperations.decomposeRange](https://github.com/ngageoint/geowave/blob/302092385d841a83addcb30c120b03148dfe8a5d/core/index/src/main/java/mil/nga/giat/geowave/core/index/sfc/hilbert/HilbertSFCOperations.java#L90-L118) which is actually [PrimitiveHilbertSFCOperations.decomposeRange](https://github.com/ngageoint/geowave/blob/302092385d841a83addcb30c120b03148dfe8a5d/core/index/src/main/java/mil/nga/giat/geowave/core/index/sfc/hilbert/PrimitiveHilbertSFCOperations.java#L306-L436)
    - [Called once per bin](https://github.com/ngageoint/geowave/blob/302092385d841a83addcb30c120b03148dfe8a5d/core/index/src/main/java/mil/nga/giat/geowave/core/index/sfc/tiered/TieredSFCIndexStrategy.java#L136)
 11. [com.google.uzaygezen.core.Query.getFilteredIndexRanges](https://github.com/aioaneid/uzaygezen/blob/34cfec2f372b55cb1dabdafc38aa3439f46a7e60/uzaygezen-core/src/main/java/com/google/uzaygezen/core/Query.java#L52-L54)
+
+### Secondary Index ###
+
+Secondary indices (numerical, temporal, textual, user-defined) are also available in GeoWave.
+If one wishes to perform a query making use of a secondary index, it must be used [explicitly](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/test/src/test/java/mil/nga/giat/geowave/test/query/SecondaryIndexingQueryIT.java#L179-L183).
+The following code
+
+```java
+final CloseableIterator<ByteArrayId> matches = secondaryIndexQueryManager.query(
+                (BasicQuery) query,
+                secondaryIndex,
+                index,
+                new String[0]);
+```
+
+produces the following chain of events
+
+- [SecondaryIndexQueryManager.query](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/core/store/src/main/java/mil/nga/giat/geowave/core/store/index/SecondaryIndexQueryManager.java#L32-L46)
+- [SecondaryIndexDataStore.query](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/core/store/src/main/java/mil/nga/giat/geowave/core/store/index/SecondaryIndexDataStore.java#L48-L53)
+- [AccumuloSecondaryIndexDataStore.query](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/extensions/datastores/accumulo/src/main/java/mil/nga/giat/geowave/datastore/accumulo/index/secondary/AccumuloSecondaryIndexDataStore.java#L125-L163)
+
+A [collection of ranges](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/extensions/datastores/accumulo/src/main/java/mil/nga/giat/geowave/datastore/accumulo/index/secondary/AccumuloSecondaryIndexDataStore.java#L140) covering the responsive records is generated using the secondary index,
+and those ranges are then [scanned linearly](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/extensions/datastores/accumulo/src/main/java/mil/nga/giat/geowave/datastore/accumulo/index/secondary/AccumuloSecondaryIndexDataStore.java#L137-L139) for the desired records.
+
+[No cost-based optimization](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/core/store/src/main/java/mil/nga/giat/geowave/core/store/index/SecondaryIndexQueryManager.java#L8-L9) is done.
