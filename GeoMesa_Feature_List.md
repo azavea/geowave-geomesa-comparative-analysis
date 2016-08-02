@@ -71,6 +71,26 @@
     - Pointer: [Point2PointProcess.scala](https://github.com/locationtech/geomesa/blob/b7056fae4988ef524913bf3dc33d9ff2a3476b09/geomesa-process/src/main/scala/org/locationtech/geomesa/process/Point2PointProcess.scala)
     - Convert a collection of points into a collection of line segments given a middle term parameter. Optionally break on the day of occurrence. This feature isn't really advertised.
 
+## Indices ##
+
+- [Default Indices](http://www.geomesa.org/documentation/1.2.3/user/data_management.html#index-structure)
+   - Z3
+      - Pointer: [Z3IdxStrategy.scala](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/Z3IdxStrategy.scala)
+      - Notes: For points, X, Y, and Time have resolutions of [21, 21, and 20 bits](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-z3/src/main/scala/org/locationtech/geomesa/curve/Z3SFC.scala#L17-L19), respectively.  Objects with extent have [22 total bits](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/data/tables/Z3Table.scala#L45-L52) of resolution (24 - 2 because the two most significant bits are not used).
+   - Z2
+      - Pointer: [Z2IdxStrategy.scala](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/Z2IdxStrategy.scala)
+      - Notes: For points, X and Y both have resolutions of [31 bits](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-z3/src/main/scala/org/locationtech/geomesa/curve/Z2SFC.scala#L16-L17).  Objects with extent have [22 total bits](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/data/tables/Z2Table.scala#L38-L43) of resolution (24 - 2 because the two most significant bits are not used).
+   - Record
+      - Pointer: [RecordIdxStrategy.scala](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/RecordIdxStrategy.scala)
+      - Notes: This is an index over object UUIDs.
+- [Optional Indices](http://www.geomesa.org/documentation/1.2.3/user/data_management.html#index-structure)
+   - Attribute
+      - Pointer: [AttributeIdxStrategy.scala](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/AttributeIdxStrategy.scala)
+      - Notes: This is an index over SimpleFeature attributes.  One can create a [join index over the UUID, date, and geometry](http://www.geomesa.org/documentation/1.2.3/user/data_management.html#join-indices) or a [full index](http://www.geomesa.org/documentation/1.2.3/user/data_management.html#full-indices).
+   - ST
+      - Pointer: [STIdxStrategy.scala](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/STIdxStrategy.scala)
+      - Notes: [Spatio-Temporal Index?](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/STIdxStrategy.scala#L84) [Deprecated?](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/STIdxStrategy.scala#L34)
+- [Cost-Based Optimization (CBO)](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/QueryStrategyDecider.scala#L34-L52) is used to select with index to use
 
 ## Output
 - geomesa-accumulo
