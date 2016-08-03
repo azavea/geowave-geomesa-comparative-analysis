@@ -55,3 +55,6 @@ lazy val root = (project in file("."))
   .settings(commonSettings: _*)
   .settings(libraryDependencies ++= generalDependencies)
 
+lazy val common = (project in file("common"))
+  .dependsOn(root)
+  .settings(commonSettings: _*)
