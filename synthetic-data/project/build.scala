@@ -9,6 +9,7 @@ object Version {
 
   val accumulo = "1.7.1"
   val geomesa  = "1.2.4-BACKPORT"
+  val geowave  = "0.9.3-SNAPSHOT"
   val geotools = "14.3"
   val jts      = "1.14.0"
 }
