@@ -121,7 +121,7 @@
 
 - GeoServer Plugin
    - Pointer: [GeoserverServiceImpl.java](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/services/webapp/src/main/java/mil/nga/giat/geowave/service/impl/GeoserverServiceImpl.java)
-   - Notes: This can be used to view GeoWave Layers in GeoServer.
+   - Notes: This can be used to view GeoWave Layers in GeoServer.  Using an [SLD](https://en.wikipedia.org/wiki/Styled_Layer_Descriptor) such as [this one](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/examples/example-slds/DecimatePoints.sld) allows large datasets to be shown interactively by subsampling at the pixel level
 - Query
    - RDD
       - Pointer: [GeoWaveInputFormat.java](https://github.com/ngageoint/geowave/blob/7f1194ede7d8efd358f9f26d23dd3fc954be9ca2/core/mapreduce/src/main/java/mil/nga/giat/geowave/mapreduce/input/GeoWaveInputFormat.java)
