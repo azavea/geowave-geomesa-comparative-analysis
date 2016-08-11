@@ -9,12 +9,12 @@
     - Behavior tested; works
   - Ingest vectors, provided a `GeoMesaInputFormat`
     - Pointer: [IngestCommand.scala](https://github.com/locationtech/geomesa/blob/b7056fae4988ef524913bf3dc33d9ff2a3476b09/geomesa-tools/src/main/scala/org/locationtech/geomesa/tools/accumulo/commands/IngestCommand.scala)
+    - Predefined, common `SimpleFeatureType`s are provided - gdelt,
+      geolife, geonames, gtd, nyctaxi, osm-gpx, tdrive, twitter
     - Behavior tested; works
   - Ingest rasters
     - Pointer: [IngestRasterCommand.scala](https://github.com/locationtech/geomesa/blob/b7056fae4988ef524913bf3dc33d9ff2a3476b09/geomesa-tools/src/main/scala/org/locationtech/geomesa/tools/accumulo/commands/IngestRasterCommand.scala)
     - Supported file formats: "tif", "tiff", "geotiff", "dt0", "dt1", "dt2"
-
-
 - geomesa-convert (tools for converting various serialization formats to `SimpleFeature`s for ingestion - conversion mechanisms are specified by way of configuration files)
   - delimited text (usually CSV/TSV)
     - Pointer: [DelimitedTextConverter.scala](https://github.com/locationtech/geomesa/blob/b7056fae4988ef524913bf3dc33d9ff2a3476b09/geomesa-convert/geomesa-convert-text/src/main/scala/org/locationtech/geomesa/convert/text/DelimitedTextConverter.scala)
@@ -33,6 +33,7 @@
     - A generic apache-camel based implementation](https://github.com/locationtech/geomesa/blob/b7056fae4988ef524913bf3dc33d9ff2a3476b09/geomesa-stream/geomesa-stream-generic/src/main/scala/org/locationtech/geomesa/stream/generic/GenericSimpleFeatureStreamSourceFactory.scala)
   - Hooks for updating GeoServer on stream update
     - Pointer: In docs but not implemented? [stub pomfile](https://github.com/locationtech/geomesa/tree/b7056fae4988ef524913bf3dc33d9ff2a3476b09/geomesa-gs-plugin/geomesa-stream-gs-plugin)
+- Storm/Kafka ingest (mentioned in [Other Features](#Other Features) below)
 
 ## Data Processing
 
@@ -53,6 +54,10 @@
   - computing a heatmap from a provided CQL query
     - Pointer: [DensityProcess.scala](https://github.com/locationtech/geomesa/blob/b7056fae4988ef524913bf3dc33d9ff2a3476b09/geomesa-process/src/main/scala/org/locationtech/geomesa/process/DensityProcess.scala)
   - Given CQL and a description of the stats of interest, compute said stats on said CQL results
+    - Currently supported statistics: count, enumeration, frequency
+      (countMinSketch), histogram, top-k, and min/max (bounds).
+    - Command line tools expose the following statistics:
+      count, histogram, min/max (bounds), and top-k
     - Pointer: [StatsIteratorProcess.scala](https://github.com/locationtech/geomesa/blob/b7056fae4988ef524913bf3dc33d9ff2a3476b09/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/process/stats/StatsIteratorProcess.scala)
   - 'Tube selection' (space/time correlated queries)
     - Pointer: [geomesa 'tube' queries](geomesa/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/process/tube/)
@@ -80,6 +85,9 @@
   - Produce a collection of features for a given datastore
     - Pointer: [<DataStore>.getFeatureSource](https://github.com/locationtech/geomesa/blob/99d2bcf47a2363f58e05abf7f3c39ef214551ed2/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/data/AccumuloDataStore.scala#L329)
     - Performance characteristics vs the above reader are unclear. This feature is used, however, in the command line export
+  - Direct map/reduce exports
+    - Pointer [Map/Reduce
+      Export](https://github.com/locationtech/geomesa/blob/master/geomesa-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaOutputFormat.scala)
 - geomesa-tools (command line tools for interacting with geomesa)
   - Serialize and export stored features (vectors)
     - Pointer: [ExportCommand.scala](https://github.com/locationtech/geomesa/blob/b7056fae4988ef524913bf3dc33d9ff2a3476b09/geomesa-tools/src/main/scala/org/locationtech/geomesa/tools/accumulo/commands/ExportCommand.scala)
@@ -87,7 +95,22 @@
 
 ## Other Features
 
+- GeoMesa Native API
+  - An alternative to the geotools interface for interaction with
+    GeoMesa stores
+  - Pointer:
+    [geomesa-native-api](https://github.com/locationtech/geomesa/tree/c582d8924331d507e5f4983c32eaf09a31d2d6ea/geomesa-native-api)
 - HBase backend
+  - Pointer:
+    [geomesa-hbase-datastore](https://github.com/locationtech/geomesa/tree/612cb2e9617e41d2a40681b1ad2b2d0a7cc9cb0a/geomesa-hbase/geomesa-hbase-datastore)
+- Google BigTable backend
+  - Pointer: [geomesa-bigtable-datastore](https://github.com/locationtech/geomesa/blob/612cb2e9617e41d2a40681b1ad2b2d0a7cc9cb0a/geomesa-hbase/geomesa-bigtable-datastore/pom.xml)
+- BLOB backend
+  - Pointer:
+    [geomesa-blobstore](https://github.com/locationtech/geomesa/tree/c582d8924331d507e5f4983c32eaf09a31d2d6ea/geomesa-blobstore)
+- Sampling of data for custom statistics
+  - Example of [sampling
+    query](https://github.com/locationtech/geomesa/blob/master/geomesa-accumulo/geomesa-accumulo-datastore/src/test/scala/org/locationtech/geomesa/accumulo/index/Z3IdxStrategyTest.scala#L301)
 - geomesa-cassandra
   - Back a geomesa datastore with cassandra
     - [cassandra datastore](https://github.com/locationtech/geomesa/tree/b7056fae4988ef524913bf3dc33d9ff2a3476b09/geomesa-cassandra/geomesa-cassandra-datastore/src/main/scala/org/locationtech/geomesa/cassandra/data)
