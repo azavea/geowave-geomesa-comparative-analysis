@@ -79,12 +79,18 @@
 ## Indices ##
 
 - [Default Indices](http://www.geomesa.org/documentation/1.2.3/user/data_management.html#index-structure)
+   - XZ3 (GeoMesa 1.2.5+)
+      - Pointer: [XZ3IdxStrategy.scala](https://github.com/locationtech/geomesa/blob/1efb69f41c255c4ba517720c0b30aac0194cd254/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/XZ3IdxStrategy.scala)
+      - Notes: Default for objects with extent in GeoMesa 1.2.5.  Objects are indexed with a maximum resolution of 36 bits ([12 divisions](https://github.com/locationtech/geomesa/blob/master/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/data/tables/XZ3Table.scala#L33) into [eighths](https://github.com/locationtech/geomesa/blob/master/geomesa-z3/src/main/scala/org/locationtech/geomesa/curve/XZ3SFC.scala#L283-L312)).
+   - XZ2 (GeoMesa 1.2.5+)
+      - Pointer: [XZ2IdxStrategy.scala](https://github.com/locationtech/geomesa/blob/1efb69f41c255c4ba517720c0b30aac0194cd254/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/XZ2IdxStrategy.scala)
+      - Notes: Default for objects with extent in GeoMesa 1.2.5.  Objects are indexed with a maximum resolution of 24 bits ([12 divisions](https://github.com/locationtech/geomesa/blob/master/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/data/tables/XZ2Table.scala#L28) into [quarters](https://github.com/locationtech/geomesa/blob/master/geomesa-z3/src/main/scala/org/locationtech/geomesa/curve/XZ2SFC.scala#L263-L285)).
    - Z3
       - Pointer: [Z3IdxStrategy.scala](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/Z3IdxStrategy.scala)
-      - Notes: For points, X, Y, and Time have resolutions of [21, 21, and 20 bits](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-z3/src/main/scala/org/locationtech/geomesa/curve/Z3SFC.scala#L17-L19), respectively.  Objects with extent have [22 total bits](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/data/tables/Z3Table.scala#L45-L52) of resolution (24 - 2 because the two most significant bits are not used).
+      - Notes: For points, X, Y, and Time have resolutions of [21, 21, and 20 bits](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-z3/src/main/scala/org/locationtech/geomesa/curve/Z3SFC.scala#L17-L19), respectively.
    - Z2
       - Pointer: [Z2IdxStrategy.scala](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/Z2IdxStrategy.scala)
-      - Notes: For points, X and Y both have resolutions of [31 bits](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-z3/src/main/scala/org/locationtech/geomesa/curve/Z2SFC.scala#L16-L17).  Objects with extent have [22 total bits](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/data/tables/Z2Table.scala#L38-L43) of resolution (24 - 2 because the two most significant bits are not used).
+      - Notes: For points, X and Y both have resolutions of [31 bits](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-z3/src/main/scala/org/locationtech/geomesa/curve/Z2SFC.scala#L16-L17).
    - Record
       - Pointer: [RecordIdxStrategy.scala](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/RecordIdxStrategy.scala)
       - Notes: This is an index over object UUIDs.
