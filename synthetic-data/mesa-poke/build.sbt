@@ -1,9 +1,8 @@
 name := "mesa-poke"
 
 resolvers ++= Seq(
-  // "locationtech-releases" at "https://repo.locationtech.org/content/repositories/releases/",
-  // "locationtech-snapshots" at "https://repo.locationtech.org/content/repositories/snapshots/",
-  "Local Repository" at "file://" + Path.userHome.absolutePath + "/.m2/repository",
+  "locationtech-releases" at "https://repo.locationtech.org/content/repositories/releases/",
+  "locationtech-snapshots" at "https://repo.locationtech.org/content/repositories/snapshots/",
   "boundlessgeo" at "http://repo.boundlessgeo.com/main/"
 )
 

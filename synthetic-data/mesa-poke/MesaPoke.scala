@@ -28,6 +28,10 @@ object MesaPoke extends CommonPoke {
     dsConf.put("password", args(3))
     dsConf.put("tableName", args(4))
 
+    val eitherSft = CommonSimpleFeatureType("Geometry")
+    val extentSft = CommonSimpleFeatureType("Polygon")
+    val pointSft = CommonSimpleFeatureType("Point")
+
     eitherSft.getUserData.put(Constants.SF_PROPERTY_START_TIME, CommonSimpleFeatureType.whenField) // Inform GeoMesa which field contains "time"
     eitherSft.getUserData.put("geomesa.mixed.geometries", java.lang.Boolean.TRUE) // Allow GeoMesa to index points and extents together
     extentSft.getUserData.put(Constants.SF_PROPERTY_START_TIME, CommonSimpleFeatureType.whenField)
@@ -36,12 +40,14 @@ object MesaPoke extends CommonPoke {
     // Register types with GeoMesa
     val ds = DataStoreFinder.getDataStore(dsConf).asInstanceOf[AccumuloDataStore]
     args.drop(5)
-      .map({ inst => inst.split(":").head }).distinct
+      .map({ inst => inst.split(",").head }).distinct
       .map({ kind =>
         kind match {
           case `either` => eitherSft
           case `extent` => extentSft
           case `point` => pointSft
+          case str =>
+            throw new Exception(str)
         }
       })
       .foreach({ sft => ds.createSchema(sft) })
@@ -68,17 +74,15 @@ object MesaPoke extends CommonPoke {
       .parallelize(geometries, geometries.length)
       .foreach({ tuple =>
         val (name, spec) = sftMap.value.getOrElse(tuple._1, throw new Exception)
-        val sft = SimpleFeatureTypes.createType(name, spec)
+        val schema = SimpleFeatureTypes.createType(name, spec)
         val fc =
           tuple match {
-            case (_: String, n: Int, -1.0, randomTime: Boolean, seed: Long) =>
-              PointGenerator(n, sft, randomTime, seed)
-            case (_: String, n: Int, meters: Double, randomTime: Boolean, seed: Long) =>
-              ExtentGenerator(n, meters, sft, randomTime, seed)
+            case (_, seed: Long, lng: String, lat: String, time: String, width: String) =>
+              GeometryGenerator(schema, seed, lng, lat, time, width)
           }
         val ds = DataStoreFinder.getDataStore(dsConf)
 
-        ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore].addFeatures(fc)
+        ds.getFeatureSource(schema.getTypeName).asInstanceOf[SimpleFeatureStore].addFeatures(fc)
         ds.dispose
       })
 
