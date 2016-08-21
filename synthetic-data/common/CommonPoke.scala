@@ -14,24 +14,23 @@ class CommonPoke {
   var seed: Long = 0
 
   def decode(inst: String) = {
-    inst.split(":").map(_.toLowerCase) match {
-      case Array(point, "true", n: String, m: String) =>
-        (0 until m.toInt).map({ _ => (point, n.toInt, -1.0, true, {seed += 1; seed}) })
-      case Array(either, "true", n: String, m: String) =>
-        (0 until m.toInt).map({ _ => (either, n.toInt, -1.0, true, {seed += 1; seed}) })
-      case Array(point, "false", n: String, m: String) =>
-        (0 until m.toInt).map({ _ => (point, n.toInt, -1.0, false, {seed += 1; seed}) })
-      case Array(either, "false", n: String, m: String) =>
-        (0 until m.toInt).map({ _ => (either, n.toInt, -1.0, false, {seed += 1; seed}) })
-
-      case Array(extent, "true", n: String, lo: String, hi: String, step: String) =>
-        (lo.toDouble until hi.toDouble by step.toDouble).map({ meters => (extent, n.toInt, meters, true, {seed += 1; seed}) })
-      case Array(either, "true", n: String, lo: String, hi: String, step: String) =>
-        (lo.toDouble until hi.toDouble by step.toDouble).map({ meters => (either, n.toInt, meters, true, {seed += 1; seed}) })
-      case Array(extent, "false", n: String, lo: String, hi: String, step: String) =>
-        (lo.toDouble until hi.toDouble by step.toDouble).map({ meters => (extent, n.toInt, meters, false, {seed += 1; seed}) })
-      case Array(either, "false", n: String, lo: String, hi: String, step: String) =>
-        (lo.toDouble until hi.toDouble by step.toDouble).map({ meters => (either, n.toInt, meters, false, {seed += 1; seed}) })
+    /* schema,tasks,lng,lat,time,width */
+    inst.split(",").map(_.toLowerCase) match {
+      case Array(schemaStr: String, tasks: String, lng: String, lat: String, time: String, width: String) =>
+        val schema = schemaStr match {
+          case `either` => either
+          case `extent` => extent
+          case `point` => point
+          case str =>
+            val e = s"Expected <$either>, <$extent>, <$point>; found <$str>"
+            throw new Exception(e)
+        }
+        (0 until tasks.toInt).map({ _ =>
+          (schema, {seed += 1; seed}, lng, lat, time, width) })
+      /* Error */
+      case str =>
+        val e = s"Expected <schema,tasks,lng,lat,time,width>; found <$str>"
+        throw new Exception(e)
     }
   }
 
