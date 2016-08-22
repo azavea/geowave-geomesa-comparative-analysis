@@ -13,7 +13,8 @@ object GeometryGenerator {
 
   import CommonSimpleFeatureType._
 
-  val factory = new GeometryFactory
+  val precisionModel = new PrecisionModel(PrecisionModel.FLOATING)
+  val factory = new GeometryFactory(precisionModel, 4326)
   val rng = new scala.util.Random
 
   type rngType = () => Double
@@ -115,14 +116,14 @@ object GeometryGenerator {
           val lat = latFn()
           val time = timeFn()
 
-          val latMin = math.max(latFn(), 0)
-          val lngMin = math.max(lngFn(), 0)
+          val latMin = math.max(lat, 0)
+          val lngMin = math.max(lng, 0)
           val latMax = math.min(latMin + width, 90)
           val lngMax = math.min(lngMin + width, 180)
-          val xy1 = new Coordinate(latMin, lngMin)
-          val xy2 = new Coordinate(latMin, lngMax)
-          val xy3 = new Coordinate(latMax, lngMax)
-          val xy4 = new Coordinate(latMax, lngMin)
+          val xy1 = new Coordinate(lngMin, latMin)
+          val xy2 = new Coordinate(lngMax, latMin)
+          val xy3 = new Coordinate(lngMax, latMax)
+          val xy4 = new Coordinate(lngMin, latMax)
           val ring = factory.createLinearRing(List(xy1, xy2, xy3, xy4, xy1).toArray)
           val place = factory.createPolygon(ring)
 
@@ -138,7 +139,7 @@ object GeometryGenerator {
           val lng = lngFn()
           val lat = latFn()
 
-          val xy = new Coordinate(latFn(), lngFn())
+          val xy = new Coordinate(lng, lat)
           val place = factory.createPoint(xy)
 
           fc.add(fillIn(sf, time, place))
