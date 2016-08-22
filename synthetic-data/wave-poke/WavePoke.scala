@@ -3,20 +3,25 @@ package com.azavea.geowave
 import com.azavea.common._
 
 import mil.nga.giat.geowave.adapter.vector.FeatureDataAdapter
+import mil.nga.giat.geowave.core.geotime.index.dimension._
+import mil.nga.giat.geowave.core.geotime.index.dimension.TemporalBinningStrategy.{ Unit => BinUnit }
 import mil.nga.giat.geowave.core.geotime.ingest._
+import mil.nga.giat.geowave.core.index.dimension.NumericDimensionDefinition
+import mil.nga.giat.geowave.core.index.sfc.SFCDimensionDefinition
+import mil.nga.giat.geowave.core.index.sfc.SFCFactory.SFCType
+import mil.nga.giat.geowave.core.index.sfc.tiered.TieredSFCIndexFactory
 import mil.nga.giat.geowave.core.store.{ DataStore, IndexWriter }
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex
 import mil.nga.giat.geowave.datastore.accumulo._
 import org.apache.spark.{SparkConf, SparkContext}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes // sic!
 import org.opengis.feature.simple.SimpleFeature
-
 
 object WavePoke extends CommonPoke {
 
   def main(args: Array[String]): Unit = {
 
-    if (args.length < 6) {
-      println(s"arguments: <instance> <zookeepers> <user> <password> <namespace> <instruction\{1,\}>")
+    if (args.length < 7) {
+      println(s"arguments: <instance> <zookeepers> <user> <password> <gwNamespace> <indexType> <instruction\{1,\}>")
       System.exit(-1)
     }
 
@@ -24,40 +29,71 @@ object WavePoke extends CommonPoke {
     val sparkConf = (new SparkConf).setAppName("GeoWave Synthetic Data Ingest")
     val sparkContext = new SparkContext(sparkConf)
 
-    // Create a map of encoded SimpleFeatureTypes.  This map can cross
-    // serialization boundary.
-    val sftMap = sparkContext.broadcast(
-      Map(
-        either -> (eitherSft.getTypeName, SimpleFeatureTypes.encodeType(eitherSft)),
-        extent -> (extentSft.getTypeName, SimpleFeatureTypes.encodeType(extentSft)),
-        point -> (pointSft.getTypeName, SimpleFeatureTypes.encodeType(pointSft))
-      )
-    )
-
     // Generate List of Geometries
-    val geometries = args.drop(5).toList.flatMap(decode)
+    val geometries = args.drop(6).toList.flatMap(decode)
 
     // Store Geometries in GeoWave
     sparkContext
       .parallelize(geometries, geometries.length)
       .foreach({ tuple =>
-        // Create an AccumuloDataStore
         val basicOpsInstance = new BasicAccumuloOperations(args(1), args(0), args(2), args(3), args(4))
         val ds = new AccumuloDataStore(basicOpsInstance)
 
-        // Create Index
-        val index = (new SpatialTemporalDimensionalityTypeProvider.SpatialTemporalIndexBuilder).createIndex()
+        val index = args(5).split(":") match {
+          case Array("spacetime", xbits, ybits, tbits) => {
+            /* Create a single-tier index.  Cribbed from
+             * PersistenceEncodingTest.java and HilbertSFCTest.java in
+             * the GeoWave Tree. */
+            val SPATIAL_TEMPORAL_DIMENSIONS = Array[SFCDimensionDefinition](
+              new SFCDimensionDefinition(new LongitudeDefinition, xbits.toInt),
+              new SFCDimensionDefinition(new LatitudeDefinition(true), ybits.toInt),
+              new SFCDimensionDefinition(new TimeDefinition(BinUnit.WEEK), tbits.toInt)
+            )
+            val model = (new SpatialTemporalDimensionalityTypeProvider).createPrimaryIndex.getIndexModel
+            val strategy = TieredSFCIndexFactory.createSingleTierStrategy(
+              SPATIAL_TEMPORAL_DIMENSIONS,
+              SFCType.HILBERT
+            )
 
-        val (name, spec) = sftMap.value.getOrElse(tuple._1, throw new Exception)
-        val sft = SimpleFeatureTypes.createType(name, spec)
-        val adapter = new FeatureDataAdapter(sft)
-        val indexWriter = ds.createWriter(adapter, index).asInstanceOf[IndexWriter[SimpleFeature]]
-        val itr = tuple match {
-          case (_: String, n: Int, -1.0, randomTime: Boolean, seed: Long) =>
-            PointGenerator(n, sft, randomTime, seed).features
-          case (_: String, n: Int, meters: Double, randomTime: Boolean, seed: Long) =>
-            ExtentGenerator(n, meters, sft, randomTime, seed).features
+            new PrimaryIndex(strategy, model)
+          }
+          case Array("space", xbits, ybits) => {
+            val SPATIAL_DIMENSIONS = Array[SFCDimensionDefinition](
+              new SFCDimensionDefinition(new LongitudeDefinition, xbits.toInt),
+              new SFCDimensionDefinition(new LatitudeDefinition(true), ybits.toInt)
+            )
+            val model = (new SpatialDimensionalityTypeProvider).createPrimaryIndex.getIndexModel
+            val strategy = TieredSFCIndexFactory.createSingleTierStrategy(
+              SPATIAL_DIMENSIONS,
+              SFCType.HILBERT
+            )
+
+            new PrimaryIndex(strategy, model)
+          }
+          case Array("space") =>
+            (new SpatialDimensionalityTypeProvider.SpatialIndexBuilder)
+              .createIndex
+          case Array("spacetime") =>
+            (new SpatialTemporalDimensionalityTypeProvider.SpatialTemporalIndexBuilder)
+              .createIndex
+          case _ =>
+            throw new Exception("Unrecognized index type ${args(6)}")
         }
+
+        val schema = tuple._1 match {
+          case `either` => CommonSimpleFeatureType("Geometry")
+          case `extent` => CommonSimpleFeatureType("Polygon")
+          case `point` => CommonSimpleFeatureType("Point")
+        }
+
+        val adapter = new FeatureDataAdapter(schema)
+        val indexWriter = ds.createWriter(adapter, index).asInstanceOf[IndexWriter[SimpleFeature]]
+
+        val fc = tuple match {
+          case (_, seed: Long, lng: String, lat: String, time: String, width: String) =>
+            GeometryGenerator(schema, seed, lng, lat, time, width)
+        }
+        val itr = fc.features
 
         while (itr.hasNext) { indexWriter.write(itr.next) }
         itr.close
