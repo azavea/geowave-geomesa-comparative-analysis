@@ -1,0 +1,25 @@
+[
+    {
+        "name": "benchmark_service",
+        "image": "quay.io/geotrellis/comparative-analysis-bastion",
+        "cpu": 1024,
+        "memory": 3072,
+        "essential": true,
+        "environment": [
+            { "name": "GM_ZK", "value": "${geomesa_zookeeper}"},
+            { "name": "GW_ZK", "value": "${geowave_zookeeper}"},
+            { "name": "GM_USER", "value": "root"},
+            { "name": "GW_USER", "value": "root"},
+            { "name": "GM_PASS", "value": "secret"},
+            { "name": "GW_PASS", "value": "secret"},
+            { "name": "GM_INSTANCE", "value": "gis"},
+            { "name": "GW_INSTANCE", "value": "gis"}
+        ],
+        "portMappings": [
+            {
+                "containerPort": 7070,
+                "hostPort": 80
+            }
+        ]
+    }
+]
