@@ -10,11 +10,13 @@ import mil.nga.giat.geowave.core.index.dimension.NumericDimensionDefinition
 import mil.nga.giat.geowave.core.index.sfc.SFCDimensionDefinition
 import mil.nga.giat.geowave.core.index.sfc.SFCFactory.SFCType
 import mil.nga.giat.geowave.core.index.sfc.tiered.TieredSFCIndexFactory
-import mil.nga.giat.geowave.core.store.{ DataStore, IndexWriter }
+import mil.nga.giat.geowave.core.store.DataStore
 import mil.nga.giat.geowave.core.store.index.PrimaryIndex
+import mil.nga.giat.geowave.core.store.index.writer.IndexWriter
 import mil.nga.giat.geowave.datastore.accumulo._
 import org.apache.spark.{SparkConf, SparkContext}
 import org.opengis.feature.simple.SimpleFeature
+
 
 object WavePoke extends CommonPoke {
 
