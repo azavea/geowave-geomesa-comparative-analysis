@@ -36,9 +36,11 @@ GEOMESA_CLUSTER_ID=$(shell cat geomesa-cluster-id.txt)
 
 geomesa-cluster-id.txt:
 	$(call EMR_CREATE_CLUSTER,geomesa,quay.io/geodocker/accumulo-geomesa)
+	until [[ -f geomesa-cluster-id.txt ]] ; do :; done # wait to avoid file system race
 
 geowave-cluster-id.txt:
 	$(call EMR_CREATE_CLUSTER,geowave,quay.io/geodocker/accumulo-geowave)
+	until [[ -f geowave-cluster-id.txt ]] ; do :; done # wait to avoid file system race
 
 deploy: geomesa-cluster-id.txt geowave-cluster-id.txt
 	@echo Waiting for `emr wait clusters-running` ...
