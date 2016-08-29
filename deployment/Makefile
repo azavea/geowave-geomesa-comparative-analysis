@@ -43,13 +43,11 @@ geowave-cluster-id.txt:
 	until [[ -f geowave-cluster-id.txt ]] ; do :; done # wait to avoid file system race
 
 deploy: geomesa-cluster-id.txt geowave-cluster-id.txt
-	@echo Waiting for `emr wait clusters-running` ...
 	terraform apply \
 -var 'ec2_key=${EC2_KEY}' \
 -var 'subnet_id=${SUBNET_ID}' \
 -var 'geomesa_zookeeper=$(call EMR_IP,${GEOMESA_CLUSTER_ID})' \
--var 'geowave_zookeeper=$(call EMR_IP,${GEOWAVE_CLUSTER_ID})' \
-
+-var 'geowave_zookeeper=$(call EMR_IP,${GEOWAVE_CLUSTER_ID})'
 destroy-service:
 	terraform destroy -force \
 -var 'ec2_key=${EC2_KEY}' \
