@@ -13,7 +13,8 @@ export WORKER_COUNT := 1
 
 GEODOCKER_BOOTSTRAP=s3://geotrellis-test/geodocker/bootstrap-geodocker-accumulo.sh
 
-EMR_IP=$(shell aws emr wait cluster-running --cluster-id ${1} 1>&2 \
+EMR_IP=$(shell $(warning "Waiting for emr cluster ${1} ...") \
+  aws emr wait cluster-running --cluster-id ${1} 1>&2 \
 	&& aws emr describe-cluster --output json  --cluster-id ${1} | jq -r '.Cluster.MasterPublicDnsName')
 
 define EMR_CREATE_CLUSTER
