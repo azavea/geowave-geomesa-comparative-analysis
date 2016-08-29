@@ -17,9 +17,7 @@ EMR_IP=$(shell $(warning "Waiting for emr cluster ${1} ...") \
   aws emr wait cluster-running --cluster-id ${1} 1>&2 \
 	&& aws emr describe-cluster --output json  --cluster-id ${1} | jq -r '.Cluster.MasterPublicDnsName')
 
-define EMR_CREATE_CLUSTER
-	@echo Creating "$(1)" Cluster
-	aws emr create-cluster --name "${NAME} ${1} ${USER}" \
+EMR_CREATE_CLUSTER=$(shell aws emr create-cluster --name "${NAME} ${1} ${USER}" \
 --release-label emr-5.0.0 \
 --output text \
 --use-default-roles \
@@ -30,9 +28,7 @@ define EMR_CREATE_CLUSTER
 Name=Master,BidPrice=${MASTER_PRICE},InstanceCount=1,InstanceGroupType=MASTER,InstanceType=${MASTER_INSTANCE} \
 Name=Workers,BidPrice=${WORKER_PRICE},InstanceCount=${WORKER_COUNT},InstanceGroupType=CORE,InstanceType=${WORKER_INSTANCE} \
 --bootstrap-actions Name=bootstrap-${1},Path=${GEODOCKER_BOOTSTRAP},Args=[-i=${2},-n=gis,-p=secret] \
-| tee ${1}-cluster-id.txt
-endef
-
+| tee ${1}-cluster-id.txt)
 
 GEOWAVE_CLUSTER_ID=$(shell cat geowave-cluster-id.txt)
 GEOMESA_CLUSTER_ID=$(shell cat geomesa-cluster-id.txt)
