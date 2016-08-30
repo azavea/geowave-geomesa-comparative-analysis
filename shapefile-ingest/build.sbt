@@ -1,5 +1,5 @@
 lazy val commonSettings = Seq(
-  name := "avro-shapefile",
+  name := "shapefile-ingest",
   version := "0.1.0",
   scalaVersion := Version.scala,
   crossScalaVersions := Seq("2.11.5", "2.10.5"),
@@ -56,11 +56,8 @@ assemblyMergeStrategy in assembly := {
   case _ => MergeStrategy.first
 }
 
-lazy val root = Project("avro-shapefile", file("."))
+lazy val root = Project("shapefile-ingest", file("."))
   .settings(commonSettings: _*)
 
-lazy val converter = Project("converter", file("converter"))
-  .settings(commonSettings: _*)
-
-lazy val sparkIngest = Project("spark-gm-ingest", file("spark-gm-ingest"))
+lazy val sparkIngest = Project("geomesa", file("geomesa"))
   .settings(commonSettings: _*)
