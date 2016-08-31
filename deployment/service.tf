@@ -24,18 +24,16 @@ data "template_file" "ecs_ca_task" {
 
 # Allows resource sharing among multiple containers
 resource "aws_ecs_task_definition" "ca" {
-  family                = "benchmark"
+  family                = "benchmarking"
   container_definitions = "${data.template_file.ecs_ca_task.rendered}"
 }
 
 # Defines running an ECS task as a service
-resource "aws_ecs_service" "benchmark" {
+resource "aws_ecs_service" "benchmarking" {
   name                               = "BenchmarkService"
   cluster                            = "${aws_ecs_cluster.ca.id}"
   task_definition                    = "${aws_ecs_task_definition.ca.family}:${aws_ecs_task_definition.ca.revision}"
   desired_count                      = "${var.desired_benchmark_instance_count}"
-  deployment_minimum_healthy_percent = 100
-  deployment_maximum_percent         = 200
   # TODO: this needs to be managed
   iam_role                           = "${aws_iam_role.ecs_service_role.id}"
 
@@ -58,8 +56,6 @@ resource "aws_elb" "ca" {
   }
 
   cross_zone_load_balancing   = false
-  connection_draining         = true
-  connection_draining_timeout = 300
 
   tags {
     Name        = "Comparative Analysis ELB"
