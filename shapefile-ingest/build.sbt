@@ -1,5 +1,4 @@
 lazy val commonSettings = Seq(
-  name := "shapefile-ingest",
   version := "0.1.0",
   scalaVersion := Version.scala,
   crossScalaVersions := Seq("2.11.8", "2.10.5"),
@@ -58,10 +57,12 @@ assemblyMergeStrategy in assembly := {
 
 lazy val root = Project("shapefile-ingest", file("."))
   .settings(commonSettings: _*)
-  .aggregate(geomesa)
+  .settings(name := "shapefile-ingest")
+  .aggregate(geomesa, common)
 
 lazy val common = Project("common", file("common"))
   .settings(commonSettings: _*)
 
 lazy val geomesa = Project("geomesa", file("geomesa"))
   .settings(commonSettings: _*)
+  .dependsOn(common)
