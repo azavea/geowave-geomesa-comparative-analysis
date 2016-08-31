@@ -39,7 +39,7 @@ lazy val commonSettings = Seq(
     "org.geotools"         % "gt-opengis"     % Version.geotools,
     "org.geotools"         % "gt-referencing" % Version.geotools,
     "org.geotools"         % "gt-epsg-hsql"   % Version.geotools,
-    "com.github.scopt"     %% "scopt"         % "3.5.0"
+    "com.github.scopt"     %% "scopt"         % "3.4.0"
   )
 )
 
@@ -59,5 +59,8 @@ assemblyMergeStrategy in assembly := {
 lazy val root = Project("shapefile-ingest", file("."))
   .settings(commonSettings: _*)
 
-lazy val sparkIngest = Project("geomesa", file("geomesa"))
+lazy val geomesaIngest = Project("geomesa", file("geomesa"))
+  .settings(commonSettings: _*)
+
+lazy val geowaveIngest = Project("geowave", file("geowave"))
   .settings(commonSettings: _*)
