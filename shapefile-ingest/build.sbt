@@ -2,7 +2,7 @@ lazy val commonSettings = Seq(
   name := "shapefile-ingest",
   version := "0.1.0",
   scalaVersion := Version.scala,
-  crossScalaVersions := Seq("2.11.5", "2.10.5"),
+  crossScalaVersions := Seq("2.11.8", "2.10.5"),
   organization := "com.azavea",
   licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.html")),
   scalacOptions ++= Seq(
@@ -18,7 +18,7 @@ lazy val commonSettings = Seq(
   publishMavenStyle := true,
   publishArtifact in Test := false,
   pomIncludeRepository := { _ => false },
-  
+
   resolvers ++= Seq(
     "java3d" at "http://maven.geotoolkit.org/",
     "geosolutions" at "http://maven.geo-solutions.it/",
@@ -30,16 +30,16 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     "com.googlecode.efficient-java-matrix-library" % "ejml" % "0.25",
     "com.vividsolutions"   %  "jts"            % "1.13",
-    "net.java.dev.jsr-275" % "jsr-275"        % "1.0-beta-2",
-    "org.geotools"         % "gt-data"        % Version.geotools,
-    "org.geotools"         % "gt-shapefile"   % Version.geotools,
-    "org.geotools"         % "gt-api"         % Version.geotools,
-    "org.geotools"         % "gt-main"        % Version.geotools,
-    "org.geotools"         % "gt-metadata"    % Version.geotools,
-    "org.geotools"         % "gt-opengis"     % Version.geotools,
-    "org.geotools"         % "gt-referencing" % Version.geotools,
-    "org.geotools"         % "gt-epsg-hsql"   % Version.geotools,
-    "com.github.scopt"     %% "scopt"         % "3.5.0"
+    "net.java.dev.jsr-275" % "jsr-275"         % "1.0-beta-2",
+    "org.geotools"         % "gt-data"         % Version.geotools,
+    "org.geotools"         % "gt-shapefile"    % Version.geotools,
+    "org.geotools"         % "gt-api"          % Version.geotools,
+    "org.geotools"         % "gt-main"         % Version.geotools,
+    "org.geotools"         % "gt-metadata"     % Version.geotools,
+    "org.geotools"         % "gt-opengis"      % Version.geotools,
+    "org.geotools"         % "gt-referencing"  % Version.geotools,
+    "org.geotools"         % "gt-epsg-hsql"    % Version.geotools,
+    "com.github.scopt"     %% "scopt"          % "3.5.0"
   )
 )
 
@@ -58,6 +58,10 @@ assemblyMergeStrategy in assembly := {
 
 lazy val root = Project("shapefile-ingest", file("."))
   .settings(commonSettings: _*)
+  .aggregate(geomesa)
 
-lazy val sparkIngest = Project("geomesa", file("geomesa"))
+lazy val common = Project("common", file("common"))
+  .settings(commonSettings: _*)
+
+lazy val geomesa = Project("geomesa", file("geomesa"))
   .settings(commonSettings: _*)
