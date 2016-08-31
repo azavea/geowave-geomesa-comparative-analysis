@@ -4,7 +4,7 @@ import org.apache.spark._
 import org.apache.spark.rdd.RDD
 import org.geotools.data.DataStoreFinder
 import org.geotools.data.simple.SimpleFeatureStore
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple._
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ListObjectsRequest
