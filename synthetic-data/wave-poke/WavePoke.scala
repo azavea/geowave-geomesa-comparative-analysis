@@ -43,7 +43,7 @@ object WavePoke extends CommonPoke {
 
         val index = args(5).split(":") match {
           case Array("spacetime", xbits, ybits, tbits) => {
-            /* Create a single-tier index.  Cribbed from
+            /* Create a single-tier index.  Construction cribbed from
              * PersistenceEncodingTest.java and HilbertSFCTest.java in
              * the GeoWave Tree. */
             val SPATIAL_TEMPORAL_DIMENSIONS = Array[SFCDimensionDefinition](
@@ -79,7 +79,7 @@ object WavePoke extends CommonPoke {
             (new SpatialTemporalDimensionalityTypeProvider.SpatialTemporalIndexBuilder)
               .createIndex
           case _ =>
-            throw new Exception("Unrecognized index type ${args(6)}")
+            throw new Exception("Unrecognized index type ${args(5)}")
         }
 
         val schema = tuple._1 match {
