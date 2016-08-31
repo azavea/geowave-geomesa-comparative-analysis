@@ -58,7 +58,7 @@ assemblyMergeStrategy in assembly := {
 
 lazy val root = Project("shapefile-ingest", file("."))
   .settings(commonSettings: _*)
-  .aggregate(geomesa)
+  .aggregate(geomesaIngest)
 
 lazy val common = Project("common", file("common"))
   .settings(commonSettings: _*)
