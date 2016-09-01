@@ -9,7 +9,7 @@ resource "aws_ecs_cluster" "ca" {
     create_before_destroy = true
   }
 
-  name = "${var.ecs_cluster_name}"
+  name = "CA_${var.stack_name}"
 }
 
 # Template for container definition, allows us to inject environment
@@ -24,18 +24,18 @@ data "template_file" "ecs_ca_task" {
 
 # Allows resource sharing among multiple containers
 resource "aws_ecs_task_definition" "ca" {
-  family                = "benchmarking"
+  family                = "ca_benchmarking_${var.stack_name}"
   container_definitions = "${data.template_file.ecs_ca_task.rendered}"
 }
 
 # Defines running an ECS task as a service
 resource "aws_ecs_service" "benchmarking" {
-  name                               = "BenchmarkService"
+  name                               = "CA_Benchmark_${var.stack_name}"
   cluster                            = "${aws_ecs_cluster.ca.id}"
   task_definition                    = "${aws_ecs_task_definition.ca.family}:${aws_ecs_task_definition.ca.revision}"
   desired_count                      = "${var.desired_benchmark_instance_count}"
   # TODO: this needs to be managed
-  iam_role                           = "${aws_iam_role.ecs_service_role.id}"
+  iam_role                           = "${var.ecs_service_role}"
 
   load_balancer {
     elb_name       = "${aws_elb.ca.name}"
@@ -58,7 +58,7 @@ resource "aws_elb" "ca" {
   cross_zone_load_balancing   = false
 
   tags {
-    Name        = "Comparative Analysis ELB"
+    Name        = "CA Benchmark ${var.stack_name}"
   }
 }
 
@@ -68,15 +68,15 @@ resource "aws_elb" "ca" {
 
 # Defines a launch configuration for ECS worker, associates it with our cluster
 resource "aws_launch_configuration" "ecs" {
-  name = "ECS ${var.ecs_cluster_name}"
+  name = "ECS ${aws_ecs_cluster.ca.name}"
   image_id             = "${var.aws_ecs_ami}"
   instance_type        = "${var.ecs_instance_type}"
-  iam_instance_profile = "${aws_iam_instance_profile.ecs.id}"
+  iam_instance_profile = "${var.ecs_instance_profile}"
 
   # TODO: is there a good way to make the key configurable sanely?
   key_name             = "${var.ec2_key}"
   associate_public_ip_address = true
-  user_data = "#!/bin/bash\necho ECS_CLUSTER='${var.ecs_cluster_name}' > /etc/ecs/ecs.config"
+  user_data = "#!/bin/bash\necho ECS_CLUSTER='${aws_ecs_cluster.ca.name}' > /etc/ecs/ecs.config"
 }
 
 # Auto-scaling group for ECS workers
@@ -99,36 +99,7 @@ resource "aws_autoscaling_group" "ecs" {
 
   tag {
     key                 = "Name"
-    value               = "ECS Comparative Analysis"
+    value               = "ECS ${aws_ecs_cluster.ca.name}"
     propagate_at_launch = true
   }
-}
-
-
-# Create roles to allow ECS hosts to call ECS API
-resource "aws_iam_role" "ecs_host_role" {
-  name = "ecs_host_role"
-  assume_role_policy = "${file("${path.module}/policies/ecs-role.json")}"
-}
-
-resource "aws_iam_role_policy" "ecs_instance_role_policy" {
-  name = "ecs_instance_role_policy"
-  policy = "${file("${path.module}/policies/ecs-instance-role-policy.json")}"
-  role = "${aws_iam_role.ecs_host_role.id}"
-}
-
-resource "aws_iam_role" "ecs_service_role" {
-  name = "ecs_service_role"
-  assume_role_policy = "${file("${path.module}/policies/ecs-role.json")}"
-}
-
-resource "aws_iam_role_policy" "ecs_service_role_policy" {
-  name = "ecs_service_role_policy"
-  policy = "${file("${path.module}/policies/ecs-service-role-policy.json")}"
-  role = "${aws_iam_role.ecs_service_role.id}"
-}
-
-resource "aws_iam_instance_profile" "ecs" {
-  path = "/"
-  roles = ["${aws_iam_role.ecs_host_role.name}"]
 }
