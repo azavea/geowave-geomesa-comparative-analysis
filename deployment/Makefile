@@ -77,7 +77,7 @@ destroy: destroy-service
 
 ingest-synthetic-data-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../synthetic-data mesaPoke ${S3_URI}/jars)
 ingest-synthetic-data-gm:
-	@if [ -z $$ASSEMBLY_URI ]; then echo "Assembly failed" && exit 1; fi
+	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
 	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest Synthetic" \
 spark-submit --master yarn --deploy-mode cluster \
 --driver-memory ${DRIVER_MEMORY} \
@@ -94,7 +94,7 @@ point,100,uniform:-180:180,uniform:-90:90,fixed:0,100
 
 ingest-synthetic-data-gw: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../synthetic-data wavePoke ${S3_URI}/jars)
 ingest-synthetic-data-gw:
-	@if [ -z $$ASSEMBLY_URI ]; then echo "Assembly failed" && exit 1; fi
+	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
 	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest Synthetic" \
 spark-submit --master yarn --deploy-mode cluster \
 --driver-memory ${DRIVER_MEMORY} \
