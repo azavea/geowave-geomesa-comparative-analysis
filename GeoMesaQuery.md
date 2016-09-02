@@ -2,13 +2,14 @@
 
 ## Indices ##
 
-[Z3, Z2, and record](http://www.geomesa.org/documentation/1.2.3/user/data_management.html#index-structure) indices are built by default.
-[Join](http://www.geomesa.org/documentation/1.2.3/user/data_management.html#join-indices) and
-[full](http://www.geomesa.org/documentation/1.2.3/user/data_management.html#full-indices) attribute indices are also available.
+[XZ3 (or Z3), XZ2 (or Z2), and record](http://www.geomesa.org/documentation/1.2.5/user/data_management.html#index-structure) indices are built by default.
+XZ3 or XZ2 indices are built for objects with extent, and Z3 or Z2 are used for points.
+[Join](http://www.geomesa.org/documentation/1.2.5/user/data_management.html#join-indices) and
+[full](http://www.geomesa.org/documentation/1.2.5/user/data_management.html#full-indices) attribute indices are also available.
 
 ### Z3 ###
 
-The primary spatio-temporal index is an index over the Z3 addresses of the geometries.
+The primary spatio-temporal index (for points) is an index over the Z3 addresses of the geometries.
 
 ![img2](https://cloud.githubusercontent.com/assets/11281373/17036137/f76a4028-4f58-11e6-98f1-45e995c1ca15.png)
 
@@ -22,13 +23,20 @@ but can be configured to hold the [day, month, or year](https://github.com/locat
 For points, X, Y, and Time are fixed at [21, 21, and 20 bits](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-z3/src/main/scala/org/locationtech/geomesa/curve/Z3SFC.scala#L17-L19) of precision, respectively.
 Time is considered at the resolution of 1 second, and 20 bits is just enough to count the number of seconds in one week.
 
-In the case of "complex geometries", the resolution seems to be [22 bits total](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/data/tables/Z3Table.scala#L45-L52), rather than the 62 bits total for points.
-
 ### Z2 ###
 
-This index is used for spatial queries that do not have a temporal constraint.
+This index is used for performing spatial queries that do not have a temporal constraint on points.
 For points, X and Y both have [31 bits](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-z3/src/main/scala/org/locationtech/geomesa/curve/Z2SFC.scala#L16-L17) of precision.
-Objects with extent are stored with [22 total bits](https://github.com/locationtech/geomesa/blob/bab330add6e21ed2c528101d38236a1ca4088c49/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/data/tables/Z2Table.scala#L38-L43).
+
+### XZ3 and XZ2 ###
+
+XZ3 and XZ2 are the [default indices used to store objects with extent in GeoMesa 1.2.5](https://geomesa.atlassian.net/wiki/display/GEOMESA/GeoMesa+1.2.5+Release+Notes).
+An extension of Z-order, [XZ-order](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.73.4894) enlarges regions associated with nodes at the same level within the tree -- the tree implied by the pattern of divisions -- so that they overlap.
+This allows items to be associated with only one (Z-order) address,
+because the boundaries between neighboring nodes are now rectangles rather than lines,
+which resolves the problem of having to multiply-store of objects with extent.
+Objects with extent are indexed with a maximum resolution of 36 bits ([12 divisions](https://github.com/locationtech/geomesa/blob/master/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/data/tables/XZ3Table.scala#L33) into [eighths](https://github.com/locationtech/geomesa/blob/master/geomesa-z3/src/main/scala/org/locationtech/geomesa/curve/XZ3SFC.scala#L283-L312)),
+while points are indexed with a maximum resolution of 24 bits ([12 divisions](https://github.com/locationtech/geomesa/blob/master/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/data/tables/XZ2Table.scala#L28) into [quarters](https://github.com/locationtech/geomesa/blob/master/geomesa-z3/src/main/scala/org/locationtech/geomesa/curve/XZ2SFC.scala#L263-L285)).
 
 ### Record ###
 
