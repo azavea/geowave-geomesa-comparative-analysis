@@ -7,6 +7,7 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % Version.spark % "provided",
   "org.apache.hadoop" % "hadoop-client" % Version.hadoop % "provided",
   "org.apache.accumulo" % "accumulo-core" % "1.7.0",
+  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
   "com.amazonaws"       % "aws-java-sdk-s3" % "1.9.34",
   "joda-time" % "joda-time" % "2.9.4"
 )
