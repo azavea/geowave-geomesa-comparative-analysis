@@ -42,8 +42,6 @@ resource "aws_ecs_service" "benchmarking" {
     container_name = "benchmark_service"
     container_port = 7070
   }
-  
-  depends_on = ["aws_iam_role_policy.ecs_service_role_policy"]
 }
 
 # Load balance among all running containers
