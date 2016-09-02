@@ -75,8 +75,9 @@ destroy: destroy-service
 	aws emr terminate-clusters --cluster-ids ${GEOMESA_CLUSTER_ID} ${GEOWAVE_CLUSTER_ID}
 	@rm -f *-cluster-id.txt
 
-ingest-synthetic: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../synthetic-data mesaPoke ${S3_URI}/jars)
-ingest-synthetic:
+ingest-synthetic-data-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../synthetic-data mesaPoke ${S3_URI}/jars)
+ingest-synthetic-data-gm:
+	@if [ -z $$ASSEMBLY_URI ]; then echo "Assembly failed" && exit 1; fi
 	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest Synthetic" \
 spark-submit --master yarn --deploy-mode cluster \
 --driver-memory ${DRIVER_MEMORY} \
@@ -89,4 +90,21 @@ spark-submit --master yarn --deploy-mode cluster \
 --class com.azavea.geomesa.MesaPoke \
 ${ASSEMBLY_URI} \
 gis ${GEOMESA_ZOOKEEPER} root secret geomesa.test \
+point,100,uniform:-180:180,uniform:-90:90,fixed:0,100
+
+ingest-synthetic-data-gw: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../synthetic-data wavePoke ${S3_URI}/jars)
+ingest-synthetic-data-gw:
+	@if [ -z $$ASSEMBLY_URI ]; then echo "Assembly failed" && exit 1; fi
+	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest Synthetic" \
+spark-submit --master yarn --deploy-mode cluster \
+--driver-memory ${DRIVER_MEMORY} \
+--driver-cores ${DRIVER_CORES} \
+--executor-memory ${EXECUTOR_MEMORY} \
+--executor-cores ${EXECUTOR_CORES} \
+--conf spark.dynamicAllocation.enabled=true \
+--conf spark.yarn.executor.memoryOverhead=${YARN_OVERHEAD} \
+--conf spark.yarn.driver.memoryOverhead=${YARN_OVERHEAD} \
+--class com.azavea.geowave.WavePoke \
+${ASSEMBLY_URI} \
+gis ${GEOWAVE_ZOOKEEPER} root secret geowave.test space \
 point,100,uniform:-180:180,uniform:-90:90,fixed:0,100
