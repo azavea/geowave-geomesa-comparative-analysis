@@ -35,6 +35,8 @@ An extension of Z-order, [XZ-order](http://citeseerx.ist.psu.edu/viewdoc/summary
 This allows items to be associated with only one (Z-order) address,
 because the boundaries between neighboring nodes are now rectangles rather than lines,
 which resolves the problem of having to multiply-store of objects with extent.
+Objects with extent are indexed with a maximum resolution of 36 bits ([12 divisions](https://github.com/locationtech/geomesa/blob/master/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/data/tables/XZ3Table.scala#L33) into [eighths](https://github.com/locationtech/geomesa/blob/master/geomesa-z3/src/main/scala/org/locationtech/geomesa/curve/XZ3SFC.scala#L283-L312)),
+while points are indexed with a maximum resolution of 24 bits ([12 divisions](https://github.com/locationtech/geomesa/blob/master/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/data/tables/XZ2Table.scala#L28) into [quarters](https://github.com/locationtech/geomesa/blob/master/geomesa-z3/src/main/scala/org/locationtech/geomesa/curve/XZ2SFC.scala#L263-L285)).
 
 ### Record ###
 
