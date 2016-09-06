@@ -1,5 +1,5 @@
-variable "ecs_cluster_name" {
-  default = "Comparative_Analysis"
+variable "stack_name" {
+  type = "string"
 }
 
 variable "ec2_key" {
@@ -29,4 +29,12 @@ variable "aws_ecs_ami" {
 
 variable "ecs_instance_type" {
   default = "m3.large"
+}
+
+variable "ecs_service_role" {
+  default = "arn:aws:iam::896538046175:role/ecs_service_role"
+}
+
+variable "ecs_instance_profile" {
+  default = "arn:aws:iam::896538046175:instance-profile/terraform-ge5ngo62hrczjc4mbzrs5y2esu"
 }

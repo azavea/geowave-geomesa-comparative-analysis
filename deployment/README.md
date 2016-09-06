@@ -40,4 +40,26 @@ Because this two-stage deployment is more complicated we use a `Makefile` to man
 > make destroy
 ```
 
-The `Makefile` will save the cluster ids in `geowave-cluster-id.txt` and `geomesa-cluster-id.txt`
+### IAM Roles and Permissions
+
+The IAM role management is not handled by terraform. These IAM roles must be included in.
+Required polices are included in the `policies` folder.
+
+Additionally the EMR default roles must allow access to both workers and master from the `default` security group.
+ECS instances created by the terraform script are placed in the `default` security group because none are specified.
+
+### Multiple Stacks
+
+You can deploy multiple stacks by providing a different stack name, which will be used in the file name for the terraform state and the EMR cluster IDs.
+The default value for `${STACK_NAME}` is your username.
+
+```sh
+# To deploy
+> make deploy STACK_NAME=purple
+
+# To destroy
+> make destroy STACK_NAME=purple
+```
+
+
+The `Makefile` will save the cluster ids in `${STACK_NAME}-geowave-cluster-id.txt` and `${STACK_NAME}-geomesa-cluster-id.txt`
