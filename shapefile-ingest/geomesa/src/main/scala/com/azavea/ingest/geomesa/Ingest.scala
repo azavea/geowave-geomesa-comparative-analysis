@@ -17,16 +17,29 @@ import scala.collection.JavaConversions._
 import com.azavea.ingest.common._
 
 object Ingest {
-  case class Params (csvOrShp: String = "",
+  trait CSVorSHP
+  case object CSV extends CSVorSHP
+  case object SHP extends CSVorSHP
+  implicit val readsCSVorSHP = scopt.Read.reads[CSVorSHP]({ s: String =>
+    s.toLowerCase match {
+      case "csv" => CSV
+      case "shp" => SHP
+      case "shapefile" => SHP
+      case _ => throw new IllegalArgumentException("Must choose either CSV or SHP")
+    }
+  })
+
+
+  case class Params (csvOrShp: CSVorSHP = CSV,
                      instanceId: String = "geomesa",
                      zookeepers: String = "zookeeper",
                      user: String = "root",
-                     password: String = "GisPwd",
+                     password: String = "secret",
                      tableName: String = "",
                      dropLines: Int = 0,
                      separator: String = "\t",
                      codec: CSVSchemaParser.Expr = CSVSchemaParser.Spec(Nil),
-                     tyBuilder: SimpleFeatureTypeBuilder = new SimpleFeatureTypeBuilder,
+                     featureName: String = "default-feature-name",
                      s3bucket: String = "",
                      s3prefix: String = "",
                      csvExtension: String = ".csv") {
@@ -38,6 +51,7 @@ object Ingest {
       result.put("user", user)
       result.put("password", password)
       result.put("tableName", tableName)
+      println(result)
       result
     }
   }
@@ -69,7 +83,7 @@ object Ingest {
     note("")
 
     cmd("csv")
-      .action( (_, conf) => conf.copy(csvOrShp = "csv") )
+      .action( (_, conf) => conf.copy(csvOrShp = CSV) )
       .children(
         opt[Int]('d',"drop")
           .action( (i, conf) => conf.copy(dropLines = i) )
@@ -81,7 +95,7 @@ object Ingest {
           .action( (s, conf) => conf.copy(csvExtension = s) )
           .text("Delimited file extension [default: '.csv']"),
         opt[String]("featurename")
-          .action( (s, conf) => { conf.tyBuilder.setName(s) ; conf })
+          .action( (s, conf) => conf.copy(featureName = s))
           .required
           .text("Name for the SimpleFeatureType"),
         opt[String]("codec")
@@ -92,7 +106,7 @@ object Ingest {
       )
 
     cmd("shapefile")
-      .action( (_, conf) => conf.copy(csvOrShp = "shp") )
+      .action( (_, conf) => conf.copy(csvOrShp = SHP) )
 
     arg[String]("<s3 bucket>")
       .action( (s, conf) => conf.copy(s3bucket = s) )
@@ -128,6 +142,7 @@ Note: `date' takes a format string compatible with java.text.SimpleDateFormat.
 
   def registerSFTs(cli: Params)(rdd: RDD[SimpleFeature]) =
     rdd.foreachPartition({ featureIter =>
+      println("jmap", cli.convertToJMap.toString)
       val ds = DataStoreFinder.getDataStore(cli.convertToJMap)
 
       if (ds == null) {

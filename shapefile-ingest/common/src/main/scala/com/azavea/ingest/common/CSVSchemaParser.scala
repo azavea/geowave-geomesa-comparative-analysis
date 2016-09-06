@@ -13,14 +13,22 @@ object CSVSchemaParser {
     def genSFT(builder: SimpleFeatureTypeBuilder): Unit = ()
     def eval(csvrow: Array[String]): Any
 
-    def makeSimpleFeature(builder: SimpleFeatureBuilder, csvrow: Array[String]): SimpleFeature = {
+    def makeSimpleFeature(sftName: String, csvrow: Array[String]): SimpleFeature = {
       val values = eval(csvrow).asInstanceOf[Seq[(String, Object)]]
+      val sftBuilder = new SimpleFeatureTypeBuilder
+      sftBuilder.setName(sftName)
+
+      val builder = new SimpleFeatureBuilder(sftBuilder.buildFeatureType)
       builder.addAll(values.map(_._2))
       builder.buildFeature(builder.getFeatureType.getName.toString)
     }
 
-    def makeSimpleFeature(builder: SimpleFeatureBuilder, csvrow: Array[String], id: String): SimpleFeature = {
+    def makeSimpleFeature(sftName: String, csvrow: Array[String], id: String): SimpleFeature = {
       val values = eval(csvrow).asInstanceOf[Seq[(String, Object)]]
+      val sftBuilder = new SimpleFeatureTypeBuilder
+      sftBuilder.setName(sftName)
+
+      val builder = new SimpleFeatureBuilder(sftBuilder.buildFeatureType)
       builder.addAll(values.map(_._2))
       builder.buildFeature(id)
     }

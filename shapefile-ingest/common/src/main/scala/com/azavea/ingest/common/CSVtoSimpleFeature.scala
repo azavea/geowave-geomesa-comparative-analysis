@@ -1,7 +1,6 @@
 package com.azavea.ingest.common
 
 import org.geotools.feature.DefaultFeatureCollection
-import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.{BufferedReader, File, InputStreamReader}
@@ -15,7 +14,7 @@ object CSVtoSimpleFeature {
                    url: java.net.URL,
                    drop: Int,
                    delim: String,
-                   builder: SimpleFeatureBuilder,
+                   sftName: String,
                    features: DefaultFeatureCollection) = {
 
     val brMaybe = Try(new BufferedReader(new InputStreamReader(url.openStream)))
@@ -31,7 +30,7 @@ object CSVtoSimpleFeature {
     while (iter.hasNext) {
       val row: Array[String] = iter.next.split(delim)
 
-      val feature = schema.makeSimpleFeature(builder, row, (name + "-" + i.toString))
+      val feature = schema.makeSimpleFeature(sftName, row, (name + "-" + i.toString))
       features.add(feature)
       i += 1
     }

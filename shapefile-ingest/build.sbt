@@ -1,5 +1,5 @@
 lazy val commonSettings = Seq(
-  version := "0.1.0",
+  version := "0.1.14",
   scalaVersion := Version.scala,
   crossScalaVersions := Seq("2.11.8", "2.10.5"),
   organization := "com.azavea",
@@ -65,6 +65,7 @@ lazy val common = Project("common", file("common"))
 
 lazy val geomesaIngest = Project("geomesa", file("geomesa"))
   .settings(commonSettings: _*)
+  .dependsOn(common)
 
 lazy val geowaveIngest = Project("geowave", file("geowave"))
   .settings(commonSettings: _*)

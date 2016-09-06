@@ -13,7 +13,7 @@ object Main {
     }
 
     val urls = HydrateRDD.getCsvUrls(params.s3bucket, params.s3prefix, params.csvExtension)
-    val builder = new SimpleFeatureBuilder(params.tyBuilder.buildFeatureType)
-    val csvRdd: RDD[SimpleFeature] = HydrateRDD.csvUrls2Rdd(urls, builder, params.codec, params.dropLines, params.separator)
+    val csvRdd: RDD[SimpleFeature] = HydrateRDD.csvUrls2Rdd(urls, params.featureName, params.codec, params.dropLines, params.separator)
+    Ingest.registerAndIngestRDD(params)(csvRdd)
   }
 }
