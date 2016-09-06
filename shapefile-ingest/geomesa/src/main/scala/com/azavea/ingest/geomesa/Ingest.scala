@@ -17,16 +17,29 @@ import scala.collection.JavaConversions._
 import com.azavea.ingest.common._
 
 object Ingest {
-  case class Params (csvOrShp: String = "",
+  trait CSVorSHP
+  case object CSV extends CSVorSHP
+  case object SHP extends CSVorSHP
+  implicit val readsCSVorSHP = scopt.Read.reads[CSVorSHP]({ s: String =>
+    s.toLowerCase match {
+      case "csv" => CSV
+      case "shp" => SHP
+      case "shapefile" => SHP
+      case _ => throw new IllegalArgumentException("Must choose either CSV or SHP")
+    }
+  })
+
+
+  case class Params (csvOrShp: CSVorSHP = CSV,
                      instanceId: String = "geomesa",
                      zookeepers: String = "zookeeper",
                      user: String = "root",
-                     password: String = "GisPwd",
+                     password: String = "secret",
                      tableName: String = "",
                      dropLines: Int = 0,
                      separator: String = "\t",
                      codec: CSVSchemaParser.Expr = CSVSchemaParser.Spec(Nil),
-                     featureName: String = "",
+                     featureName: String = "default-feature-name",
                      s3bucket: String = "",
                      s3prefix: String = "",
                      csvExtension: String = ".csv",
@@ -39,26 +52,21 @@ object Ingest {
       result.put("user", user)
       result.put("password", password)
       result.put("tableName", tableName)
+      println(result)
       result
     }
   }
 
-  def registerSFTs(cli: Params)(rdd: RDD[SimpleFeature]) =
-    rdd.foreachPartition({ featureIter =>
-      val ds = DataStoreFinder.getDataStore(cli.convertToJMap)
 
-      if (ds == null) {
-        println("Could not build AccumuloDataStore")
-        java.lang.System.exit(-1)
-      }
-
-      featureIter.toStream.map({feature =>
-        feature.getFeatureType
-      }).distinct.foreach({ sft =>
-        ds.createSchema(sft)
-        ds.dispose
-      })
-    })
+  //def registerSFTs(cli: Params, sft: SimpleFeatureType) = {
+  //  val ds = DataStoreFinder.getDataStore(cli.convertToJMap)
+  //  if (ds == null) {
+  //    println("Could not build AccumuloDataStore")
+  //    java.lang.System.exit(-1)
+  //  }
+  //  ds.createSchema(sft)
+  //  ds.dispose
+  //}
 
   def registerSFT(cli: Params)(sft: SimpleFeatureType) = {
     val ds = DataStoreFinder.getDataStore(cli.convertToJMap)
@@ -73,6 +81,10 @@ object Ingest {
   }
 
   def ingestRDD(cli: Params)(rdd: RDD[SimpleFeature]) =
+    /* The method for ingest here is based on:
+     * https://github.com/locationtech/geomesa/blob/master/geomesa-tools/src/main/scala/org/locationtech/geomesa/tools/accumulo/ingest/AbstractIngest.scala#L104
+     */
+
     rdd.foreachPartition({ featureIter =>
       val ds = DataStoreFinder.getDataStore(cli.convertToJMap)
 
@@ -81,32 +93,24 @@ object Ingest {
         java.lang.System.exit(-1)
       }
 
-      // The method for ingest here is based on:
-      // https://github.com/locationtech/geomesa/blob/master/geomesa-tools/src/main/scala/org/locationtech/geomesa/tools/accumulo/ingest/AbstractIngest.scala#L104
-      featureIter.toStream.groupBy(_.getName.toString).foreach({ case (typeName: String, features: SimpleFeature) =>
-        val fw = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
-        features.foreach({ feature =>
-          val toWrite = fw.next()
-          toWrite.setAttributes(feature.getAttributes)
-          toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(feature.getID)
-          toWrite.getUserData.putAll(feature.getUserData)
-          toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+      var fw: FeatureWriter[SimpleFeatureType, SimpleFeature] = null
+      try {
+        fw = ds.getFeatureWriterAppend(cli.featureName, Transaction.AUTO_COMMIT)
+        featureIter.toStream.foreach({ feature: SimpleFeature =>
+            val toWrite = fw.next()
+            toWrite.setAttributes(feature.getAttributes)
+            toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(feature.getID)
+            toWrite.getUserData.putAll(feature.getUserData)
+            toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
           try {
             fw.write()
           } catch {
-            case e: Exception =>
-              println(s"Failed to write a feature", e)
-          } finally {
-            fw.close()
+            case e: Exception => throw e //println(s"Failed to write a feature", e)
           }
         })
-      })
-
-      ds.dispose
+      } finally {
+        fw.close()
+        ds.dispose()
+      }
     })
-
-  def registerAndIngestRDD(cli: Params)(rdd: RDD[SimpleFeature]) = {
-    registerSFTs(cli)(rdd)
-    ingestRDD(cli)(rdd)
-  }
 }

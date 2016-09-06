@@ -7,7 +7,7 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.opengis.feature.simple._
 import org.geotools.feature.simple._
 import org.geotools.feature._
-import com.amazonaws.auth.profile.ProfileCredentialsProvider
+import com.amazonaws.auth._
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model.ListObjectsRequest
 
@@ -18,7 +18,7 @@ import scala.collection.mutable
 object HydrateRDD {
 
   def getShpUrls(s3bucket: String, s3prefix: String): Array[String] = {
-    val cred = new ProfileCredentialsProvider()
+    val cred = new DefaultAWSCredentialsProviderChain()
     val client = new AmazonS3Client(cred)
 
     val objectRequest = (new ListObjectsRequest)
@@ -76,7 +76,7 @@ object HydrateRDD {
   }
 
   def getCsvUrls(s3bucket: String, s3prefix: String, extension: String): Array[String] = {
-    val cred = new ProfileCredentialsProvider()
+    val cred = new DefaultAWSCredentialsProviderChain()
     val client = new AmazonS3Client(cred)
 
     val objectRequest = (new ListObjectsRequest)
@@ -95,7 +95,7 @@ object HydrateRDD {
 
   def csvUrls2Rdd(
     urlArray: Array[String],
-    builder: SimpleFeatureBuilder,
+    sftName: String,
     schema: CSVSchemaParser.Expr,
     drop: Int,
     delim: String
@@ -111,12 +111,12 @@ object HydrateRDD {
         val featureCollection = new DefaultFeatureCollection(null, null)
 
         try {
-          CSVtoSimpleFeature.parseCSVFile(schema, url, drop, delim, builder, featureCollection)
+          CSVtoSimpleFeature.parseCSVFile(schema, url, drop, delim, sftName, featureCollection)
         } catch {
           case e: java.io.IOException =>
             println(s"Discarded ${url} (File does not exist?)")
           case e: Exception =>
-            println("something went wrong")
+            println(e.getMessage())
         }
 
         featureCollection

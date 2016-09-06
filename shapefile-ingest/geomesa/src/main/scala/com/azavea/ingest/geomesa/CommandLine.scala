@@ -11,7 +11,7 @@ object CommandLine {
     head("geowave-csv-ingest", "0.1")
 
     cmd("csv")
-      .action( (_, conf) => conf.copy(csvOrShp = "csv") )
+      .action( (_, conf) => conf.copy(csvOrShp = Ingest.CSV) )
       .children(
         opt[Int]('d',"drop")
           .action( (i, conf) => conf.copy(dropLines = i) )
@@ -34,7 +34,7 @@ object CommandLine {
       )
 
     cmd("shapefile")
-      .action( (_, conf) => conf.copy(csvOrShp = "shp") )
+      .action( (_, conf) => conf.copy(csvOrShp = Ingest.SHP) )
       .children(
         opt[String]("featurename")
           .action( (s, conf) => { conf.copy(featureName = s) })
