@@ -44,5 +44,5 @@ variable "ecs_service_role" {
 }
 
 variable "ecs_instance_profile" {
-  default = "arn:aws:iam::896538046175:instance-profile/terraform-ge5ngo62hrczjc4mbzrs5y2esu"
+  default = "arn:aws:iam::896538046175:instance-profile/terraform-wzxkyowirnachcosiqxrriheki"
 }
