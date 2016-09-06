@@ -17,6 +17,7 @@ object CSVSchemaParser {
       val values = eval(csvrow).asInstanceOf[Seq[(String, Object)]]
       val sftBuilder = new SimpleFeatureTypeBuilder
       sftBuilder.setName(sftName)
+      genSFT(sftBuilder)
 
       val builder = new SimpleFeatureBuilder(sftBuilder.buildFeatureType)
       builder.addAll(values.map(_._2))
@@ -27,6 +28,7 @@ object CSVSchemaParser {
       val values = eval(csvrow).asInstanceOf[Seq[(String, Object)]]
       val sftBuilder = new SimpleFeatureTypeBuilder
       sftBuilder.setName(sftName)
+      genSFT(sftBuilder)
 
       val builder = new SimpleFeatureBuilder(sftBuilder.buildFeatureType)
       builder.addAll(values.map(_._2))

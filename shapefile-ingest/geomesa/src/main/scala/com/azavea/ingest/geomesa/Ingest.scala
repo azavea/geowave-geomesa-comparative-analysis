@@ -140,25 +140,20 @@ Note: `date' takes a format string compatible with java.text.SimpleDateFormat.
 
 
 
-  def registerSFTs(cli: Params)(rdd: RDD[SimpleFeature]) =
-    rdd.foreachPartition({ featureIter =>
-      println("jmap", cli.convertToJMap.toString)
-      val ds = DataStoreFinder.getDataStore(cli.convertToJMap)
+  //def registerSFTs(cli: Params, sft: SimpleFeatureType) = {
+  //  val ds = DataStoreFinder.getDataStore(cli.convertToJMap)
 
-      if (ds == null) {
-        println("Could not build AccumuloDataStore")
-        java.lang.System.exit(-1)
-      }
+  //  if (ds == null) {
+  //    println("Could not build AccumuloDataStore")
+  //    java.lang.System.exit(-1)
+  //  }
+  //  ds.createSchema(sft)
+  //  ds.dispose
+  //}
 
-      featureIter.toStream.map({feature =>
-        feature.getFeatureType
-      }).distinct.foreach({ sft =>
-        ds.createSchema(sft)
-        ds.dispose
-      })
-    })
-
-  def ingestRDD(cli: Params)(rdd: RDD[SimpleFeature]) =
+  // The method for ingest here is based on:
+  // https://github.com/locationtech/geomesa/blob/master/geomesa-tools/src/main/scala/org/locationtech/geomesa/tools/accumulo/ingest/AbstractIngest.scala#L104
+  def ingestRDD(cli: Params, rdd: RDD[SimpleFeature]) =
     rdd.foreachPartition({ featureIter =>
       val ds = DataStoreFinder.getDataStore(cli.convertToJMap)
 
@@ -167,32 +162,24 @@ Note: `date' takes a format string compatible with java.text.SimpleDateFormat.
         java.lang.System.exit(-1)
       }
 
-      // The method for ingest here is based on:
-      // https://github.com/locationtech/geomesa/blob/master/geomesa-tools/src/main/scala/org/locationtech/geomesa/tools/accumulo/ingest/AbstractIngest.scala#L104
-      featureIter.toStream.groupBy(_.getName.toString).foreach({ case (typeName: String, features: SimpleFeature) =>
-        val fw = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
-        features.foreach({ feature =>
-          val toWrite = fw.next()
-          toWrite.setAttributes(feature.getAttributes)
-          toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(feature.getID)
-          toWrite.getUserData.putAll(feature.getUserData)
-          toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+      var fw: FeatureWriter[SimpleFeatureType, SimpleFeature] = null
+      try {
+        fw = ds.getFeatureWriterAppend(cli.featureName, Transaction.AUTO_COMMIT)
+        featureIter.toStream.foreach({ feature: SimpleFeature =>
+            val toWrite = fw.next()
+            toWrite.setAttributes(feature.getAttributes)
+            toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(feature.getID)
+            toWrite.getUserData.putAll(feature.getUserData)
+            toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
           try {
             fw.write()
           } catch {
-            case e: Exception =>
-              println(s"Failed to write a feature", e)
-          } finally {
-            fw.close()
+            case e: Exception => throw e //println(s"Failed to write a feature", e)
           }
         })
-      })
-
-      ds.dispose
+      } finally {
+        fw.close()
+        ds.dispose()
+      }
     })
-
-  def registerAndIngestRDD(cli: Params)(rdd: RDD[SimpleFeature]) = {
-    registerSFTs(cli)(rdd)
-    ingestRDD(cli)(rdd)
-  }
 }
