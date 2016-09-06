@@ -55,6 +55,26 @@ object HydrateRDD {
     })
   }
 
+  def convertToSFT(sft: SimpleFeatureType)(orig: SimpleFeature): SimpleFeature = {
+    val types = sft.getTypes
+    val builder = new SimpleFeatureBuilder(sft)
+    for (ty <- types) {
+      builder.add(orig.getAttribute(ty.getName))
+    }
+    orig.getUserData.foreach { case (k, v) => builder.userData(k, v) }
+    builder.buildFeature(orig.getID)
+  }
+
+  def normalizeShpRdd(rdd: RDD[SimpleFeature], typeName: String) = {
+    val origSFT = rdd.first.getType
+    val builder = new SimpleFeatureTypeBuilder
+    builder.setName(typeName)
+    builder.addAll(origSFT.getAttributeDescriptors)
+    val sft = builder.buildFeatureType
+
+    rdd.map(convertToSFT(sft))
+  }
+
   def getCsvUrls(s3bucket: String, s3prefix: String, extension: String): Array[String] = {
     val cred = new ProfileCredentialsProvider()
     val client = new AmazonS3Client(cred)

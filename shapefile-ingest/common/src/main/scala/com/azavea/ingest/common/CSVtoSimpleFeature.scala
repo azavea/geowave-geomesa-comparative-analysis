@@ -7,8 +7,6 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import java.io.{BufferedReader, File, InputStreamReader}
 import scala.util.Try
 
-import com.azavea.ingest.common.CSVSchemaParser
-
 object CSVtoSimpleFeature {
 
   def parseCSVFile(schema: CSVSchemaParser.Expr,
