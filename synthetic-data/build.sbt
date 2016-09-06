@@ -14,7 +14,8 @@ val generalDependencies = Seq(
 )
 
 val extraResolvers = Seq(
-  "geotools" at "http://download.osgeo.org/webdav/geotools/"
+  "geotools" at "http://download.osgeo.org/webdav/geotools/",
+  "geotools" at "https://repo.boundlessgeo.com/release/"
 )
 
 lazy val commonSettings = Seq(

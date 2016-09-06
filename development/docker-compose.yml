@@ -1,9 +1,9 @@
 version: '2'
 services:
-    geoserver:
-        image: quay.io/geodocker/geoserver:latest
-        ports:
-          - 9090:9090
+    # geoserver:
+    #     image: quay.io/geodocker/geoserver:latest
+    #     ports:
+    #       - 9090:9090
     hdfs-name:
         image: quay.io/geodocker/hdfs:latest
         command: name
@@ -92,4 +92,3 @@ services:
       depends_on:
         - zookeeper
         - geomesa-master
-

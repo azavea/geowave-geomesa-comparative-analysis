@@ -14,7 +14,15 @@ variable "geomesa_zookeeper"{
   type = "string"
 }
 
+variable "geomesa_cluster_id"{
+  type = "string"
+}
+
 variable "geowave_zookeeper"{
+  type = "string"
+}
+
+variable "geowave_cluster_id"{
   type = "string"
 }
 

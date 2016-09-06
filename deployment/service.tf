@@ -19,6 +19,8 @@ data "template_file" "ecs_ca_task" {
   vars {
     geowave_zookeeper = "${var.geowave_zookeeper}",
     geomesa_zookeeper = "${var.geomesa_zookeeper}"
+    geowave_cluster_id = "${var.geowave_cluster_id}",
+    geomesa_cluster_id = "${var.geomesa_cluster_id}"
   }
 }
 

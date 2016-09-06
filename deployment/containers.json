@@ -6,6 +6,8 @@
         "memory": 3072,
         "essential": true,
         "environment": [
+            { "name": "GM_CLUSTER_ID", "value": "${geomesa_cluster_id}"},
+            { "name": "GW_CLUSTER_ID", "value": "${geowave_cluster_id}"},
             { "name": "GM_ZK", "value": "${geomesa_zookeeper}"},
             { "name": "GW_ZK", "value": "${geowave_zookeeper}"},
             { "name": "GM_USER", "value": "root"},

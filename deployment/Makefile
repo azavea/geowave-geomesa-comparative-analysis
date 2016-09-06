@@ -9,7 +9,7 @@ export MASTER_INSTANCE := m3.xlarge
 export MASTER_PRICE := 0.5
 export WORKER_INSTANCE := m3.2xlarge
 export WORKER_PRICE := 0.5
-export WORKER_COUNT := 1
+export WORKER_COUNT := 5
 
 export DRIVER_MEMORY := 4200M
 export DRIVER_CORES := 2
@@ -59,7 +59,9 @@ deploy: ${STACK_NAME}-geomesa-cluster-id.txt ${STACK_NAME}-geowave-cluster-id.tx
 -var 'ec2_key=${EC2_KEY}' \
 -var 'subnet_id=${SUBNET_ID}' \
 -var 'geomesa_zookeeper=${GEOMESA_ZOOKEEPER}' \
--var 'geowave_zookeeper=${GEOWAVE_ZOOKEEPER}'
+-var 'geowave_zookeeper=${GEOWAVE_ZOOKEEPER}' \
+-var 'geomesa_cluster_id=${GEOMESA_CLUSTER_ID}' \
+-var 'geowave_cluster_id=${GEOWAVE_CLUSTER_ID}'
 
 destroy-service:
 	terraform destroy -force \
@@ -68,7 +70,9 @@ destroy-service:
 -var 'ec2_key=${EC2_KEY}' \
 -var 'subnet_id=${SUBNET_ID}' \
 -var 'geomesa_zookeeper=NA' \
--var 'geowave_zookeeper=NA'
+-var 'geowave_zookeeper=NA' \
+-var 'geomesa_cluster_id=NA' \
+-var 'geowave_cluster_id=NA'
 
 
 destroy: destroy-service
