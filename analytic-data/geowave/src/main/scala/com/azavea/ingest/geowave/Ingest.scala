@@ -1,4 +1,4 @@
-package demo
+package com.azavea.ingest.geowave
 
 //import com.typesafe.scalalogging.Logger
 import mil.nga.giat.geowave.adapter.vector._
@@ -22,7 +22,7 @@ import java.util.HashMap
 import scala.collection.JavaConversions._
 import scala.util.Try
 
-object Main {
+object Ingest {
   case class Params (instanceId: String = "geowave",
                      zookeepers: String = "zookeeper",
                      user: String = "root",
@@ -32,7 +32,7 @@ object Main {
 
   val parser = new scopt.OptionParser[Params]("geowave-shapefile-ingest") {
     head("geowave-shapefile-ingest", "0.1")
-    
+
     opt[String]('i',"instance")
       .action( (s, conf) => conf.copy(instanceId = s) )
       .text("Accumulo instance ID [default=geowave]")
@@ -122,25 +122,5 @@ object Main {
     features.close
     indexWriter.close
     shpDS.dispose
-  }
-
-  def main(args: Array[String]) = {
-    val params = parser.parse(args, Params()) match {
-      case Some(prms) => prms
-      case None => {
-        java.lang.System.exit(0)
-        Params()
-      }
-    }
-    
-    // Setup Spark environment
-    val sparkConf = (new SparkConf).setAppName("GeoWave shapefile ingest")
-    val sc = new SparkContext(sparkConf)
-    println("SparkContext created!")
-
-    val urlRdd = sc.parallelize(params.urlList)
-
-    // Load shapefiles
-    urlRdd.foreach (ingestShapefileFromURL(params))
   }
 }

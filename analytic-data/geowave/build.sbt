@@ -1,5 +1,3 @@
-scalaVersion := "2.10.6"
-
 resolvers ++= Seq(
   "geosolutions" at "http://maven.geo-solutions.it/",
   "boundless" at "https://repo.boundlessgeo.com/release/",

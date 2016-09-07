@@ -1,7 +1,6 @@
 lazy val commonSettings = Seq(
-  version := "0.1.22",
-  scalaVersion := Version.scala,
-  crossScalaVersions := Seq("2.11.8", "2.10.5"),
+  version := "0.1.25",
+  scalaVersion := "2.11.8",
   organization := "com.azavea",
   licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.html")),
   scalacOptions ++= Seq(
@@ -58,7 +57,7 @@ assemblyMergeStrategy in assembly := {
 lazy val root = Project("shapefile-ingest", file("."))
   .settings(commonSettings: _*)
   .settings(name := "shapefile-ingest")
-  .aggregate(common, geomesaIngest)
+  .aggregate(geowaveIngest, geomesaIngest)
 
 lazy val common = Project("common", file("common"))
   .settings(commonSettings: _*)
