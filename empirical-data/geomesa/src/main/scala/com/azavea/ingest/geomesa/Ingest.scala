@@ -85,16 +85,12 @@ object Ingest {
       try {
         fw = ds.getFeatureWriterAppend(cli.featureName, Transaction.AUTO_COMMIT)
         featureIter.toStream.foreach({ feature: SimpleFeature =>
-            val toWrite = fw.next()
-            toWrite.setAttributes(feature.getAttributes)
-            toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(feature.getID)
-            toWrite.getUserData.putAll(feature.getUserData)
-            toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-          try {
-            fw.write()
-          } catch {
-            case e: Exception => throw e //println(s"Failed to write a feature", e)
-          }
+          val toWrite = fw.next()
+          toWrite.setAttributes(feature.getAttributes)
+          toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(feature.getID)
+          toWrite.getUserData.putAll(feature.getUserData)
+          toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+          fw.write()
         })
       } finally {
         fw.close()

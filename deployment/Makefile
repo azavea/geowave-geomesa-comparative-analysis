@@ -32,7 +32,7 @@ define EMR_CREATE_CLUSTER
 --use-default-roles \
 --log-uri ${S3_URI}/logs \
 --ec2-attributes KeyName=${EC2_KEY},SubnetId=${SUBNET_ID} \
---applications Name=Hadoop Name=Zookeeper Name=Spark \
+--applications Name=Hadoop Name=Zookeeper Name=Spark Name=Zeppelin \
 --instance-groups \
 Name=Master,BidPrice=${MASTER_PRICE},InstanceCount=1,InstanceGroupType=MASTER,InstanceType=${MASTER_INSTANCE} \
 Name=Workers,BidPrice=${WORKER_PRICE},InstanceCount=${WORKER_COUNT},InstanceGroupType=CORE,InstanceType=${WORKER_INSTANCE} \
@@ -113,8 +113,8 @@ ${ASSEMBLY_URI} \
 gis ${GEOWAVE_ZOOKEEPER} root secret geowave.test space \
 point,100,uniform:-180:180,uniform:-90:90,fixed:0,100
 
-ingest-csv-data-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
-ingest-csv-data-gm:
+ingest-geolife-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
+ingest-geolife-gm:
 	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
 	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest CSV" \
 spark-submit --master yarn --deploy-mode cluster \
@@ -131,10 +131,10 @@ ${ASSEMBLY_URI} csv \
 -p secret -t geomesa.test -e plt -s , -d 6 \
 --codec 'the_geom=point($$2,$$1),height=$$4,timestamp=date({yyyy-MM-ddHH:mm:ss},concat($$6,$$7))' \
 --featurename trajectory \
-geotrellis-sample-datasets geolife/000/Trajectory/
+geotrellis-sample-datasets geolife/
 
-ingest-csv-data-gw: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geowave ${S3_URI}/jars)
-ingest-csv-data-gw:
+ingest-geolife-gw: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geowave ${S3_URI}/jars)
+ingest-geolife-gw:
 	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
 	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest CSV" \
 spark-submit --master yarn --deploy-mode cluster \
@@ -151,4 +151,4 @@ ${ASSEMBLY_URI} csv \
 -p secret -t geowave.test -e plt -s , -d 6 \
 --codec 'the_geom=point($$2,$$1),height=$$4,timestamp=date({yyyy-MM-ddHH:mm:ss},concat($$6,$$7))' \
 --featurename trajectory \
-geotrellis-sample-datasets geolife/000/Trajectory/
+geotrellis-sample-datasets geolife/

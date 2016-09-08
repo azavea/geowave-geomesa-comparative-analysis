@@ -17,7 +17,7 @@ object MesaPoke extends CommonPoke {
   def main(args: Array[String]): Unit = {
 
     if (args.length < 6) {
-      println(s"arguments: <instance> <zookeepers> <user> <password> <table> <instruction\{1,\}>")
+      println(s"arguments: <instance> <zookeepers> <user> <password> <table> <instruction(s)>")
       System.exit(-1)
     }
 
