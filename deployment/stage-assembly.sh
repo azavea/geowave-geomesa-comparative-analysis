@@ -17,7 +17,7 @@ if [[ $ASSEMBLY_BLOB =~ ([a-zA-Z0-9\.\/_-]+target\/scala[a-zA-Z0-9\.\/_-]+jar) ]
     ASSEMBLY_JAR=${BASH_REMATCH[1]}
     (>&2 echo "Assembly: $ASSEMBLY_JAR")
 else
-    (>&2 echo "Unable to parse project assembly location")
+    (>&2 echo "Unable to parse project assembly location (or compilation failed)")
     exit 1
 fi
 

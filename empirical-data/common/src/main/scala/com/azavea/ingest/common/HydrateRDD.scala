@@ -35,8 +35,8 @@ object HydrateRDD {
       }).toArray
   }
 
-  def shpUrlsToshpRdd(urlArray: Array[String])(implicit sc: SparkContext): RDD[SimpleFeature] = {
-    val urlRdd: RDD[String] = sc.parallelize(urlArray)
+  def shpUrlsToRdd(urlArray: Array[String])(implicit sc: SparkContext): RDD[SimpleFeature] = {
+    val urlRdd: RDD[String] = sc.parallelize(urlArray, urlArray.size / 10)
     urlRdd.mapPartitions({ urlIter =>
       val urls = urlIter.toList
       urls.map({ url =>
@@ -62,15 +62,20 @@ object HydrateRDD {
     builder.buildFeature(orig.getID)
   }
 
-  def normalizeShpRdd(rdd: RDD[SimpleFeature], typeName: String) = {
-    val origSFT = rdd.first.getType
-    val builder = new SimpleFeatureTypeBuilder
-    builder.setName(typeName)
-    builder.addAll(origSFT.getAttributeDescriptors)
-    val sft = builder.buildFeatureType
+  def normalizeShpRdd(rdd: RDD[SimpleFeature], typeName: String)(implicit sc: SparkContext) =
+    rdd.mapPartitions({ featureIter =>
+      val bufferedFeatures = featureIter.buffered
+      val headFeature = bufferedFeatures.head
 
-    rdd.map(convertToSFT(sft))
-  }
+      val builder = new SimpleFeatureTypeBuilder
+      builder.addAll(headFeature.getType.getAttributeDescriptors)
+      builder.setName(typeName)
+      val sft = builder.buildFeatureType()
+
+      bufferedFeatures.map({ feature =>
+        SimpleFeatureBuilder.retype(feature, sft)
+      })
+    })
 
   def getCsvUrls(s3bucket: String, s3prefix: String, extension: String): Array[String] = {
     val cred = new DefaultAWSCredentialsProviderChain()
@@ -90,7 +95,7 @@ object HydrateRDD {
       }).toArray
   }
 
-  def csvUrls2Rdd(
+  def csvUrlsToRdd(
     urlArray: Array[String],
     sftName: String,
     schema: CSVSchemaParser.Expr,

@@ -41,10 +41,6 @@ object CommandLine {
         opt[String]('e',"extension")
           .action( (s, conf) => conf.copy(csvExtension = s) )
           .text("Delimited file extension [default: '.csv']"),
-        opt[String]("featurename")
-          .action( (s, conf) => { conf.copy(featureName = s) })
-          .required
-          .text("Name for the SimpleFeatureType"),
         opt[String]("codec")
           .action( (s, conf) => conf.copy(codec = CSVSchemaParser.SpecParser(s)) )
           .required
@@ -54,13 +50,9 @@ object CommandLine {
 
     cmd("shapefile")
       .action( (_, conf) => conf.copy(csvOrShp = Ingest.SHP) )
-      .children(
-        opt[String]("featurename")
-          .action( (s, conf) => { conf.copy(featureName = s) })
-          .required
-          .text("Name for the SimpleFeatureType"),
-        note("")
-      )
+
+    cmd("shp")
+      .action( (_, conf) => conf.copy(csvOrShp = Ingest.SHP) )
 
     note("Global options:\n")
 
@@ -80,6 +72,10 @@ object CommandLine {
       .action( (s, conf) => conf.copy(tableName = s) )
       .required
       .text("Accumulo namespace (should start with 'geowave.')")
+    opt[String]('f', "featurename")
+      .action( (s, conf) => { conf.copy(featureName = s) })
+      .required
+      .text("Name for the SimpleFeatureType")
     help("help").text("Display this help message")
     note("")
 
