@@ -51,13 +51,11 @@ object Ingest {
       result.put("user", user)
       result.put("password", password)
       result.put("tableName", tableName)
-      println(result)
       result
     }
   }
 
   def registerSFT(params: Params)(sft: SimpleFeatureType) = {
-    println("registering sft")
     val ds = DataStoreFinder.getDataStore(params.convertToJMap)
 
     if (ds == null) {
@@ -65,7 +63,6 @@ object Ingest {
       java.lang.System.exit(-1)
     }
 
-    println("SFT", sft)
     ds.createSchema(sft)
     ds.dispose
   }

@@ -16,9 +16,6 @@ object Main {
       case None => throw new Exception("provide the right arguments, ya goof")
     }
 
-    // Setup Spark environment
-    //implicit val sc = SparkUtils.createSparkContext("GeoMesa ingest utility")
-    //println("SparkContext created!")
     val conf: SparkConf =
       new SparkConf()
         .setAppName("GeoMesa ingest utility")
@@ -33,11 +30,8 @@ object Main {
         val shpUrlRdd = HydrateRDD.shpUrlsToRdd(urls)
         val shpSimpleFeatureRdd: RDD[SimpleFeature] = HydrateRDD.normalizeShpRdd(shpUrlRdd, params.featureName)
 
-        println("Before registration")
         Ingest.registerSFT(params)(shpSimpleFeatureRdd.first.getType)
-        println("after registration")
         Ingest.ingestRDD(params)(shpSimpleFeatureRdd)
-        println("after ingest")
       }
       case Ingest.CSV => {
         val urls = HydrateRDD.getCsvUrls(params.s3bucket, params.s3prefix, params.csvExtension)
