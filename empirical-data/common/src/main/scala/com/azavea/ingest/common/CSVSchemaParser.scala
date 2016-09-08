@@ -78,7 +78,7 @@ object CSVSchemaParser {
   }
 
   case class Assgn(tok: String, body: Expr) extends Expr {
-    override def genSFT(builder: SimpleFeatureTypeBuilder) = { 
+    override def genSFT(builder: SimpleFeatureTypeBuilder) = {
       body match {
         case Field(_) => builder.add(tok, classOf[String])
         case func: Func => {

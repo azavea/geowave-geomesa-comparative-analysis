@@ -56,25 +56,27 @@ object Ingest {
     }
   }
 
-  def registerSFT(cli: Params)(sft: SimpleFeatureType) = {
-    val ds = DataStoreFinder.getDataStore(cli.convertToJMap)
+  def registerSFT(params: Params)(sft: SimpleFeatureType) = {
+    println("registering sft")
+    val ds = DataStoreFinder.getDataStore(params.convertToJMap)
 
     if (ds == null) {
       println("Could not build AccumuloDataStore")
       java.lang.System.exit(-1)
     }
 
+    println("SFT", sft)
     ds.createSchema(sft)
     ds.dispose
   }
 
-  def ingestRDD(cli: Params)(rdd: RDD[SimpleFeature]) =
+  def ingestRDD(params: Params)(rdd: RDD[SimpleFeature]) =
     /* The method for ingest here is based on:
      * https://github.com/locationtech/geomesa/blob/master/geomesa-tools/src/main/scala/org/locationtech/geomesa/tools/accumulo/ingest/AbstractIngest.scala#L104
      */
 
     rdd.foreachPartition({ featureIter =>
-      val ds = DataStoreFinder.getDataStore(cli.convertToJMap)
+      val ds = DataStoreFinder.getDataStore(params.convertToJMap)
 
       if (ds == null) {
         println("Could not build AccumuloDataStore")
@@ -83,8 +85,9 @@ object Ingest {
 
       var fw: FeatureWriter[SimpleFeatureType, SimpleFeature] = null
       try {
-        fw = ds.getFeatureWriterAppend(cli.featureName, Transaction.AUTO_COMMIT)
+        fw = ds.getFeatureWriterAppend(params.featureName, Transaction.AUTO_COMMIT)
         featureIter.toStream.foreach({ feature: SimpleFeature =>
+            println(feature.toString)
             val toWrite = fw.next()
             toWrite.setAttributes(feature.getAttributes)
             toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(feature.getID)
@@ -93,7 +96,9 @@ object Ingest {
           try {
             fw.write()
           } catch {
-            case e: Exception => throw e //println(s"Failed to write a feature", e)
+            case e: Exception =>
+              println(s"Failed to write a feature", feature, e)
+              throw e
           }
         })
       } finally {
