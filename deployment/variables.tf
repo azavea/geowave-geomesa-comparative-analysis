@@ -1,17 +1,26 @@
 variable "stack_name" {
   type = "string"
+  description = "Disambiguation prefix for the EMR/ECS stack"
+}
+
+variable "service_image" {
+  type = "string"
+  description = "Benchmark service Docker image"
 }
 
 variable "ec2_key" {
   type = "string"
+  description = "EC2 key for EMR and ECS machines"
 }
 
 variable "subnet_id" {
   type = "string"
+  description = "Subnet ID shared by EMR and ECS"
 }
 
 variable "geomesa_zookeeper"{
   type = "string"
+  description = "Public address of GeoMesa EMR Master"
 }
 
 variable "geomesa_cluster_id"{
@@ -20,6 +29,7 @@ variable "geomesa_cluster_id"{
 
 variable "geowave_zookeeper"{
   type = "string"
+  description = "Public address of GeoWave EMR Master"
 }
 
 variable "geowave_cluster_id"{
@@ -28,6 +38,7 @@ variable "geowave_cluster_id"{
 
 variable "desired_benchmark_instance_count" {
   default = 2
+  description = "Number benchmark instances to provision"
 }
 
 # TODO: make this a dynamic lookup

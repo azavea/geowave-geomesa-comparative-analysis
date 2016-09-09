@@ -6,14 +6,16 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % Version.spark % "provided",
   "org.apache.hadoop" % "hadoop-client" % Version.hadoop % "provided",
-  //"com.typesafe.scala-logging" %% "scala-logging-slf4j" % "3.4.0",
-  //"ch.qos.logback" %  "logback-classic" % "1.1.7",
-  //"com.azavea.geotrellis" %% "geotrellis-spark-etl" % Version.geotrellis,
+  "com.azavea.geotrellis" %% "geotrellis-spark" % "0.10.2",
   "org.apache.accumulo" % "accumulo-core" % "1.7.0",
   "org.locationtech.geomesa" % "geomesa-accumulo-datastore" % Version.geomesa
     excludeAll(ExclusionRule("org.slf4j")),
   "org.locationtech.geomesa" % "geomesa-utils" % Version.geomesa
     excludeAll(ExclusionRule("org.slf4j"))
+)
+
+excludeDependencies ++= Seq(
+  SbtExclusionRule("com.typesafe.scala-logging", "scala-logging-api_2.11")
 )
 
 // When creating fat jar, remote some files with

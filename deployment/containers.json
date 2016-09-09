@@ -1,7 +1,11 @@
 [
     {
         "name": "benchmark_service",
+<<<<<<< HEAD
         "image": "quay.io/geotrellis/comparative-analysis-bastion:rob",
+=======
+        "image": "${image}",
+>>>>>>> upstream/master
         "cpu": 1024,
         "memory": 3072,
         "essential": true,

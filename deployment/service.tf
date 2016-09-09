@@ -17,6 +17,7 @@ data "template_file" "ecs_ca_task" {
   template = "${file("${path.module}/containers.json")}"
 
   vars {
+    image             = "${var.service_image}",
     geowave_zookeeper = "${var.geowave_zookeeper}",
     geomesa_zookeeper = "${var.geomesa_zookeeper}"
     geowave_cluster_id = "${var.geowave_cluster_id}",
@@ -36,8 +37,9 @@ resource "aws_ecs_service" "benchmarking" {
   cluster                            = "${aws_ecs_cluster.ca.id}"
   task_definition                    = "${aws_ecs_task_definition.ca.family}:${aws_ecs_task_definition.ca.revision}"
   desired_count                      = "${var.desired_benchmark_instance_count}"
-  # TODO: this needs to be managed
   iam_role                           = "${var.ecs_service_role}"
+  deployment_minimum_healthy_percent = "0" # allow old services to be torn down
+  deployment_maximum_percent         = "100"
 
   load_balancer {
     elb_name       = "${aws_elb.ca.name}"
