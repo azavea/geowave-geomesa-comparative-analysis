@@ -1,7 +1,7 @@
 [
     {
         "name": "benchmark_service",
-        "image": "quay.io/geotrellis/comparative-analysis-bastion",
+        "image": "${image}",
         "cpu": 1024,
         "memory": 3072,
         "essential": true,

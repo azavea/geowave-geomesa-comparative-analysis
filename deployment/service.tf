@@ -17,8 +17,9 @@ data "template_file" "ecs_ca_task" {
   template = "${file("${path.module}/containers.json")}"
 
   vars {
+    image             = "${var.service_image}",
     geowave_zookeeper = "${var.geowave_zookeeper}",
-    geomesa_zookeeper = "${var.geomesa_zookeeper}"
+    geomesa_zookeeper  = "${var.geomesa_zookeeper}"
   }
 }
 

@@ -17,6 +17,10 @@ export EXECUTOR_MEMORY := 4200M
 export EXECUTOR_CORES := 2
 export YARN_OVERHEAD := 700
 
+# Docker image of benchmarking service
+export SERVICE_IMG := quay.io/geotrellis/comparative-analysis-bastion:${SERVICE_TAG}
+export SERVICE_TAG := latest
+
 SPARK_OPTIONS := --master yarn \
 --deploy-mode cluster \
 --driver-memory ${DRIVER_MEMORY} \
@@ -68,6 +72,7 @@ deploy: ${STACK_NAME}-geomesa-cluster-id.txt ${STACK_NAME}-geowave-cluster-id.tx
 -var 'stack_name=${STACK_NAME}' \
 -var 'ec2_key=${EC2_KEY}' \
 -var 'subnet_id=${SUBNET_ID}' \
+-var 'service_image=${SERVICE_IMG}' \
 -var 'geomesa_zookeeper=${GEOMESA_ZOOKEEPER}' \
 -var 'geowave_zookeeper=${GEOWAVE_ZOOKEEPER}'
 
@@ -77,6 +82,7 @@ destroy-service:
 -var 'stack_name=${STACK_NAME}' \
 -var 'ec2_key=${EC2_KEY}' \
 -var 'subnet_id=${SUBNET_ID}' \
+-var 'service_image=NA' \
 -var 'geomesa_zookeeper=NA' \
 -var 'geowave_zookeeper=NA'
 

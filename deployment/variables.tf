@@ -3,6 +3,11 @@ variable "stack_name" {
   description = "Disambiguation prefix for the EMR/ECS stack"
 }
 
+variable "service_image" {
+  type = "string"
+  description = "Benchmark service Docker image"
+}
+
 variable "ec2_key" {
   type = "string"
   description = "EC2 key for EMR and ECS machines"
