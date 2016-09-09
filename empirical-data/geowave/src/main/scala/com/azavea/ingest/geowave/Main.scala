@@ -22,6 +22,8 @@ import scala.collection.JavaConversions._
 import scala.util.Try
 
 import com.azavea.ingest.common._
+import com.azavea.ingest.common.csv.HydrateRDD._
+import com.azavea.ingest.common.shp.HydrateRDD._
 
 object Main {
   def main(args: Array[String]) = {
@@ -34,24 +36,29 @@ object Main {
     }
 
     // Setup Spark environment
-    val sparkConf = (new SparkConf).setAppName("GeoWave ingest")
-    implicit val sc = new SparkContext(sparkConf)
-    println("SparkContext created!")
+    val conf: SparkConf =
+      new SparkConf()
+        .setAppName("GeoWave ingest utility")
+        .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+        .set("spark.kryo.registrator", "geotrellis.spark.io.kryo.KryoRegistrator")
 
+    implicit val sc = new SparkContext(conf)
 
     params.csvOrShp match {
       case Ingest.SHP => {
-        val urls = HydrateRDD.getShpUrls(params.s3bucket, params.s3prefix)
-        val csvRdd: RDD[SimpleFeature] = HydrateRDD.shpUrlsToRdd(urls)
+        val urls = getShpUrls(params.s3bucket, params.s3prefix)
+        val shpUrlRdd: RDD[SimpleFeature] = shpUrlsToRdd(urls)
+        val shpSimpleFeatureRdd: RDD[SimpleFeature] = NormalizeRDD.normalizeFeatureName(shpUrlRdd, params.featureName)
 
-        Ingest.ingestRDD(params)(csvRdd, params.codec, params.featureName)
+        Ingest.ingestRDD(params)(shpSimpleFeatureRdd)
       }
       case Ingest.CSV => {
-        val urls = HydrateRDD.getCsvUrls(params.s3bucket, params.s3prefix, params.csvExtension)
-        val csvRdd: RDD[SimpleFeature] = HydrateRDD.csvUrlsToRdd(urls, params.featureName, params.codec, params.dropLines, params.separator)
+        val urls = getCsvUrls(params.s3bucket, params.s3prefix, params.csvExtension)
+        val csvRdd: RDD[SimpleFeature] = csvUrlsToRdd(urls, params.featureName, params.codec, params.dropLines, params.separator)
 
-        Ingest.ingestRDD(params)(csvRdd, params.codec, params.featureName)
+        Ingest.ingestRDD(params)(csvRdd)
       }
     }
   }
 }
+

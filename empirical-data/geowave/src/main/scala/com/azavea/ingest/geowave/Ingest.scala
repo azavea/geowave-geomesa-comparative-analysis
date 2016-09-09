@@ -88,16 +88,12 @@ object Ingest {
       options)
   }
 
-  def ingestRDD(params: Params)(rdd: RDD[SimpleFeature], featureCodec: CSVSchemaParser.Expr, sftName: String) =
+  def ingestRDD(params: Params)(rdd: RDD[SimpleFeature]) =
     rdd.foreachPartition({ featureIter =>
+      val features = featureIter.buffered
       val ds = getGeowaveDataStore(params)
 
-      val tybuilder = new SimpleFeatureTypeBuilder
-      tybuilder.setName(sftName)
-      featureCodec.genSFT(tybuilder)
-      val sft = tybuilder.buildFeatureType
-
-      val adapter = new FeatureDataAdapter(sft)
+      val adapter = new FeatureDataAdapter(features.head.getType())
       val index =
         if (params.temporal) {
           (new SpatialTemporalDimensionalityTypeProvider.SpatialTemporalIndexBuilder).createIndex
@@ -106,53 +102,10 @@ object Ingest {
         }
       val indexWriter = ds.createWriter(adapter, index).asInstanceOf[IndexWriter[SimpleFeature]]
       try {
-        while (featureIter.hasNext) { indexWriter.write(featureIter.next()) }
+        features.foreach({ feature => indexWriter.write(feature) })
       } finally {
         indexWriter.close()
       }
     })
-
-
-  def ingestShapefileFromURL(params: Params)(url: String) = {
-    val shpParams = new HashMap[String, Object]
-    shpParams.put("url", url)
-    val shpDS = DataStoreFinder.getDataStore(shpParams)
-    if (shpDS == null) {
-      println("Could not build ShapefileDataStore")
-      java.lang.System.exit(-1)
-    }
-
-    val typeName = shpDS.getTypeNames()(0)
-    val source: FeatureSource[SimpleFeatureType, SimpleFeature] = shpDS.getFeatureSource(typeName)
-    val schema = shpDS.getSchema(typeName)
-    val collection: FeatureCollection[SimpleFeatureType, SimpleFeature] = source.getFeatures(Filter.INCLUDE)
-    val features = collection.features
-
-    val maybeGWDataStore = Try(getGeowaveDataStore(params))
-    if (maybeGWDataStore.isFailure) {
-      println("Could not connect to Accumulo instance")
-      println(maybeGWDataStore)
-      java.lang.System.exit(-1)
-    }
-    val ds = maybeGWDataStore.get
-
-    // Prepare to write to Geowave
-    val adapter = new FeatureDataAdapter(schema)
-    val index = (new SpatialDimensionalityTypeProvider).createPrimaryIndex
-    val indexWriter = ds.createWriter(adapter, index).asInstanceOf[IndexWriter[SimpleFeature]]
-
-    // Write features from shapefile
-    var i = 0
-    while (features.hasNext()) {
-      val feature = features.next()
-      indexWriter.write(feature)
-      i += 1
-    }
-    println(s"$i of ${collection.size} features read")
-
-    // Clean up
-    features.close
-    indexWriter.close
-    shpDS.dispose
-  }
 }
+

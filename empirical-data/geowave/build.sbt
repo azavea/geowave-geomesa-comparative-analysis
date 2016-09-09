@@ -2,7 +2,8 @@ resolvers ++= Seq(
   "geosolutions" at "http://maven.geo-solutions.it/",
   "boundless" at "https://repo.boundlessgeo.com/release/",
   "geowave-release" at "http://geowave-maven.s3-website-us-east-1.amazonaws.com/release",
-  "geowave-snapshot" at "http://geowave-maven.s3-website-us-east-1.amazonaws.com/snapshot"
+  "geowave-snapshot" at "http://geowave-maven.s3-website-us-east-1.amazonaws.com/snapshot",
+  Resolver.bintrayRepo("azavea","geotrellis")
 )
 //  "geowave" at "http://geowave-maven.s3-website-us-east-1.amazonaws.com/release"
 
@@ -11,6 +12,7 @@ val gwVersion = "0.9.3-SNAPSHOT"
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % Version.spark % "provided",
   "org.apache.hadoop" % "hadoop-client" % Version.hadoop % "provided",
+  "com.azavea.geotrellis" %% "geotrellis-spark" % "0.10.2",
   "org.apache.accumulo" % "accumulo-core" % "1.7.0"
     excludeAll(ExclusionRule("org.slf4j")),
   "mil.nga.giat" % "geowave-adapter-vector" % gwVersion

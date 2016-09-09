@@ -138,3 +138,23 @@ shapefile -i gis -z ${GEOMESA_ZOOKEEPER} -u root \
 -p secret -t geomesa.shptest \
 --featurename gmgenerated-tracks \
 geotrellis-sample-datasets generated-tracks/
+
+ingest-shp-data-gw: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geowave ${S3_URI}/jars)
+ingest-shp-data-gw:
+	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
+	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest shapefiles" \
+spark-submit --master yarn --deploy-mode cluster \
+--driver-memory ${DRIVER_MEMORY} \
+--driver-cores ${DRIVER_CORES} \
+--executor-memory ${EXECUTOR_MEMORY} \
+--executor-cores ${EXECUTOR_CORES} \
+--conf spark.dynamicAllocation.enabled=true \
+--conf spark.yarn.executor.memoryOverhead=${YARN_OVERHEAD} \
+--conf spark.yarn.driver.memoryOverhead=${YARN_OVERHEAD} \
+--class com.azavea.ingest.geowave.Main \
+${ASSEMBLY_URI} shapefile \
+-i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
+-p secret -t geowave.shptest \
+--featurename gmgenerated-tracks \
+geotrellis-sample-datasets generated-tracks/
+
