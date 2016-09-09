@@ -151,3 +151,9 @@ fetch-metrics:
 	@aws emr ssh --cluster-id ${GEOWAVE_CLUSTER_ID} --key-pair-file "${EC2_KEY_FILE}" \
 		--command "cd /mnt/var/lib/ganglia/rrds && tar czf ~/metrics.tgz j-*"
 	@aws emr get --cluster-id ${GEOWAVE_CLUSTER_ID} --key-pair-file "${EC2_KEY_FILE}" --src "~/metrics.tgz" --dest ../metrics/${GEOWAVE_CLUSTER_ID}.tgz
+
+proxy-gm:
+	aws emr socks --cluster-id ${GEOMESA_CLUSTER_ID} --key-pair-file "${EC2_KEY_FILE}"
+
+proxy-gw:
+	aws emr socks --cluster-id ${GEOWAVE_CLUSTER_ID} --key-pair-file "${EC2_KEY_FILE}"
