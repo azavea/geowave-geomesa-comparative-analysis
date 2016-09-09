@@ -1,6 +1,7 @@
 # No spaces in STACK_NAME
 export STACK_NAME := ${USER}
 export EC2_KEY := geotrellis-cluster
+export EC2_KEY_FILE := "${HOME}/${EC2_KEY}.pem"
 export AWS_DEFAULT_REGION := us-east-1
 export S3_URI := s3://geotrellis-test/ca/${STACK_NAME}
 export SUBNET_ID := subnet-c5fefdb1
@@ -46,7 +47,7 @@ define EMR_CREATE_CLUSTER
 --use-default-roles \
 --log-uri ${S3_URI}/logs \
 --ec2-attributes KeyName=${EC2_KEY},SubnetId=${SUBNET_ID} \
---applications Name=Hadoop Name=Zookeeper Name=Spark \
+--applications Name=Hadoop Name=Zookeeper Name=Spark Name=Zeppelin Name=Ganglia \
 --instance-groups \
 Name=Master,BidPrice=${MASTER_PRICE},InstanceCount=1,InstanceGroupType=MASTER,InstanceType=${MASTER_INSTANCE} \
 Name=Workers,BidPrice=${WORKER_PRICE},InstanceCount=${WORKER_COUNT},InstanceGroupType=CORE,InstanceType=${WORKER_INSTANCE} \
@@ -138,3 +139,15 @@ shapefile -i gis -z ${GEOMESA_ZOOKEEPER} -u root \
 -p secret -t geomesa.shptest \
 --featurename gmgenerated-tracks \
 geotrellis-sample-datasets generated-tracks/
+
+fetch-metrics:
+	@mkdir -p ../metrics
+	@echo Fetching GeoMesa metrics...
+	@aws emr ssh --cluster-id ${GEOMESA_CLUSTER_ID} --key-pair-file "${EC2_KEY_FILE}" \
+		--command "cd /mnt/var/lib/ganglia/rrds && tar czf ~/metrics.tgz j-*"
+	@aws emr get --cluster-id ${GEOMESA_CLUSTER_ID} --key-pair-file "${EC2_KEY_FILE}" --src "~/metrics.tgz" --dest ../metrics/${GEOMESA_CLUSTER_ID}.tgz
+
+	@echo Fetching GeoWave metrics...
+	@aws emr ssh --cluster-id ${GEOWAVE_CLUSTER_ID} --key-pair-file "${EC2_KEY_FILE}" \
+		--command "cd /mnt/var/lib/ganglia/rrds && tar czf ~/metrics.tgz j-*"
+	@aws emr get --cluster-id ${GEOWAVE_CLUSTER_ID} --key-pair-file "${EC2_KEY_FILE}" --src "~/metrics.tgz" --dest ../metrics/${GEOWAVE_CLUSTER_ID}.tgz
