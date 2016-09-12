@@ -1,9 +1,9 @@
 version: '2'
 services:
-    geoserver:
-        image: quay.io/geodocker/geoserver:latest
-        ports:
-          - 9090:9090
+    # geoserver:
+    #     image: quay.io/geodocker/geoserver:latest
+    #     ports:
+    #       - 9090:9090
     hdfs-name:
         image: quay.io/geodocker/hdfs:latest
         command: name
@@ -92,4 +92,24 @@ services:
       depends_on:
         - zookeeper
         - geomesa-master
-
+    # query-server:
+    #   image: quay.io/geotrellis/comparative-analysis-query-server:rob4
+    #   environment:
+    #     GW_CLUSTER_ID: gw_cluster_id
+    #     GW_ZK: zookeeper
+    #     GW_USER: root
+    #     GW_PASS: GisPwd
+    #     GW_INSTANCE: geowave
+    #     GM_CLUSTER_ID: gm_cluster_id
+    #     GM_ZK: zookeeper
+    #     GM_USER: root
+    #     GM_PASS: GisPwd
+    #     GM_INSTANCE: geomesa
+    #   volumes:
+    #     - '${HOME}/.aws:/root/.aws'
+    #   depends_on:
+    #     - zookeeper
+    #     - geomesa-master
+    #     - geowave-master
+    #   ports:
+    #     - 7070:7070

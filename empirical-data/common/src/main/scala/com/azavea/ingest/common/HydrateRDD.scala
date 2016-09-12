@@ -9,29 +9,38 @@ import org.geotools.feature.simple._
 import org.geotools.feature._
 import com.amazonaws.auth._
 import com.amazonaws.services.s3.AmazonS3Client
-import com.amazonaws.services.s3.model.ListObjectsRequest
+import com.amazonaws.services.s3.model.{ListObjectsRequest, ObjectListing}
 
 import java.util.HashMap
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 object HydrateRDD {
+  val cred = new DefaultAWSCredentialsProviderChain()
+  val client = new AmazonS3Client(cred)
+
+  // Copied from GeoTrellis codebase
+  def listKeys(listObjectsRequest: ListObjectsRequest): Seq[String] = {
+    var listing: ObjectListing = null
+    val result = mutable.ListBuffer[String]()
+    do {
+      listing = client.listObjects(listObjectsRequest)
+      // avoid including "directories" in the input split, can cause 403 errors on GET
+      result ++= listing.getObjectSummaries.asScala.map(_.getKey).filterNot(_ endsWith "/")
+      listObjectsRequest.setMarker(listing.getNextMarker)
+    } while (listing.isTruncated)
+
+    result.toSeq
+  }
 
   def getShpUrls(s3bucket: String, s3prefix: String): Array[String] = {
-    val cred = new DefaultAWSCredentialsProviderChain()
-    val client = new AmazonS3Client(cred)
-
     val objectRequest = (new ListObjectsRequest)
       .withBucketName(s3bucket)
       .withPrefix(s3prefix)
-      .withDelimiter("/") // Avoid digging into a deeper directory
 
-    val s3objects = client.listObjects(s3bucket, s3prefix)
-    val summaries = s3objects.getObjectSummaries
-
-    s3objects.getObjectSummaries
-      .collect({ case summary if summary.getKey.endsWith(".shp") =>
-        s"https://s3.amazonaws.com/${summary.getBucketName}/${summary.getKey}"
+    listKeys(objectRequest)
+      .collect({ case key if key.endsWith(".shp") =>
+        s"https://s3.amazonaws.com/${s3bucket}/${key}"
       }).toArray
   }
 
@@ -40,13 +49,13 @@ object HydrateRDD {
     urlRdd.mapPartitions({ urlIter =>
       val urls = urlIter.toList
       urls.map({ url =>
-        val datastoreParams = Map("url" -> url)
+        val datastoreParams = Map("url" -> url).asJava
         val shpDS = DataStoreFinder.getDataStore(datastoreParams)
         if (shpDS == null) {
           println("Could not build ShapefileDataStore")
           java.lang.System.exit(-1)
         }
-        val featureCollection = shpDS.getFeatureSource(shpDS.getNames()(0)).getFeatures
+        val featureCollection = shpDS.getFeatureSource(shpDS.getNames().asScala(0)).getFeatures
         featureCollection.toArray.asInstanceOf[Array[SimpleFeature]]
       }).flatten.iterator
     })
@@ -55,10 +64,10 @@ object HydrateRDD {
   def convertToSFT(sft: SimpleFeatureType)(orig: SimpleFeature): SimpleFeature = {
     val types = sft.getTypes
     val builder = new SimpleFeatureBuilder(sft)
-    for (ty <- types) {
+    for (ty <- types.asScala) {
       builder.add(orig.getAttribute(ty.getName))
     }
-    orig.getUserData.foreach { case (k, v) => builder.userData(k, v) }
+    orig.getUserData.asScala.foreach { case (k, v) => builder.userData(k, v) }
     builder.buildFeature(orig.getID)
   }
 
@@ -78,20 +87,17 @@ object HydrateRDD {
     })
 
   def getCsvUrls(s3bucket: String, s3prefix: String, extension: String): Array[String] = {
-    val cred = new DefaultAWSCredentialsProviderChain()
-    val client = new AmazonS3Client(cred)
-
-    val objectRequest = (new ListObjectsRequest)
+    val objectRequest =
+      (new ListObjectsRequest)
       .withBucketName(s3bucket)
       .withPrefix(s3prefix)
-      .withDelimiter("/") // Avoid digging into a deeper directory
 
     val s3objects = client.listObjects(s3bucket, s3prefix)
     val summaries = s3objects.getObjectSummaries
 
-    s3objects.getObjectSummaries
-      .collect({ case summary if summary.getKey.endsWith(extension) =>
-        s"https://s3.amazonaws.com/${summary.getBucketName}/${summary.getKey}"
+    listKeys(objectRequest)
+      .collect({ case key if key.endsWith(extension) =>
+        s"https://s3.amazonaws.com/${s3bucket}/${key}"
       }).toArray
   }
 
@@ -118,7 +124,7 @@ object HydrateRDD {
             println(e.getMessage())
         }
 
-        featureCollection
+        featureCollection.asScala
       }).iterator
     })
   }
