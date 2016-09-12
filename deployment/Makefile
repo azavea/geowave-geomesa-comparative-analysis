@@ -19,7 +19,7 @@ export EXECUTOR_CORES := 2
 export YARN_OVERHEAD := 700
 
 # Docker image of benchmarking service
-export SERVICE_TAG := rob19
+export SERVICE_TAG := rob21
 export SERVICE_IMG := quay.io/geotrellis/comparative-analysis-query-server:${SERVICE_TAG}
 
 SPARK_PARAMS := --driver-memory ${DRIVER_MEMORY} \
@@ -131,6 +131,7 @@ ingest-geolife-gw:
 spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.Main ${ASSEMBLY_URI} \
 csv -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
 -p secret -t geowave.geolife -e plt -s , -d 6 \
+--temporal --point \
 --codec 'the_geom=point($$2,$$1),height=$$4,timestamp=date({yyyy-MM-ddHH:mm:ss},concat($$6,$$7))' \
 --featurename gwtrajectory \
 geotrellis-sample-datasets geolife/
@@ -147,17 +148,17 @@ geotrellis-sample-datasets geolife/
 # --featurename gwtrajectory3D \
 # geotrellis-sample-datasets geolife/
 
-ingest-geolife-gw-3Dp: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geowave ${S3_URI}/jars)
-ingest-geolife-gw-3Dp:
-	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
-	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest CSV" \
-spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.Main ${ASSEMBLY_URI} \
-csv -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
--p secret -t geowave.geolife3Dp -e plt -s , -d 6 \
---temporal --point \
---codec 'the_geom=point($$2,$$1),height=$$4,timestamp=date({yyyy-MM-ddHH:mm:ss},concat($$6,$$7))' \
---featurename gwtrajectory3Dp \
-geotrellis-sample-datasets geolife/
+# ingest-geolife-gw-3Dp: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geowave ${S3_URI}/jars)
+# ingest-geolife-gw-3Dp:
+# 	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
+# 	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest CSV" \
+# spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.Main ${ASSEMBLY_URI} \
+# csv -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
+# -p secret -t geowave.geolife3Dp -e plt -s , -d 6 \
+
+# --codec 'the_geom=point($$2,$$1),height=$$4,timestamp=date({yyyy-MM-ddHH:mm:ss},concat($$6,$$7))' \
+# --featurename gwtrajectory3Dp \
+# geotrellis-sample-datasets geolife/
 
 
 ingest-shp-data-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)

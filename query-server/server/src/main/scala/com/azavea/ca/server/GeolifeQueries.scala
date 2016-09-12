@@ -11,6 +11,7 @@ import de.heikoseeberger.akkahttpcirce._
 import io.circe.generic.auto._
 import org.geotools.data._
 import org.geotools.filter.text.ecql.ECQL
+import org.opengis.filter.Filter
 
 import scala.concurrent.Future
 
@@ -22,18 +23,41 @@ object GeolifeQueries
   val GM_SFT = "gmtrajectory"
   val GW_SFT = "gwtrajectory"
 
-  // We query the spatio-temporally indexed version if gw3D is defined.
-  def geowaveQuerier(gw3d: Boolean) =
-    if(gw3d) {
-      GeoWaveQuerier("geowave.geolife3Dp", GW_SFT + "3Dp")
-    } else {
-      GeoWaveQuerier("geowave.geolife", GW_SFT)
-    }
+  // Only use for server-side count aggregations.
+  def geowaveQuerier() =
+    GeoWaveQuerier("geowave.geolife", GW_SFT)
 
-  def geomesaFeatureSource() = {
-    val geomesaDs = GeoMesaConnection.dataStore("geomesa.geolife")
-    geomesaDs.getFeatureSource(GM_SFT)
+  lazy val geomesaDs = GeoMesaConnection.dataStore("geomesa.geolife")
+  lazy val geowaveDs = GeoWaveConnection.geotoolsDataStore("geowave.geolife")
+
+  def geowaveFeatureSource() = geowaveDs.getFeatureSource(GW_SFT)
+  def geomesaFeatureSource() = geomesaDs.getFeatureSource(GM_SFT)
+
+  def captureGeoWaveQuery(query: Filter): TestResult =
+    TestResult.capture(GeoWaveConnection.clusterId, {
+      geowaveFeatureSource().getFeatures(new Query(GW_SFT, query))
+    })
+
+  def captureGeoMesaQuery(query: Filter, loose: Boolean = false): TestResult = {
+    val q = new Query(GM_SFT, query)
+    q.getHints.put(org.locationtech.geomesa.accumulo.index.QueryHints.LOOSE_BBOX, loose)
+    TestResult.capture(GeoMesaConnection.clusterId, {
+      geomesaFeatureSource().getFeatures(q)
+    })
   }
+
+  def captureGeoMesaCountQuery(query: Filter, loose: Boolean = false): TestResult = {
+    val q = new Query(GM_SFT, query)
+    q.getHints.put(org.locationtech.geomesa.accumulo.index.QueryHints.EXACT_COUNT, true)
+    q.getHints.put(org.locationtech.geomesa.accumulo.index.QueryHints.LOOSE_BBOX, loose)
+    TestResult.capture(GeoMesaConnection.clusterId, {
+      geomesaFeatureSource().getFeatures(q)
+    })
+  }
+
+  def looseSuffix(opt: Option[String]): String =
+    if(checkIfIsLoose(opt)) "-LOOSE"
+    else ""
 
   def routes =
     pathPrefix("geolife") {
@@ -47,13 +71,6 @@ object GeolifeQueries
 
         // Spatial Only queries.
 
-        def name(queryName: String, gw3d: Boolean) =
-          if(gw3d) {
-            queryName + "-GW3D"
-          } else {
-            queryName
-          }
-
         pathPrefix("in-beijing-count") {
           // Query the multipolygon of the city of Beijing, and count results on the server side.
 
@@ -61,25 +78,20 @@ object GeolifeQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('test ?, 'gw3d ?) { (isTestOpt, gw3d) =>
+              parameters('test ?) { isTestOpt =>
                 val isTest = checkIfIsTest(isTestOpt)
                 complete {
                   Future {
-                    val mesa: TestResult = {
-                      TestResult.capture(GeoMesaConnection.clusterId) { _ =>
-                        val geomesaQuery = new Query(GM_SFT, ECQL.toFilter(Beijing.CQL.inBeijing))
-                        geomesaQuery.getHints.put(org.locationtech.geomesa.accumulo.index.QueryHints.EXACT_COUNT,true)
+                    val query = ECQL.toFilter(Beijing.CQL.inBeijing)
 
-                        geomesaFeatureSource().getCount(geomesaQuery)
-                      }
-                    }
+                    val mesa: TestResult = captureGeoMesaCountQuery(query)
 
                     val wave: TestResult =
                       TestResult.capture(GeoWaveConnection.clusterId, {
-                        geowaveQuerier(gw3d.isDefined).spatialQueryCount(Beijing.geom.jtsGeom)
+                        geowaveQuerier().spatialQueryCount(Beijing.geom.jtsGeom)
                       })
 
-                    val result = RunResult(name(queryName, gw3d.isDefined), mesa, wave, isTest)
+                    val result = RunResult(queryName, mesa, wave, isTest)
                     DynamoDB.saveResult(result)
                     result
                   }
@@ -95,24 +107,16 @@ object GeolifeQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('test ?, 'gw3d ?) { (isTestOpt, gw3d) =>
+              parameters('test ?) { isTestOpt =>
                 val isTest = checkIfIsTest(isTestOpt)
                 complete {
                   Future {
-                    val mesa: TestResult = {
-                      TestResult.capture(GeoMesaConnection.clusterId, {
-                        val geomesaQuery = new Query(GM_SFT, ECQL.toFilter(Beijing.CQL.inBeijing))
+                    val query = ECQL.toFilter(Beijing.CQL.inBeijing)
 
-                        geomesaFeatureSource().getFeatures(geomesaQuery)
-                      })
-                    }
+                    val mesa: TestResult = captureGeoMesaQuery(query)
+                    val wave: TestResult = captureGeoWaveQuery(query)
 
-                    val wave: TestResult =
-                      TestResult.capture(GeoWaveConnection.clusterId, {
-                        geowaveQuerier(gw3d.isDefined).spatialQuery(Beijing.geom.jtsGeom)
-                      })
-
-                    val result = RunResult(name(queryName, gw3d.isDefined), mesa, wave, isTest)
+                    val result = RunResult(queryName, mesa, wave, isTest)
                     DynamoDB.saveResult(result)
                     result
                   }
@@ -128,25 +132,20 @@ object GeolifeQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('test ?, 'gw3d ?) { (isTestOpt, gw3d) =>
+              parameters('test ?, 'loose ?) { (isTestOpt, isLooseOpt) =>
                 val isTest = checkIfIsTest(isTestOpt)
                 complete {
                   Future {
-                    val mesa: TestResult = {
-                      TestResult.capture(GeoMesaConnection.clusterId) { _ =>
-                        val geomesaQuery = new Query(GM_SFT, ECQL.toFilter(Beijing.CQL.inBoundingBox))
-                        geomesaQuery.getHints.put(org.locationtech.geomesa.accumulo.index.QueryHints.EXACT_COUNT,true)
+                    val query = ECQL.toFilter(Beijing.CQL.inBoundingBox)
 
-                        geomesaFeatureSource().getCount(geomesaQuery)
-                      }
-                    }
+                    val mesa: TestResult = captureGeoMesaCountQuery(query, checkIfIsLoose(isLooseOpt))
 
                     val wave: TestResult =
                       TestResult.capture(GeoWaveConnection.clusterId, {
-                        geowaveQuerier(gw3d.isDefined).spatialQueryCount(Beijing.boundingBoxGeom)
+                        geowaveQuerier().spatialQueryCount(Beijing.boundingBoxGeom)
                       })
 
-                    val result = RunResult(name(queryName, gw3d.isDefined), mesa, wave, isTest)
+                    val result = RunResult(queryName + looseSuffix(isLooseOpt), mesa, wave, isTest)
                     DynamoDB.saveResult(result)
                     result
                   }
@@ -162,24 +161,16 @@ object GeolifeQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('test ?, 'gw3d ?) { (isTestOpt, gw3d) =>
+              parameters('test ?, 'loose ?) { (isTestOpt, isLooseOpt) =>
                 val isTest = checkIfIsTest(isTestOpt)
                 complete {
                   Future {
-                    val mesa: TestResult = {
-                      TestResult.capture(GeoMesaConnection.clusterId, {
-                        val geomesaQuery = new Query(GM_SFT, ECQL.toFilter(Beijing.CQL.inBoundingBox))
+                    val query = ECQL.toFilter(Beijing.CQL.inBoundingBox)
 
-                        geomesaFeatureSource().getFeatures(geomesaQuery)
-                      })
-                    }
+                    val mesa: TestResult = captureGeoMesaQuery(query, checkIfIsLoose(isLooseOpt))
+                    val wave: TestResult = captureGeoWaveQuery(query)
 
-                    val wave: TestResult =
-                      TestResult.capture(GeoWaveConnection.clusterId, {
-                        geowaveQuerier(gw3d.isDefined).spatialQuery(Beijing.boundingBoxGeom)
-                      })
-
-                    val result = RunResult(name(queryName, gw3d.isDefined), mesa, wave, isTest)
+                    val result = RunResult(queryName + looseSuffix(isLooseOpt), mesa, wave, isTest)
                     DynamoDB.saveResult(result)
                     result
                   }
@@ -195,7 +186,7 @@ object GeolifeQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('tile_width.as[Int], 'test ?, 'gw3d ?) { (tileWidth, isTestOpt, gw3d) =>
+              parameters('tile_width.as[Int], 'test ?, 'loose ?) { (tileWidth, isTestOpt, isLooseOpt) =>
                 val isTest = checkIfIsTest(isTestOpt)
                 complete {
                   Future {
@@ -203,22 +194,12 @@ object GeolifeQueries
                     val bboxes = Beijing.boundingBoxes(tileWidth)
 
                     (for((col, row, bbox) <- bboxes) yield {
-                      val jtsGeom = bbox.toPolygon.jtsGeom
+                      val query = ECQL.toFilter(CQLUtils.toBBOXquery("the_geom", bbox))
 
-                      val mesa: TestResult = {
-                        TestResult.capture(GeoMesaConnection.clusterId, {
-                          val geomesaQuery = new Query(GM_SFT, ECQL.toFilter(CQLUtils.toBBOXquery("the_geom", bbox)))
+                      val mesa: TestResult = captureGeoMesaQuery(query, checkIfIsLoose(isLooseOpt))
+                      val wave: TestResult = captureGeoWaveQuery(query)
 
-                          geomesaFeatureSource().getFeatures(geomesaQuery)
-                        })
-                      }
-
-                      val wave: TestResult =
-                        TestResult.capture(GeoWaveConnection.clusterId, {
-                          geowaveQuerier(gw3d.isDefined).spatialQuery(jtsGeom)
-                        })
-
-                      val result = RunResult(name(queryName(tileWidth, col, row), gw3d.isDefined), mesa, wave, isTest)
+                      val result = RunResult(queryName(tileWidth, col, row) + looseSuffix(isLooseOpt), mesa, wave, isTest)
                       DynamoDB.saveResult(result)
                       result
                     }).toArray
@@ -245,19 +226,12 @@ object GeolifeQueries
                 complete {
                   Future {
                     val tq = TimeQuery("2011-01-01T00:00:00", "2012-01-01T00:00:00")
+                    val query = ECQL.toFilter(tq.toCQL("timestamp"))
 
-                    val mesa: TestResult = {
-                      TestResult.capture(GeoMesaConnection.clusterId) { _ =>
-                        val geomesaQuery = new Query(GM_SFT, ECQL.toFilter(tq.toCQL("timestamp")))
-                        geomesaQuery.getHints.put(org.locationtech.geomesa.accumulo.index.QueryHints.EXACT_COUNT,true)
-
-                        geomesaFeatureSource().getCount(geomesaQuery)
-                      }
-                    }
-
+                    val mesa: TestResult = captureGeoMesaCountQuery(query)
                     val wave: TestResult =
                       TestResult.capture(GeoWaveConnection.clusterId, {
-                        geowaveQuerier(true).temporalQueryCount(tq)
+                        geowaveQuerier().temporalQueryCount(tq, pointOnly = true)
                       })
 
                     val result = RunResult(queryName, mesa, wave, isTest)
@@ -281,17 +255,12 @@ object GeolifeQueries
                 complete {
                   Future {
                     val tq = TimeQuery("2011-01-01T00:00:00", "2012-01-01T00:00:00")
+                    val query = ECQL.toFilter(tq.toCQL("timestamp"))
 
-                    val mesa: TestResult = {
-                      TestResult.capture(GeoMesaConnection.clusterId, {
-                        val geomesaQuery = new Query(GM_SFT, ECQL.toFilter(tq.toCQL("timestamp")))
-                        geomesaFeatureSource().getFeatures(geomesaQuery)
-                      })
-                    }
-
+                    val mesa: TestResult = captureGeoMesaQuery(query)
                     val wave: TestResult =
                       TestResult.capture(GeoWaveConnection.clusterId, {
-                        geowaveQuerier(true).temporalQuery(tq)
+                        geowaveQuerier().temporalQuery(tq, pointOnly = true)
                       })
 
                     val result = RunResult(queryName, mesa, wave, isTest)
@@ -315,19 +284,12 @@ object GeolifeQueries
                 complete {
                   Future {
                     val tq = TimeQuery("2011-08-01T00:00:00", "2011-09-01T00:00:00")
+                    val query = ECQL.toFilter(tq.toCQL("timestamp"))
 
-                    val mesa: TestResult = {
-                      TestResult.capture(GeoMesaConnection.clusterId) { _ =>
-                        val geomesaQuery = new Query(GM_SFT, ECQL.toFilter(tq.toCQL("timestamp")))
-                        geomesaQuery.getHints.put(org.locationtech.geomesa.accumulo.index.QueryHints.EXACT_COUNT,true)
-
-                        geomesaFeatureSource().getCount(geomesaQuery)
-                      }
-                    }
-
+                    val mesa: TestResult = captureGeoMesaCountQuery(query)
                     val wave: TestResult =
                       TestResult.capture(GeoWaveConnection.clusterId, {
-                        geowaveQuerier(true).temporalQueryCount(tq)
+                        geowaveQuerier().temporalQueryCount(tq, pointOnly = true)
                       })
 
                     val result = RunResult(queryName, mesa, wave, isTest)
@@ -351,17 +313,12 @@ object GeolifeQueries
                 complete {
                   Future {
                     val tq = TimeQuery("2011-08-01T00:00:00", "2011-09-01T00:00:00")
+                    val query = ECQL.toFilter(tq.toCQL("timestamp"))
 
-                    val mesa: TestResult = {
-                      TestResult.capture(GeoMesaConnection.clusterId, {
-                        val geomesaQuery = new Query(GM_SFT, ECQL.toFilter(tq.toCQL("timestamp")))
-                        geomesaFeatureSource().getFeatures(geomesaQuery)
-                      })
-                    }
-
+                    val mesa: TestResult = captureGeoMesaQuery(query)
                     val wave: TestResult =
                       TestResult.capture(GeoWaveConnection.clusterId, {
-                        geowaveQuerier(true).temporalQuery(tq)
+                        geowaveQuerier().temporalQuery(tq, pointOnly = true)
                       })
 
                     val result = RunResult(queryName, mesa, wave, isTest)
@@ -389,20 +346,143 @@ object GeolifeQueries
                 complete {
                   Future {
                     val tq = TimeQuery("2011-08-01T00:00:00", "2011-09-01T00:00:00")
+                    val query = ECQL.toFilter(Beijing.CQL.inBeijing + " AND " + tq.toCQL("timestamp"))
 
-                    val mesa: TestResult = {
-                      TestResult.capture(GeoMesaConnection.clusterId, {
-                        val geomesaQuery = new Query(GM_SFT, ECQL.toFilter(Beijing.CQL.inBeijing + " AND " + tq.toCQL("timestamp")))
-                        geomesaFeatureSource().getFeatures(geomesaQuery)
-                      })
-                    }
+                    val mesa: TestResult = captureGeoMesaQuery(query)
+                    val wave: TestResult = captureGeoWaveQuery(query)
 
+                    val result = RunResult(queryName, mesa, wave, isTest)
+                    DynamoDB.saveResult(result)
+                    result
+                  }
+                }
+              }
+            }
+          }
+        } ~
+        pathPrefix("in-beijing-aug-2011-count") {
+          // Query the dataset and return everything in Beijing in August 2011
+
+          val queryName = "GEOLIFE-IN-BEIJING-AUG-2011-COUNT"
+
+          pathEndOrSingleSlash {
+            get {
+              parameters('test ?) { isTestOpt =>
+                val isTest = checkIfIsTest(isTestOpt)
+                complete {
+                  Future {
+                    val tq = TimeQuery("2011-08-01T00:00:00", "2011-09-01T00:00:00")
+                    val query = ECQL.toFilter(Beijing.CQL.inBeijing + " AND " + tq.toCQL("timestamp"))
+
+                    val mesa: TestResult = captureGeoMesaCountQuery(query)
                     val wave: TestResult =
                       TestResult.capture(GeoWaveConnection.clusterId, {
-                        geowaveQuerier(true).spatialTemporalQuery(Beijing.geom.jtsGeom, tq)
+                        geowaveQuerier().spatialTemporalQueryCount(Beijing.geom.jtsGeom, tq, pointOnly = true)
                       })
 
                     val result = RunResult(queryName, mesa, wave, isTest)
+                    DynamoDB.saveResult(result)
+                    result
+                  }
+                }
+              }
+            }
+          }
+        } ~
+        pathPrefix("in-center-beijing-jan-2011-iterate") {
+          val queryName = "GEOLIFE-IN-CENTER-BEIJING-JAN-2011-ITERATE"
+
+          pathEndOrSingleSlash {
+            get {
+              parameters('test ?) { isTestOpt =>
+                val isTest = checkIfIsTest(isTestOpt)
+                complete {
+                  Future {
+                    val tq = TimeQuery("2011-01-01T00:00:00", "2011-02-01T00:00:00")
+                    val query = ECQL.toFilter(Beijing.CQL.inBeijingCenter + " AND " + tq.toCQL("timestamp"))
+
+                    val mesa: TestResult = captureGeoMesaQuery(query)
+                    val wave: TestResult = captureGeoWaveQuery(query)
+
+                    val result = RunResult(queryName, mesa, wave, isTest)
+                    DynamoDB.saveResult(result)
+                    result
+                  }
+                }
+              }
+            }
+          }
+        } ~
+        pathPrefix("in-center-beijing-jan-2011-count") {
+          val queryName = "GEOLIFE-IN-CENTER-BEIJING-JAN-2011-COUNT"
+
+          pathEndOrSingleSlash {
+            get {
+              parameters('test ?) { isTestOpt =>
+                val isTest = checkIfIsTest(isTestOpt)
+                complete {
+                  Future {
+                    val tq = TimeQuery("2011-01-01T00:00:00", "2011-02-01T00:00:00")
+                    val query = ECQL.toFilter(Beijing.CQL.inBeijingCenter + " AND " + tq.toCQL("timestamp"))
+
+                    val mesa: TestResult = captureGeoMesaCountQuery(query)
+                    val wave: TestResult =
+                      TestResult.capture(GeoWaveConnection.clusterId, {
+                        geowaveQuerier().spatialTemporalQueryCount(Beijing.centerGeom.jtsGeom, tq, pointOnly = true)
+                      })
+
+                    val result = RunResult(queryName, mesa, wave, isTest)
+                    DynamoDB.saveResult(result)
+                    result
+                  }
+                }
+              }
+            }
+          }
+        } ~
+        pathPrefix("in-center-beijing-bbox-feb-2011-iterate") {
+          val queryName = "GEOLIFE-IN-CENTER-BEIJING-BBOX-FEB-2011-ITERATE"
+
+          pathEndOrSingleSlash {
+            get {
+              parameters('test ?, 'loose ?) { (isTestOpt, isLooseOpt) =>
+                val isTest = checkIfIsTest(isTestOpt)
+                complete {
+                  Future {
+                    val tq = TimeQuery("2011-02-01T00:00:00", "2011-03-01T00:00:00")
+                    val query = ECQL.toFilter(Beijing.CQL.inBeijingCenterBBOX + " AND " + tq.toCQL("timestamp"))
+
+                    val mesa: TestResult = captureGeoMesaQuery(query, checkIfIsLoose(isLooseOpt))
+                    val wave: TestResult = captureGeoWaveQuery(query)
+
+                    val result = RunResult(queryName + looseSuffix(isLooseOpt), mesa, wave, isTest)
+                    DynamoDB.saveResult(result)
+                    result
+                  }
+                }
+              }
+            }
+          }
+        } ~
+        pathPrefix("in-center-beijing-bbox-feb-2011-count") {
+          val queryName = "GEOLIFE-IN-CENTER-BEIJING-BBOX-FEB-2011-COUNT"
+
+          pathEndOrSingleSlash {
+            get {
+              parameters('test ?, 'loose ?) { (isTestOpt, isLooseOpt) =>
+                val isTest = checkIfIsTest(isTestOpt)
+                complete {
+                  Future {
+                    val tq = TimeQuery("2011-02-01T00:00:00", "2011-03-01T00:00:00")
+                    val query = ECQL.toFilter(Beijing.CQL.inBeijingCenterBBOX + " AND " + tq.toCQL("timestamp"))
+
+                    val mesa: TestResult = captureGeoMesaCountQuery(query, checkIfIsLoose(isLooseOpt))
+                    val wave: TestResult =
+                      TestResult.capture(GeoWaveConnection.clusterId, {
+                        geowaveQuerier().spatialTemporalQueryCount(Beijing.centerGeom.envelope.toPolygon.jtsGeom, tq, pointOnly = true)
+                      })
+
+                    val result = RunResult(queryName + looseSuffix(isLooseOpt), mesa, wave, isTest)
                     DynamoDB.saveResult(result)
                     result
                   }

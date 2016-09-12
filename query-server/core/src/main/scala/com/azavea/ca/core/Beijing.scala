@@ -9,6 +9,8 @@ object Beijing {
   val boundingBox = geom.envelope
   val boundingBoxGeom = boundingBox.toPolygon
 
+  val centerGeom: Polygon = Resource("beijing-center.geojson").parseGeoJson[Polygon]
+
   def boundingBoxes(dimension: Int): Seq[(Int, Int, Extent)] = boundingBoxes(dimension, dimension)
   def boundingBoxes(layoutCols: Int, layoutRows: Int): Seq[(Int, Int, Extent)] = {
     val Extent(xmin, ymin, xmax, ymax) = boundingBox
@@ -34,5 +36,8 @@ object Beijing {
 
     val inBeijing = s"INTERSECTS(the_geom, ${geom.toWKT})"
     val notInBeijing = s"DISJOINT(the_geom, ${geom.toWKT})"
+
+    val inBeijingCenter = s"INTERSECTS(the_geom, ${centerGeom.toWKT})"
+    val inBeijingCenterBBOX = CQLUtils.toBBOXquery("the_geom", centerGeom.envelope)
   }
 }

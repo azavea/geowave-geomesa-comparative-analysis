@@ -40,7 +40,6 @@ Based on ingests into a cluster with 5 m3.2xlarge workers.
 ###### Entries per tablet server
 
 `11.95M, 11.67M, 11.67M, 11.95M, 24.35M`
-_(See corrective action below)_
 
 ###### HDFS usage report
 
@@ -61,6 +60,7 @@ DFS Used: 34.85 GB (4.84%)
 ###### Entries per tablet server
 
 `257, 23.80M, 0, 0, 0`
+_(See corrective action below)_
 
 ###### HDFS usage report
 
@@ -82,41 +82,31 @@ This gave the following entries per table:
 
 #### GeoWave - 2D and 3D
 
-- Disk Used: 1.11G
+Disk Used	1.45G
 - Total Entries: 47.24M
 
 ###### Tables
 
-| Tables                                                 | Number of Entries |
-| -------------------------------------                  |:-----------------:|
-| `geowave.geolife3D_GEOWAVE_METADATA`                   |        11         |
-| `geowave.geolife3D_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR` |      23.44M       |
-| `geowave.geolife_GEOWAVE_METADATA`                     |        11         |
-| `geowave.geolife_SPATIAL_IDX`                          |      23.80 M      |
+| Tables                                                         | Number of Entries |
+| -------------------------------------                          |:-----------------:|
+| `geowave.geolife_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR_POINTONLY` |      23.44M       |
+| `geowave.geolife_GEOWAVE_METADATA`                             |        30         |
+| `geowave.geolife_SPATIAL_IDX`                                  |      23.82 M      |
 
 ###### Entries per tablet server
-
-`23.80M, 0, 11, 12, 23.44`
-
-###### HDFS usage report
-
-- DFS Used: 9.23 GB (1.28%)
-
-###### Action taken: descrease split size to distribute data across tablet servers
-
-The entires per tablet server server show that all entires are on one of the 5 workers,
-which will dramatically affect performance. In order to correct that,
-we change the split size and compact the table. After ingest, the `table.split.threshold=1G` on `geowave.geolife_SPATIAL_IDX`
 
 To get more splits, we execute the following command:
 - `config -t geowave.geolife_SPATIAL_IDX -s table.split.threshold=128M`
 - `compact -t geowave.geolife_SPATIAL_IDX`
-- `config -t geowave.geolife3D_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR -s table.split.threshold=128M`
-- `compact -t geowave.geolife3D_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR`
 
-- `config -t geowave.geolife3Dp_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR_POINTONLY -s table.split.threshold=200M`
-- `compact -t geowave.geolife3Dp_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR_POINTONLY`
-- `config -t geowave.geolife3Dp_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR_POINTONLY -s table.split.threshold=100M`
+- `config -t geowave.geolife_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR_POINTONLY -s table.split.threshold=128M`
+- `compact -t geowave.geolife_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR_POINTONLY`
+
 This gave the following entries per table:
 
-`14.61M,2.88M,8.82M,8.78M,11.59M`
+`14.57M,8.81M,8.70M,2.92M,11.67M`
+
+
+###### HDFS usage report
+
+- DFS Used: 12.5 GB (1.74%)

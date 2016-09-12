@@ -99,15 +99,16 @@ object Ingest {
       val sft = tybuilder.buildFeatureType
 
       val adapter = new FeatureDataAdapter(sft)
-      val index =
+      val indexes =
         if (params.temporal) {
+          // Create both a spatialtemporal and a spatail-only index
           val b = new SpatialTemporalDimensionalityTypeProvider.SpatialTemporalIndexBuilder
           b.setPointOnly(params.pointOnly)
-          b.createIndex
+          Seq(b.createIndex, (new SpatialDimensionalityTypeProvider.SpatialIndexBuilder).createIndex)
         } else {
-          (new SpatialDimensionalityTypeProvider.SpatialIndexBuilder).createIndex
+          Seq((new SpatialDimensionalityTypeProvider.SpatialIndexBuilder).createIndex)
         }
-      val indexWriter = ds.createWriter(adapter, index).asInstanceOf[IndexWriter[SimpleFeature]]
+      val indexWriter = ds.createWriter(adapter, indexes:_*).asInstanceOf[IndexWriter[SimpleFeature]]
       try {
         while (featureIter.hasNext) { indexWriter.write(featureIter.next()) }
       } finally {

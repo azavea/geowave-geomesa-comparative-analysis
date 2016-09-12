@@ -60,6 +60,7 @@ resource "aws_elb" "ca" {
   }
 
   cross_zone_load_balancing   = false
+  idle_timeout = 3600
 
   tags {
     Name        = "CA Benchmark ${var.stack_name}"

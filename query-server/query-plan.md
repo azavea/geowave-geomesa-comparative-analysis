@@ -29,6 +29,8 @@ Using Beijing geojson from mapzen's borders dataset, which can be found in the r
 
 ![Bounding Boxes](BEIJING-BBOXES-16.png)
 
+![Bounding Boxes](beijing-center.png)
+
 ###### Temporal-only queries
 
 The range of the data is from April 2007 to August 2012.
