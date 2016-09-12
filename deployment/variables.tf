@@ -23,9 +23,17 @@ variable "geomesa_zookeeper"{
   description = "Public address of GeoMesa EMR Master"
 }
 
+variable "geomesa_cluster_id"{
+  type = "string"
+}
+
 variable "geowave_zookeeper"{
   type = "string"
   description = "Public address of GeoWave EMR Master"
+}
+
+variable "geowave_cluster_id"{
+  type = "string"
 }
 
 variable "desired_benchmark_instance_count" {

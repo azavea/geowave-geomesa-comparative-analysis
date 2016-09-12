@@ -59,6 +59,7 @@ object Ingest {
                      s3prefix: String = "",
                      csvExtension: String = ".csv",
                      temporal: Boolean = false,
+                     pointOnly: Boolean = false,
                      unifySFT: Boolean = true)
 
   def registerSFT(params: Params)(sft: SimpleFeatureType): Unit = ???
@@ -94,13 +95,17 @@ object Ingest {
       val ds = getGeowaveDataStore(params)
 
       val adapter = new FeatureDataAdapter(features.head.getType())
-      val index =
+
+      val indexes =
         if (params.temporal) {
-          (new SpatialTemporalDimensionalityTypeProvider.SpatialTemporalIndexBuilder).createIndex
+          // Create both a spatialtemporal and a spatail-only index
+          val b = new SpatialTemporalDimensionalityTypeProvider.SpatialTemporalIndexBuilder
+          b.setPointOnly(params.pointOnly)
+          Seq(b.createIndex, (new SpatialDimensionalityTypeProvider.SpatialIndexBuilder).createIndex)
         } else {
-          (new SpatialDimensionalityTypeProvider.SpatialIndexBuilder).createIndex
+          Seq((new SpatialDimensionalityTypeProvider.SpatialIndexBuilder).createIndex)
         }
-      val indexWriter = ds.createWriter(adapter, index).asInstanceOf[IndexWriter[SimpleFeature]]
+      val indexWriter = ds.createWriter(adapter, indexes:_*).asInstanceOf[IndexWriter[SimpleFeature]]
       try {
         features.foreach({ feature => indexWriter.write(feature) })
       } finally {
@@ -108,4 +113,3 @@ object Ingest {
       }
     })
 }
-

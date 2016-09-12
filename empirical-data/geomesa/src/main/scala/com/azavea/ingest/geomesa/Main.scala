@@ -1,5 +1,7 @@
 package com.azavea.ingest.geomesa
 
+import org.apache.spark._
+import org.apache.spark.rdd._
 import org.opengis.feature.simple._
 import org.geotools.feature.simple._
 import org.geotools.data.{DataStoreFinder, DataUtilities, FeatureWriter, Transaction}
@@ -38,6 +40,8 @@ object Main {
       }
       case Ingest.CSV => {
         val urls = getCsvUrls(params.s3bucket, params.s3prefix, params.csvExtension)
+        println(s"\n\nNUMBER OF URLS = ${urls.size}")
+
         val tybuilder = new SimpleFeatureTypeBuilder
         tybuilder.setName(params.featureName)
         params.codec.genSFT(tybuilder)
@@ -50,4 +54,3 @@ object Main {
     }
   }
 }
-

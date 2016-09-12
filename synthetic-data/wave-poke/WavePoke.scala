@@ -33,7 +33,7 @@ object WavePoke extends CommonPoke {
   def main(args: Array[String]): Unit = {
 
     if (args.length < 7) {
-      println(s"arguments: <instance> <zookeepers> <user> <password> <gwNamespace> <indexType> <instruction\{1,\}>")
+      println(s"arguments: <instance> <zookeepers> <user> <password> <gwNamespace> <indexType> <instruction(s)>")
       System.exit(-1)
     }
 
