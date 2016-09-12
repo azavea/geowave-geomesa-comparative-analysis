@@ -136,31 +136,6 @@ csv -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
 --featurename gwtrajectory \
 geotrellis-sample-datasets geolife/
 
-# ingest-geolife-gw-3D: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geowave ${S3_URI}/jars)
-# ingest-geolife-gw-3D:
-# 	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
-# 	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest CSV" \
-# spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.Main ${ASSEMBLY_URI} \
-# csv -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
-# -p secret -t geowave.geolife3D -e plt -s , -d 6 \
-# --temporal \
-# --codec 'the_geom=point($$2,$$1),height=$$4,timestamp=date({yyyy-MM-ddHH:mm:ss},concat($$6,$$7))' \
-# --featurename gwtrajectory3D \
-# geotrellis-sample-datasets geolife/
-
-# ingest-geolife-gw-3Dp: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geowave ${S3_URI}/jars)
-# ingest-geolife-gw-3Dp:
-# 	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
-# 	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest CSV" \
-# spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.Main ${ASSEMBLY_URI} \
-# csv -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
-# -p secret -t geowave.geolife3Dp -e plt -s , -d 6 \
-
-# --codec 'the_geom=point($$2,$$1),height=$$4,timestamp=date({yyyy-MM-ddHH:mm:ss},concat($$6,$$7))' \
-# --featurename gwtrajectory3Dp \
-# geotrellis-sample-datasets geolife/
-
-
 ingest-shp-data-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
 ingest-shp-data-gm:
 	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
@@ -168,6 +143,16 @@ ingest-shp-data-gm:
 spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geomesa.Main  ${ASSEMBLY_URI} \
 shapefile -i gis -z ${GEOMESA_ZOOKEEPER} -u root \
 -p secret -t geomesa.shptest \
+--featurename gmgenerated-tracks \
+geotrellis-sample-datasets generated-tracks/
+
+ingest-shp-data-gw: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geowave ${S3_URI}/jars)
+ingest-shp-data-gw:
+	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
+	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest shapefiles" \
+spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geomesa.Main  ${ASSEMBLY_URI} \
+shapefile -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
+-p secret -t geowave.shptest \
 --featurename gmgenerated-tracks \
 geotrellis-sample-datasets generated-tracks/
 
