@@ -59,6 +59,7 @@ object Ingest {
                      s3prefix: String = "",
                      csvExtension: String = ".csv",
                      temporal: Boolean = false,
+                     pointOnly: Boolean = false,
                      unifySFT: Boolean = true)
 
   def registerSFT(params: Params)(sft: SimpleFeatureType): Unit = ???
@@ -100,7 +101,9 @@ object Ingest {
       val adapter = new FeatureDataAdapter(sft)
       val index =
         if (params.temporal) {
-          (new SpatialTemporalDimensionalityTypeProvider.SpatialTemporalIndexBuilder).createIndex
+          val b = new SpatialTemporalDimensionalityTypeProvider.SpatialTemporalIndexBuilder
+          b.setPointOnly(params.pointOnly)
+          b.createIndex
         } else {
           (new SpatialDimensionalityTypeProvider.SpatialIndexBuilder).createIndex
         }
