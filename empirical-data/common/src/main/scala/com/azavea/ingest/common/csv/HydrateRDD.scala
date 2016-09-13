@@ -50,7 +50,8 @@ object HydrateRDD extends HydrateRDDUtils {
     delim: String,
     unzip: Boolean = false
   )(implicit sc: SparkContext): RDD[SimpleFeature] = {
-    val urlRdd: RDD[String] = sc.parallelize(urlArray, urlArray.size / 5)
+    val partitionCount = if (unzip) urlArray.size else (urlArray.size / 10)
+    val urlRdd: RDD[String] = sc.parallelize(urlArray, partitionCount)
     urlRdd.mapPartitions({ urlIter =>
       urlIter.flatMap({ urlName =>
         val url = new java.net.URL(urlName)
