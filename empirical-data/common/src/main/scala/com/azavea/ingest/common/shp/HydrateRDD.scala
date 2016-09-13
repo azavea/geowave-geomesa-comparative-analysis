@@ -27,7 +27,7 @@ object HydrateRDD extends HydrateRDDUtils {
       .withBucketName(s3bucket)
       .withPrefix(s3prefix)
 
-    if (recursive) { // Avoid digging into a deeper directory
+    if (! recursive) { // Avoid digging into a deeper directory
       objectRequest.withDelimiter("/")
     }
 

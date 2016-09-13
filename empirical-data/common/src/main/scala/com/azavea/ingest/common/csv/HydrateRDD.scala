@@ -28,7 +28,7 @@ object HydrateRDD extends HydrateRDDUtils {
       .withPrefix(s3prefix)
 
     // Avoid digging into a deeper directory
-    if (recursive) {
+    if (! recursive) {
       objectRequest.withDelimiter("/")
     }
 

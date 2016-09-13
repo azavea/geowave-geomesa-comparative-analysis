@@ -44,7 +44,7 @@ object GdeltIngest {
       csvExtension = ".gz",
       unifySFT = true
     )
-    val urls = getCsvUrls(params.s3bucket, params.s3prefix, params.csvExtension)
+    val urls = getCsvUrls(params.s3bucket, params.s3prefix, params.csvExtension, true)
     val tybuilder = new SimpleFeatureTypeBuilder
     tybuilder.setName(params.featureName)
     params.codec.genSFT(tybuilder)
