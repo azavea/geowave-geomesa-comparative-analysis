@@ -172,6 +172,18 @@ spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.Main  $${ASSEMBL
 shapefile -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
 -p secret -t geowave.shptest --featurename vienna-buildings geotrellis-sample-datasets Vienna/buildings/
 
+ingest-gdelt-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
+ingest-gdelt-gm:
+	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
+	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest shapefiles" \
+spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geomesa.GdeltIngest ${ASSEMBLY_URI} ${GEOMESA_ZOOKEEPER}
+
+ingest-gdelt-gw: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geowave ${S3_URI}/jars)
+ingest-gdelt-gw:
+	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
+	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest shapefiles" \
+spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.GdeltIngest ${ASSEMBLY_URI} ${GEOWAVE_ZOOKEEPER}
+
 explore:
 	cd ../query-server && ./sbt "project explore" assembly
 	echo "spark-shell --master yarn --deploy-mode client ${SPARK_PARAMS} --jars explore-assembly-0.0.1.jar" > run-explore-shell.sh
@@ -207,3 +219,4 @@ proxy-gm:
 
 proxy-gw:
 	aws emr socks --cluster-id ${GEOWAVE_CLUSTER_ID} --key-pair-file "${EC2_KEY_FILE}"
+

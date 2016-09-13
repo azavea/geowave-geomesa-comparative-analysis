@@ -25,6 +25,7 @@ object CSVSchemaParser {
     }
 
     def makeSimpleFeature(sftName: String, csvrow: Array[String], id: String): SimpleFeature = {
+      print("Making a simple feature...", sftName, csvrow.toList, id)
       val values = eval(csvrow).asInstanceOf[Seq[(String, Object)]]
       val sftBuilder = new SimpleFeatureTypeBuilder
       sftBuilder.setName(sftName)
@@ -46,8 +47,8 @@ object CSVSchemaParser {
 
   case class Func(f: String, args: Seq[Expr]) extends Expr {
     def returnType(): Class[_] = f match {
-      case "int" => classOf[Int]
-      case "double" => classOf[Double]
+      case "int" => classOf[java.lang.Integer]
+      case "double" => classOf[java.lang.Double]
       case "point" => classOf[Point]
       case "date" => classOf[java.util.Date]
       case "concat" => classOf[String]

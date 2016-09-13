@@ -18,11 +18,19 @@ import scala.collection.mutable
 import com.azavea.ingest.common._
 
 object HydrateRDD extends HydrateRDDUtils {
-  def getCsvUrls(s3bucket: String, s3prefix: String, extension: String): Array[String] = {
-    val objectRequest =
-      (new ListObjectsRequest)
+
+  def getCsvUrls(s3bucket: String, s3prefix: String, extension: String, recursive: Boolean = false): Array[String] = {
+    val cred = new DefaultAWSCredentialsProviderChain()
+    val client = new AmazonS3Client(cred)
+
+    val objectRequest = (new ListObjectsRequest)
       .withBucketName(s3bucket)
       .withPrefix(s3prefix)
+
+    // Avoid digging into a deeper directory
+    if (recursive) {
+      objectRequest.withDelimiter("/")
+    }
 
     val s3objects = client.listObjects(s3bucket, s3prefix)
     val summaries = s3objects.getObjectSummaries
@@ -39,17 +47,17 @@ object HydrateRDD extends HydrateRDDUtils {
     sftName: String,
     schema: CSVSchemaParser.Expr,
     drop: Int,
-    delim: String
+    delim: String,
+    unzip: Boolean = false
   )(implicit sc: SparkContext): RDD[SimpleFeature] = {
     val urlRdd: RDD[String] = sc.parallelize(urlArray, urlArray.size / 20)
     urlRdd.mapPartitions({ urlIter =>
-      val urls = urlIter.toList
-      urls.flatMap({ urlName =>
+      urlIter.flatMap({ urlName =>
         val url = new java.net.URL(urlName)
         val featureCollection = new DefaultFeatureCollection(null, null)
 
         try {
-          CSVtoSimpleFeature.parseCSVFile(schema, url, drop, delim, sftName, featureCollection)
+          CSVtoSimpleFeature.parseCSVFile(schema, url, drop, delim, sftName, featureCollection, unzip)
         } catch {
           case e: java.io.IOException =>
             println(s"Discarded ${url} (File does not exist?)")
@@ -58,7 +66,7 @@ object HydrateRDD extends HydrateRDDUtils {
         }
 
         featureCollection
-      }).iterator
+      })
     })
   }
 
