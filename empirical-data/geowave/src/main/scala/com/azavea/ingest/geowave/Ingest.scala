@@ -62,8 +62,6 @@ object Ingest {
                      pointOnly: Boolean = false,
                      unifySFT: Boolean = true)
 
-  def registerSFT(params: Params)(sft: SimpleFeatureType): Unit = ???
-
   def getGeowaveDataStore(conf: Params): AccumuloDataStore = {
     // GeoWave persists both the index and data adapter to the same accumulo
     // namespace as the data. The intent here

@@ -1,4 +1,4 @@
-package com.azavea.ingest.geomesa
+package com.azavea.ingest.geowave
 
 import org.opengis.feature.simple._
 import org.geotools.feature.simple._
@@ -22,7 +22,7 @@ object GdeltIngest {
 
     val conf: SparkConf =
       new SparkConf()
-        .setAppName("GeoMesa ingest utility")
+        .setAppName("GeoWave ingest utility (gdelt)")
         .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
         .set("spark.kryo.registrator", "geotrellis.spark.io.kryo.KryoRegistrator")
 
@@ -34,7 +34,7 @@ object GdeltIngest {
       zookeeper,
       "root",
       "secret",
-      "geomesa.gdelt",
+      "geowave.gdelt",
       0,
       "\t",
       CSVSchemaParser.SpecParser(spec),
@@ -51,7 +51,6 @@ object GdeltIngest {
     val sft = tybuilder.buildFeatureType
     val csvRdd: RDD[SimpleFeature] = csvUrlsToRdd(urls, params.featureName, params.codec, params.dropLines, params.separator, true)
 
-    Ingest.registerSFT(params)(sft)
     Ingest.ingestRDD(params)(csvRdd)
   }
 
