@@ -12,6 +12,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.data.{DataStoreFinder, DataUtilities, FeatureWriter, Transaction}
 
 import java.util.HashMap
+import scala.collection.concurrent.TrieMap
 import scala.collection.JavaConversions._
 
  import com.azavea.ingest.common._
