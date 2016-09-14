@@ -88,7 +88,7 @@ destroy-service:
 -var 'geowave_zookeeper=NA'
 
 
-destroy: destroy-service
+destroy: save-metrics destroy-service
 	aws emr terminate-clusters --cluster-ids ${GEOMESA_CLUSTER_ID} ${GEOWAVE_CLUSTER_ID}
 	@rm -f *-cluster-id.txt
 
@@ -139,6 +139,16 @@ shapefile -i gis -z ${GEOMESA_ZOOKEEPER} -u root \
 -p secret -t geomesa.shptest \
 --featurename gmgenerated-tracks \
 geotrellis-sample-datasets generated-tracks/
+
+save-metrics:
+	@mkdir -p ../metrics
+	@echo Saving GeoMesa metrics...
+	@aws emr ssh --cluster-id ${GEOMESA_CLUSTER_ID} --key-pair-file "${EC2_KEY_FILE}" \
+		--command "cd /mnt/var/lib/ganglia/rrds && tar czf ~/metrics.tgz j-* && aws s3 cp ${S3_URI}/metrics/${GEOMESA_CLUSTER_ID}.tgz"
+
+	@echo Save GeoWave metrics...
+	@aws emr ssh --cluster-id ${GEOWAVE_CLUSTER_ID} --key-pair-file "${EC2_KEY_FILE}" \
+		--command "cd /mnt/var/lib/ganglia/rrds && tar czf ~/metrics.tgz j-* && aws s3 cp ${S3_URI}/metrics/${GEOWAVE_CLUSTER_ID}.tgz"
 
 fetch-metrics:
 	@mkdir -p ../metrics
