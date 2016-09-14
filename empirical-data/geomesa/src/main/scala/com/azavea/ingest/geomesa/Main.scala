@@ -5,6 +5,7 @@ import org.apache.spark.rdd._
 import org.opengis.feature.simple._
 import org.geotools.feature.simple._
 import org.geotools.data.{DataStoreFinder, DataUtilities, FeatureWriter, Transaction}
+import org.geotools.referencing.CRS;
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.rdd._
 
@@ -32,11 +33,11 @@ object Main {
     params.csvOrShp match {
       case Ingest.SHP => {
         val urls = getShpUrls(params.s3bucket, params.s3prefix)
+        println(s"\n\nNUMBER OF URLS = ${urls.size}")
         val shpUrlRdd = shpUrlsToRdd(urls)
         val shpSimpleFeatureRdd: RDD[SimpleFeature] = NormalizeRDD.normalizeFeatureName(shpUrlRdd, params.featureName)
 
-        Ingest.registerSFT(params)(shpSimpleFeatureRdd.first.getType)
-        Ingest.ingestRDD(params)(shpSimpleFeatureRdd)
+        Ingest.ingestRDD(params)(shpSimpleFeatureRdd.map(Reproject(_, CRS.decode("EPSG:4326"))))
       }
       case Ingest.CSV => {
         val urls = getCsvUrls(params.s3bucket, params.s3prefix, params.csvExtension)
