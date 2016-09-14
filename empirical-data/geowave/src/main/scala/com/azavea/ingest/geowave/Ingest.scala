@@ -7,6 +7,7 @@ import mil.nga.giat.geowave.datastore.accumulo._
 import mil.nga.giat.geowave.datastore.accumulo.index.secondary._
 import mil.nga.giat.geowave.datastore.accumulo.metadata._
 import mil.nga.giat.geowave.datastore.accumulo.operations.config.AccumuloOptions
+import mil.nga.giat.geowave.datastore.accumulo.util.AccumuloUtils
 import mil.nga.giat.geowave.core.geotime.index.dimension._
 import mil.nga.giat.geowave.core.geotime.index.dimension.TemporalBinningStrategy.{ Unit => BinUnit }
 import mil.nga.giat.geowave.core.geotime.ingest._
@@ -72,16 +73,19 @@ object Ingest {
 
   def registerSFT(params: Params)(sft: SimpleFeatureType): Unit = ???
 
+  def getOperations(conf: Params): BasicAccumuloOperations =
+    new BasicAccumuloOperations(conf.zookeepers,
+      conf.instanceId,
+      conf.user,
+      conf.password,
+      conf.tableName)
+
   def getGeowaveDataStore(conf: Params): AccumuloDataStore = {
     // GeoWave persists both the index and data adapter to the same accumulo
     // namespace as the data. The intent here
     // is that all data is discoverable without configuration/classes stored
     // outside of the accumulo instance.
-    val instance = new BasicAccumuloOperations(conf.zookeepers,
-                                               conf.instanceId,
-                                               conf.user,
-                                               conf.password,
-                                               conf.tableName)
+    val instance = getOperations(conf)
 
     val options = new AccumuloOptions
     options.setPersistDataStatistics(true)
@@ -97,44 +101,54 @@ object Ingest {
       options)
   }
 
-  def ingestRDD(params: Params)(rdd: RDD[SimpleFeature]) =
+  def indexes(params: Params): Seq[PrimaryIndex] = {
+    val idxs =
+      if (params.temporal) {
+        // Create both a spatialtemporal and a spatail-only index
+        val b = new SpatialTemporalDimensionalityTypeProvider.SpatialTemporalIndexBuilder
+        b.setPointOnly(params.pointOnly)
+        Seq(b.createIndex, (new SpatialDimensionalityTypeProvider.SpatialIndexBuilder).createIndex)
+      } else {
+        Seq((new SpatialDimensionalityTypeProvider.SpatialIndexBuilder).createIndex)
+      }
+
+    if(params.partitionStrategy != "NONE") {
+      if(params.numPartitions <= 1) { sys.error("If partition strategy is set, need more than one partition.") }
+      val partitionStrategy =
+        if(params.partitionStrategy == "ROUND_ROBIN") { PartitionStrategy.ROUND_ROBIN }
+        else if (params.partitionStrategy == "HASH") { PartitionStrategy.HASH }
+        else { sys.error(s"Partition strategy was ${params.partitionStrategy}, needs to be either ROUND_ROBIN or HASH") }
+
+      idxs.map { i => compoundPartitioningIndex(i, params.numPartitions, partitionStrategy) }
+    } else {
+      idxs
+    }
+  }
+
+  def ingestRDD(params: Params)(rdd: RDD[SimpleFeature]) = {
+
     rdd.foreachPartition({ featureIter =>
       val features = featureIter.buffered
       val ds = getGeowaveDataStore(params)
 
       val adapter = new FeatureDataAdapter(features.head.getType())
 
-      val indexes = {
-        val idxs =
-          if (params.temporal) {
-            // Create both a spatialtemporal and a spatail-only index
-            val b = new SpatialTemporalDimensionalityTypeProvider.SpatialTemporalIndexBuilder
-            b.setPointOnly(params.pointOnly)
-            Seq(b.createIndex, (new SpatialDimensionalityTypeProvider.SpatialIndexBuilder).createIndex)
-          } else {
-            Seq((new SpatialDimensionalityTypeProvider.SpatialIndexBuilder).createIndex)
-          }
-
-        if(params.partitionStrategy != "NONE") {
-          if(params.numPartitions <= 1) { sys.error("If partition strategy is set, need more than one partition.") }
-          val partitionStrategy =
-            if(params.partitionStrategy == "ROUND_ROBIN") { PartitionStrategy.ROUND_ROBIN }
-            else if (params.partitionStrategy == "HASH") { PartitionStrategy.HASH }
-            else { sys.error(s"Partition strategy was ${params.partitionStrategy}, needs to be either ROUND_ROBIN or HASH") }
-
-          idxs.map { i => compoundPartitioningIndex(i, params.numPartitions, partitionStrategy) }
-        } else {
-          idxs
-        }
-      }
-
-      val indexWriter = ds.createWriter(adapter, indexes:_*).asInstanceOf[IndexWriter[SimpleFeature]]
+      val indexWriter = ds.createWriter(adapter, indexes(params):_*).asInstanceOf[IndexWriter[SimpleFeature]]
       try {
         features.foreach({ feature => indexWriter.write(feature) })
       } finally {
         indexWriter.close()
       }
     })
+
+    if(params.partitionStrategy == "NONE" && params.numPartitions > 1) {
+      val ops = getOperations(params)
+      val connector = ops.getConnector
+      for(index <- indexes(params)) {
+        AccumuloUtils.setSplitsByNumRows(connector, params.tableName, index, params.numPartitions)
+      }
+    }
+  }
 
   def compoundPartitioningIndex(index: PrimaryIndex, numPartitions: Int, partitionStrategy: IndexPluginOptions.PartitionStrategy): PrimaryIndex = {
     if(numPartitions > 1 && partitionStrategy.equals(PartitionStrategy.ROUND_ROBIN)) {
