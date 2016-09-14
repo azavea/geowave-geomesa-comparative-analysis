@@ -172,6 +172,27 @@ spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.Main  $${ASSEMBL
 shapefile -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
 -p secret -t geowave.shptest --featurename vienna-buildings geotrellis-sample-datasets Vienna/buildings/
 
+ingest-vienna-translate-gm: export ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
+ingest-vienna-translate-gm:
+	@if [ -z "$${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
+	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest Vienna Translated" \
+spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geomesa.Main  $${ASSEMBLY_URI} \
+shapefile -i gis -z ${GEOMESA_ZOOKEEPER} -u root \
+-p secret -t geomesa.shptest --featurename vienna-buildings \
+--translationPoints s3://geotrellis-test/ca/ingest/city-points.json --translationOrigin "16.36,48.21" \
+geotrellis-sample-datasets Vienna/buildings/
+
+
+ingest-vienna-translate-gw: export ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geowave ${S3_URI}/jars)
+ingest-vienna-translate-gw:
+	@if [ -z "$${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
+	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest Vienna Translated" \
+spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.Main  $${ASSEMBLY_URI} \
+shapefile -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
+-p secret -t geowave.shptest --featurename vienna-buildings \
+--translationPoints s3://geotrellis-test/ca/ingest/city-points.json --translationOrigin "16.36,48.21" \
+geotrellis-sample-datasets Vienna/buildings/
+
 explore:
 	cd ../query-server && ./sbt "project explore" assembly
 	echo "spark-shell --master yarn --deploy-mode client ${SPARK_PARAMS} --jars explore-assembly-0.0.1.jar" > run-explore-shell.sh

@@ -15,19 +15,7 @@ object Reproject {
     sftb.init(sf.getType)
     sftb.setCRS(crs)
     val sft = sftb.buildFeatureType
-    val sfb = new SimpleFeatureBuilder(sft)
     val transform = CRS.findMathTransform(sf.getType.getCoordinateReferenceSystem, crs, true)
-    sf
-      .getAttributes
-      .asScala
-      .foreach {
-        case geom: Geometry =>
-          val g = JTS.transform(geom, transform)
-          sfb.add(g)
-        case obj =>
-          sfb.add(obj)
-    }
-
-    sfb.buildFeature(null)
+    Transform(sft, sf, transform)
   }
 }

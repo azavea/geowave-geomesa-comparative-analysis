@@ -50,7 +50,11 @@ object Main {
         val shpUrlRdd: RDD[SimpleFeature] = shpUrlsToRdd(urls)
         val shpSimpleFeatureRdd: RDD[SimpleFeature] = NormalizeRDD.normalizeFeatureName(shpUrlRdd, params.featureName)
 
-        Ingest.ingestRDD(params)(shpSimpleFeatureRdd)
+        if (params.translationPoints.nonEmpty && params.translationOrigin.isDefined)
+          Ingest.ingestRDD(params)(
+            TranslateRDD(shpSimpleFeatureRdd, params.translationOrigin.get, params.translationPoints))
+        else
+          Ingest.ingestRDD(params)(shpSimpleFeatureRdd)
       }
       case Ingest.CSV => {
         val urls = getCsvUrls(params.s3bucket, params.s3prefix, params.csvExtension)
@@ -61,4 +65,3 @@ object Main {
     }
   }
 }
-
