@@ -1,6 +1,7 @@
 lib/
 target/
 metrics/
+*/.idea
 *~
 \#*#
 .#*
