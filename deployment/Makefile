@@ -10,7 +10,7 @@ export MASTER_INSTANCE := m3.xlarge
 export MASTER_PRICE := 0.5
 export WORKER_INSTANCE := m3.2xlarge
 export WORKER_PRICE := 0.5
-export WORKER_COUNT := 1
+export WORKER_COUNT := 5
 
 export DRIVER_MEMORY := 4200M
 export DRIVER_CORES := 2
@@ -19,12 +19,10 @@ export EXECUTOR_CORES := 2
 export YARN_OVERHEAD := 700
 
 # Docker image of benchmarking service
-export SERVICE_IMG := quay.io/geotrellis/comparative-analysis-bastion:${SERVICE_TAG}
-export SERVICE_TAG := latest
+export SERVICE_TAG := rob21
+export SERVICE_IMG := quay.io/geotrellis/comparative-analysis-query-server:${SERVICE_TAG}
 
-SPARK_OPTIONS := --master yarn \
---deploy-mode cluster \
---driver-memory ${DRIVER_MEMORY} \
+SPARK_PARAMS := --driver-memory ${DRIVER_MEMORY} \
 --driver-cores ${DRIVER_CORES} \
 --executor-memory ${EXECUTOR_MEMORY} \
 --executor-cores ${EXECUTOR_CORES} \
@@ -32,6 +30,9 @@ SPARK_OPTIONS := --master yarn \
 --conf spark.yarn.executor.memoryOverhead=${YARN_OVERHEAD} \
 --conf spark.yarn.driver.memoryOverhead=${YARN_OVERHEAD}
 
+
+SPARK_OPTIONS := --master yarn \
+--deploy-mode cluster ${SPARK_PARAMS}
 
 GEODOCKER_BOOTSTRAP=s3://geotrellis-test/geodocker/bootstrap-geodocker-accumulo.sh
 
@@ -75,7 +76,9 @@ deploy: ${STACK_NAME}-geomesa-cluster-id.txt ${STACK_NAME}-geowave-cluster-id.tx
 -var 'subnet_id=${SUBNET_ID}' \
 -var 'service_image=${SERVICE_IMG}' \
 -var 'geomesa_zookeeper=${GEOMESA_ZOOKEEPER}' \
--var 'geowave_zookeeper=${GEOWAVE_ZOOKEEPER}'
+-var 'geowave_zookeeper=${GEOWAVE_ZOOKEEPER}' \
+-var 'geomesa_cluster_id=${GEOMESA_CLUSTER_ID}' \
+-var 'geowave_cluster_id=${GEOWAVE_CLUSTER_ID}'
 
 destroy-service:
 	terraform destroy -force \
@@ -85,7 +88,9 @@ destroy-service:
 -var 'subnet_id=${SUBNET_ID}' \
 -var 'service_image=NA' \
 -var 'geomesa_zookeeper=NA' \
--var 'geowave_zookeeper=NA'
+-var 'geowave_zookeeper=NA' \
+-var 'geomesa_cluster_id=NA' \
+-var 'geowave_cluster_id=NA'
 
 
 destroy: save-metrics destroy-service
@@ -108,27 +113,28 @@ spark-submit ${SPARK_OPTIONS} --class com.azavea.geowave.WavePoke ${ASSEMBLY_URI
 gis ${GEOWAVE_ZOOKEEPER} root secret geowave.test space \
 point,100,uniform:-180:180,uniform:-90:90,fixed:0,100
 
-ingest-csv-data-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
-ingest-csv-data-gm:
+ingest-geolife-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
+ingest-geolife-gm:
 	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
 	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest CSV" \
 spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geomesa.Main ${ASSEMBLY_URI} \
 csv -i gis -z ${GEOMESA_ZOOKEEPER} -u root \
--p secret -t geomesa.test -e plt -s , -d 6 \
+-p secret -t geomesa.geolife -e plt -s , -d 6 \
 --codec 'the_geom=point($$2,$$1),height=$$4,timestamp=date({yyyy-MM-ddHH:mm:ss},concat($$6,$$7))' \
 --featurename gmtrajectory \
-geotrellis-sample-datasets geolife/000/Trajectory/
+geotrellis-sample-datasets geolife/
 
-ingest-csv-data-gw: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geowave ${S3_URI}/jars)
-ingest-csv-data-gw:
+ingest-geolife-gw: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geowave ${S3_URI}/jars)
+ingest-geolife-gw:
 	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
 	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest CSV" \
 spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.Main ${ASSEMBLY_URI} \
 csv -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
--p secret -t geowave.test -e plt -s , -d 6 \
+-p secret -t geowave.geolife -e plt -s , -d 6 \
+--temporal --point \
 --codec 'the_geom=point($$2,$$1),height=$$4,timestamp=date({yyyy-MM-ddHH:mm:ss},concat($$6,$$7))' \
 --featurename gwtrajectory \
-geotrellis-sample-datasets geolife/000/Trajectory/
+geotrellis-sample-datasets geolife/
 
 ingest-shp-data-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
 ingest-shp-data-gm:
@@ -139,6 +145,24 @@ shapefile -i gis -z ${GEOMESA_ZOOKEEPER} -u root \
 -p secret -t geomesa.shptest \
 --featurename gmgenerated-tracks \
 geotrellis-sample-datasets generated-tracks/
+
+ingest-shp-data-gw: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geowave ${S3_URI}/jars)
+ingest-shp-data-gw:
+	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
+	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest shapefiles" \
+spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geomesa.Main  ${ASSEMBLY_URI} \
+shapefile -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
+-p secret -t geowave.shptest \
+--featurename gmgenerated-tracks \
+geotrellis-sample-datasets generated-tracks/
+
+explore:
+	cd ../query-server && ./sbt "project explore" assembly
+	echo "spark-shell --master yarn --deploy-mode client ${SPARK_PARAMS} --jars explore-assembly-0.0.1.jar" > run-explore-shell.sh
+	chmod a+x run-explore-shell.sh
+	scp -i ~/.keys/geotrellis-cluster.pem ../query-server/explore/target/scala-2.11/explore-assembly-0.0.1.jar hadoop@${GEOMESA_ZOOKEEPER}:/home/hadoop
+	scp -i ~/.keys/geotrellis-cluster.pem run-explore-shell.sh hadoop@${GEOMESA_ZOOKEEPER}:/home/hadoop
+	ssh -i ~/.keys/geotrellis-cluster.pem hadoop@${GEOMESA_ZOOKEEPER}
 
 save-metrics:
 	@mkdir -p ../metrics

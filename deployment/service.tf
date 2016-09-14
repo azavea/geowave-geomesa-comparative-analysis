@@ -19,7 +19,9 @@ data "template_file" "ecs_ca_task" {
   vars {
     image             = "${var.service_image}",
     geowave_zookeeper = "${var.geowave_zookeeper}",
-    geomesa_zookeeper  = "${var.geomesa_zookeeper}"
+    geomesa_zookeeper = "${var.geomesa_zookeeper}"
+    geowave_cluster_id = "${var.geowave_cluster_id}",
+    geomesa_cluster_id = "${var.geomesa_cluster_id}"
   }
 }
 
@@ -58,6 +60,7 @@ resource "aws_elb" "ca" {
   }
 
   cross_zone_load_balancing   = false
+  idle_timeout = 3600
 
   tags {
     Name        = "CA Benchmark ${var.stack_name}"

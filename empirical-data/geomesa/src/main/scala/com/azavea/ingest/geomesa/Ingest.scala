@@ -83,7 +83,8 @@ object Ingest {
       var fw: FeatureWriter[SimpleFeatureType, SimpleFeature] = null
       try {
         fw = ds.getFeatureWriterAppend(params.featureName, Transaction.AUTO_COMMIT)
-        featureIter.toStream.foreach({ feature: SimpleFeature =>
+
+        featureIter.buffered.foreach({ feature: SimpleFeature =>
             println(feature.toString)
             val toWrite = fw.next()
             toWrite.setAttributes(feature.getAttributes)

@@ -63,10 +63,10 @@ object CSVSchemaParser {
       case "int" => { assertArity(1) ; args(0).eval(csvrow).asInstanceOf[String].toInt }
       case "double" => { assertArity(1) ; args(0).eval(csvrow).asInstanceOf[String].toDouble }
       case "concat" => { ("" /: args) { case (str, ex) => str + ex.eval(csvrow).asInstanceOf[String] } }
-      case "point" => { 
+      case "point" => {
         assertArity(2)
         val gf = new GeometryFactory
-        gf.createPoint(new Coordinate(args(0).eval(csvrow).asInstanceOf[String].toDouble, 
+        gf.createPoint(new Coordinate(args(0).eval(csvrow).asInstanceOf[String].toDouble,
                                       args(1).eval(csvrow).asInstanceOf[String].toDouble))
       }
       case "date" => {
@@ -118,6 +118,5 @@ object CSVSchemaParser {
     spec.genSFT(builder)
     builder.buildFeatureType
   }
-
 }
 

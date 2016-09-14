@@ -1,0 +1,25 @@
+version: '2'
+services:
+    query-server:
+      image: quay.io/geotrellis/comparative-analysis-query-server:rob5
+      environment:
+        GW_CLUSTER_ID: gw_cluster_id
+        GW_ZK: zookeeper
+        GW_USER: root
+        GW_PASS: GisPwd
+        GW_INSTANCE: geowave
+        GM_CLUSTER_ID: gm_cluster_id
+        GM_ZK: zookeeper
+        GM_USER: root
+        GM_PASS: GisPwd
+        GM_INSTANCE: geomesa
+      volumes:
+        - '${HOME}/.aws:/root/.aws'
+
+      ports:
+        - 7070:7070
+
+networks:
+  default:
+    external:
+      name: development_default

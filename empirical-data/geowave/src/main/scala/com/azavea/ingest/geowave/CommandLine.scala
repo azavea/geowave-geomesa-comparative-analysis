@@ -76,6 +76,13 @@ object CommandLine {
       .action( (s, conf) => { conf.copy(featureName = s) })
       .required
       .text("Name for the SimpleFeatureType")
+    opt[Unit]('z', "temporal")
+      .action( (_, conf) => { conf.copy(temporal = true) })
+      .text("Index this as a spatio-temporal dataset.")
+    opt[Unit]('x', "point")
+      .action( (_, conf) => { conf.copy(pointOnly = true) })
+      .text("Index this as a point-only dataset.")
+
     help("help").text("Display this help message")
     note("")
 
@@ -109,4 +116,3 @@ Note: `date' takes a format string compatible with java.text.SimpleDateFormat.
 """)
   }
 }
-
