@@ -44,14 +44,20 @@ object GdeltIngest {
       csvExtension = ".gz",
       unifySFT = true
     )
+    println("Params initialized")
     val urls = getCsvUrls(params.s3bucket, params.s3prefix, params.csvExtension, true)
     val tybuilder = new SimpleFeatureTypeBuilder
     tybuilder.setName(params.featureName)
     params.codec.genSFT(tybuilder)
     val sft = tybuilder.buildFeatureType
-    val csvRdd: RDD[SimpleFeature] = csvUrlsToRdd(urls, params.featureName, params.codec, params.dropLines, params.separator, true)
+    println("Feature type built for ingest")
+    val linesRdd = csvUrlsToLinesRdd(urls, params.dropLines)
+    println("Line RDD constructed")
+    val sfRdd = csvLinesToSfRdd(params.codec, linesRdd, params.separator, params.featureName)
+    println("SimpleFeature RDD constructed")
 
-    Ingest.ingestRDD(params)(csvRdd)
+    println("ingesting features...")
+    Ingest.ingestRDD(params)(sfRdd)
   }
 
 }

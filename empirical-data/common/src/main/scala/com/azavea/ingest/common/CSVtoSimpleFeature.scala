@@ -1,5 +1,7 @@
 package com.azavea.ingest.common
 
+import org.apache.spark._
+import org.apache.spark.rdd.RDD
 import org.geotools.feature.DefaultFeatureCollection
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 

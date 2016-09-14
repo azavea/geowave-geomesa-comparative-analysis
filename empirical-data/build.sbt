@@ -1,5 +1,5 @@
 lazy val commonSettings = Seq(
-  version := "0.1.71",
+  version := "0.1.77",
   scalaVersion := "2.11.8",
   organization := "com.azavea",
   licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.html")),

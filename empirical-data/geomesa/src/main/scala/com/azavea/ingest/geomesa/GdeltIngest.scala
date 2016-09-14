@@ -18,6 +18,7 @@ object GdeltIngest {
   val spec ="the_geom=point($31,$32),event_id=int($1),day=date({yyyyMMdd},$2),month_year=int($3),year=int($4),fraction_date=double($5),actor1_code=$6,actor1_name=$7,actor1_country_code=$8,actor1_known_group_code=$9,actor1_ethnic_code=$10,actor1_religion1_code=$11,actor1_religion2_code=$12,actor1_type1_code=$13,actor1_type2_code=$14,actor1_type3_code=$15,is_root_event=$16,event_code=$17,event_base_code=$18,event_root_code=$19,quad_class=$20,goldstein_scale=double($21),num_mentions=int($22),num_sources=int($23),num_articles=int($24),avg_tone=double($25),actor1_geo_type=int($26),actor1_geo_fullname=$27,actor1_geo_countrycode=$28,actor1_adm1code=$29,actor1_geo_featureid=$32"
 
   def main(args: Array[String]): Unit = {
+    println("Initializing gdelt ingest")
     val zookeeper = args(0)
 
     val conf: SparkConf =
@@ -44,15 +45,22 @@ object GdeltIngest {
       csvExtension = ".gz",
       unifySFT = true
     )
+    println("Params initialized")
     val urls = getCsvUrls(params.s3bucket, params.s3prefix, params.csvExtension, true)
     val tybuilder = new SimpleFeatureTypeBuilder
     tybuilder.setName(params.featureName)
     params.codec.genSFT(tybuilder)
     val sft = tybuilder.buildFeatureType
-    val csvRdd: RDD[SimpleFeature] = csvUrlsToRdd(urls, params.featureName, params.codec, params.dropLines, params.separator, true)
+    println("Feature type built for ingest")
+    val linesRdd = csvUrlsToLinesRdd(urls, params.dropLines)
+    println("Line RDD constructed")
+    val sfRdd = csvLinesToSfRdd(params.codec, linesRdd, params.separator, params.featureName)
+    println("SimpleFeature RDD constructed")
 
+    println("registering sft...")
     Ingest.registerSFT(params)(sft)
-    Ingest.ingestRDD(params)(csvRdd)
+    println("ingesting features...")
+    Ingest.ingestRDD(params)(sfRdd)
   }
 
 }

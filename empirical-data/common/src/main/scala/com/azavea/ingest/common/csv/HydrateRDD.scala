@@ -11,7 +11,9 @@ import com.amazonaws.auth._
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model.ListObjectsRequest
 
-import java.util.HashMap
+import java.util._
+import java.util.zip.GZIPInputStream
+import java.io._
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
@@ -41,6 +43,38 @@ object HydrateRDD extends HydrateRDDUtils {
       }).toArray
   }
 
+  def csvUrlsToLinesRdd(
+    urlArray: Array[String],
+    drop: Int
+  )(implicit sc: SparkContext): RDD[String] = {
+    println("Building linesRDD")
+    val urlRdd = sc.parallelize(urlArray, urlArray.size)
+    val linesRdd = urlRdd.flatMap({ address =>
+      val url = new java.net.URL(address)
+
+      val reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(url.openStream)))
+      val iter: Iterator[String] = reader.lines.iterator
+      for (i <- 1 to drop) {
+        iter.next()
+      }
+      iter
+    }).repartition(30000)
+    println("Parallelizing lines iterator for spark consumption...")
+    linesRdd
+  }
+
+  def csvLinesToSfRdd(schema: CSVSchemaParser.Expr,
+                    lines: RDD[String],
+                    delim: String,
+                    sftName: String
+  )(implicit sc: SparkContext): RDD[SimpleFeature] =
+    lines.mapPartitions({ lineIter =>
+      lineIter.map({ line =>
+        val row: Array[String] = line.split(delim)
+
+        schema.makeSimpleFeature(sftName, row)
+      })
+    })
 
   def csvUrlsToRdd(
     urlArray: Array[String],
