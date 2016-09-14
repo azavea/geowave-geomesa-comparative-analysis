@@ -132,6 +132,7 @@ spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.Main ${ASSEMBLY_
 csv -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
 -p secret -t geowave.geolife -e plt -s , -d 6 \
 --temporal --point \
+--numPartitions 40 --partitionStrategy HASH \
 --codec 'the_geom=point($$2,$$1),height=$$4,timestamp=date({yyyy-MM-ddHH:mm:ss},concat($$6,$$7))' \
 --featurename gwtrajectory \
 geotrellis-sample-datasets geolife/
