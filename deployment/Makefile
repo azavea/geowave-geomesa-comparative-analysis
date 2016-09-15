@@ -8,7 +8,13 @@ export SUBNET_ID := subnet-c5fefdb1
 
 export MASTER_INSTANCE := m3.xlarge
 export MASTER_PRICE := 0.5
+
+# export WORKER_INSTANCE := m3.xlarge
+# export CPUS_PER_WORKER := 4
+
 export WORKER_INSTANCE := m3.2xlarge
+export CPUS_PER_WORKER := 8
+
 export WORKER_PRICE := 0.5
 export WORKER_COUNT := 3
 
@@ -19,7 +25,7 @@ export EXECUTOR_CORES := 2
 export YARN_OVERHEAD := 700
 
 # Docker image of benchmarking service
-export SERVICE_TAG := rob21
+export SERVICE_TAG := rob22
 export SERVICE_IMG := quay.io/geotrellis/comparative-analysis-query-server:${SERVICE_TAG}
 
 SPARK_PARAMS := --driver-memory ${DRIVER_MEMORY} \
@@ -93,7 +99,7 @@ destroy-service:
 -var 'geowave_cluster_id=NA'
 
 
-destroy: destroy-service
+destroy:  destroy-service
 	aws emr terminate-clusters --cluster-ids ${GEOMESA_CLUSTER_ID} ${GEOWAVE_CLUSTER_ID}
 	@rm -f *-cluster-id.txt
 
@@ -124,7 +130,10 @@ csv -i gis -z ${GEOMESA_ZOOKEEPER} -u root \
 --featurename gmtrajectory \
 geotrellis-sample-datasets geolife/
 
+# --numPartitions ${NUMPARTITIONS} --partitionStrategy HASH
+# --numSplits ${NUMPARTITIONS}
 ingest-geolife-gw: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geowave ${S3_URI}/jars)
+ingest-geolife-gw: NUMPARTITIONS=$(shell expr ${WORKER_COUNT} \* ${CPUS_PER_WORKER})
 ingest-geolife-gw:
 	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
 	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest CSV" \
@@ -222,6 +231,16 @@ explore:
 	scp -i ~/.keys/geotrellis-cluster.pem ../query-server/explore/target/scala-2.11/explore-assembly-0.0.1.jar hadoop@${GEOMESA_ZOOKEEPER}:/home/hadoop
 	scp -i ~/.keys/geotrellis-cluster.pem run-explore-shell.sh hadoop@${GEOMESA_ZOOKEEPER}:/home/hadoop
 	ssh -i ~/.keys/geotrellis-cluster.pem hadoop@${GEOMESA_ZOOKEEPER}
+
+save-metrics:
+	@mkdir -p ../metrics
+	@echo Saving GeoMesa metrics...
+	@aws emr ssh --cluster-id ${GEOMESA_CLUSTER_ID} --key-pair-file "${EC2_KEY_FILE}" \
+		--command "cd /mnt/var/lib/ganglia/rrds && tar czf ~/metrics.tgz j-* && aws s3 cp ~/metrics.tgz ${S3_URI}/metrics/${GEOMESA_CLUSTER_ID}.tgz"
+
+	@echo Save GeoWave metrics...
+	@aws emr ssh --cluster-id ${GEOWAVE_CLUSTER_ID} --key-pair-file "${EC2_KEY_FILE}" \
+		--command "cd /mnt/var/lib/ganglia/rrds && tar czf ~/metrics.tgz j-* && aws s3 cp ${S3_URI}/metrics/${GEOWAVE_CLUSTER_ID}.tgz"
 
 fetch-metrics:
 	@mkdir -p ../metrics

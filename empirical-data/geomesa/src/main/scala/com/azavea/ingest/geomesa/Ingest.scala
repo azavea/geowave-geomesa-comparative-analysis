@@ -1,7 +1,10 @@
  package com.azavea.ingest.geomesa
 
+import com.azavea.ingest.common._
+
 import com.typesafe.scalalogging.Logger
-import org.apache.spark.rdd.RDD
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.spark.rdd._
 import org.apache.spark.{SparkConf, SparkContext}
 import org.geotools.data.simple.SimpleFeatureStore
 import org.opengis.feature.simple._
@@ -10,13 +13,18 @@ import org.opengis.feature.`type`.Name
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.data.{DataStoreFinder, DataUtilities, FeatureWriter, Transaction}
+
+import org.locationtech.geomesa.jobs.interop.mapreduce.GeoMesaOutputFormat
+
 import geotrellis.vector.Point
 import java.util.HashMap
+import scala.collection.concurrent._
 import scala.collection.JavaConversions._
-import scala.collection.concurrent.TrieMap
-import com.azavea.ingest.common._
+import scala.collection.JavaConverters._
 
- object Ingest {
+import scala.collection.concurrent.TrieMap
+
+object Ingest {
    trait CSVorSHP
    case object CSV extends CSVorSHP
    case object SHP extends CSVorSHP
@@ -69,11 +77,26 @@ import com.azavea.ingest.common._
      ds.dispose
    }
 
+   def ingestRDD2(params: Params)(rdd: RDD[SimpleFeature]) = {
+     val conf = rdd.sparkContext.hadoopConfiguration
+     val job = new Job(conf, "ingest job")
+
+     job.setOutputFormatClass(classOf[GeoMesaOutputFormat]);
+     job.setMapOutputKeyClass(classOf[org.apache.hadoop.io.Text]);
+     job.setMapOutputValueClass(classOf[SimpleFeature]);
+     job.setNumReduceTasks(0)
+
+     GeoMesaOutputFormat.configureDataStore(job, params.convertToJMap)
+
+     rdd
+       .map { z => (new org.apache.hadoop.io.Text, z) }
+       .saveAsNewAPIHadoopDataset(job.getConfiguration)
+   }
+
    def ingestRDD(params: Params)(rdd: RDD[SimpleFeature]) =
      /* The method for ingest here is based on:
       * https://github.com/locationtech/geomesa/blob/master/geomesa-tools/src/main/scala/org/locationtech/geomesa/tools/accumulo/ingest/AbstractIngest.scala#L104
       */
-
      rdd.foreachPartition { featureIter =>
        val ds = DataStoreFinder.getDataStore(params.convertToJMap)
 
@@ -91,6 +114,7 @@ import com.azavea.ingest.common._
                                                  ds.createSchema(sft) // register every new schema type
                                                  ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)
                                                })
+
            val toWrite = fw.next()
            toWrite.setAttributes(feature.getAttributes)
            toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(feature.getID)
