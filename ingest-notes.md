@@ -96,11 +96,14 @@ Disk Used	1.45G
 ###### Entries per tablet server
 
 To get more splits, we execute the following command:
-- `config -t geowave.geolife_SPATIAL_IDX -s table.split.threshold=128M`
-- `compact -t geowave.geolife_SPATIAL_IDX`
 
-- `config -t geowave.geolife_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR_POINTONLY -s table.split.threshold=128M`
-- `compact -t geowave.geolife_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR_POINTONLY`
+```
+config -t geowave.geolife_SPATIAL_IDX -s table.split.threshold=100M
+compact -t geowave.geolife_SPATIAL_IDX
+config -t geowave.geolife_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR_POINTONLY -s table.split.threshold=100M
+compact -t geowave.geolife_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR_POINTONLY
+```
+
 
 This gave the following entries per table:
 
