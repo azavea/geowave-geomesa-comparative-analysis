@@ -11,18 +11,25 @@ import com.amazonaws.auth._
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model.ListObjectsRequest
 
-import java.util.HashMap
+import java.util._
+import java.util.zip.GZIPInputStream
+import java.io._
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 import com.azavea.ingest.common._
 
 object HydrateRDD extends HydrateRDDUtils {
-  def getCsvUrls(s3bucket: String, s3prefix: String, extension: String): Array[String] = {
-    val objectRequest =
-      (new ListObjectsRequest)
+
+  def getCsvUrls(s3bucket: String, s3prefix: String, extension: String, recursive: Boolean = true): Array[String] = {
+    val objectRequest = (new ListObjectsRequest)
       .withBucketName(s3bucket)
       .withPrefix(s3prefix)
+
+    // Avoid digging into a deeper directory
+    if (! recursive) {
+      objectRequest.withDelimiter("/")
+    }
 
     val s3objects = client.listObjects(s3bucket, s3prefix)
     val summaries = s3objects.getObjectSummaries
@@ -33,23 +40,53 @@ object HydrateRDD extends HydrateRDDUtils {
       }).toArray
   }
 
+  def csvUrlsToLinesRdd(
+    urlArray: Array[String],
+    drop: Int
+  )(implicit sc: SparkContext): RDD[String] = {
+    val urlRdd = sc.parallelize(urlArray, urlArray.size)
+    urlRdd.flatMap({ address =>
+      val url = new java.net.URL(address)
+
+      val reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(url.openStream)))
+      val iter: Iterator[String] = reader.lines.iterator
+      for (i <- 1 to drop) {
+        iter.next()
+      }
+      iter
+    }).repartition(30000)
+  }
+
+  def csvLinesToSfRdd(schema: CSVSchemaParser.Expr,
+                    lines: RDD[String],
+                    delim: String,
+                    sftName: String
+  )(implicit sc: SparkContext): RDD[SimpleFeature] =
+    lines.mapPartitions({ lineIter =>
+      lineIter.map({ line =>
+        val row: Array[String] = line.split(delim)
+
+        schema.makeSimpleFeature(sftName, row)
+      })
+    })
 
   def csvUrlsToRdd(
     urlArray: Array[String],
     sftName: String,
     schema: CSVSchemaParser.Expr,
     drop: Int,
-    delim: String
+    delim: String,
+    unzip: Boolean = false
   )(implicit sc: SparkContext): RDD[SimpleFeature] = {
-    val urlRdd: RDD[String] = sc.parallelize(urlArray, urlArray.size / 20)
+    val partitionCount = if (unzip) urlArray.size else (urlArray.size / 10)
+    val urlRdd: RDD[String] = sc.parallelize(urlArray, partitionCount)
     urlRdd.mapPartitions({ urlIter =>
-      val urls = urlIter.toList
-      urls.flatMap({ urlName =>
+      urlIter.flatMap({ urlName =>
         val url = new java.net.URL(urlName)
         val featureCollection = new DefaultFeatureCollection(null, null)
 
         try {
-          CSVtoSimpleFeature.parseCSVFile(schema, url, drop, delim, sftName, featureCollection)
+          CSVtoSimpleFeature.parseCSVFile(schema, url, drop, delim, sftName, featureCollection, unzip)
         } catch {
           case e: java.io.IOException =>
             println(s"Discarded ${url} (File does not exist?)")
@@ -58,7 +95,7 @@ object HydrateRDD extends HydrateRDDUtils {
         }
 
         featureCollection
-      }).iterator
+      })
     })
   }
 

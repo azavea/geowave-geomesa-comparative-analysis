@@ -13,6 +13,8 @@ import org.opengis.feature.`type`.Name
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.data.{DataStoreFinder, DataUtilities, FeatureWriter, Transaction}
+import org.apache.spark.rdd._
+import org.apache.spark._
 
 import org.locationtech.geomesa.jobs.interop.mapreduce.GeoMesaOutputFormat
 
@@ -21,8 +23,6 @@ import java.util.HashMap
 import scala.collection.concurrent._
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
-
-import scala.collection.concurrent.TrieMap
 
 object Ingest {
    trait CSVorSHP
@@ -93,10 +93,10 @@ object Ingest {
        .saveAsNewAPIHadoopDataset(job.getConfiguration)
    }
 
-   def ingestRDD(params: Params)(rdd: RDD[SimpleFeature]) =
-     /* The method for ingest here is based on:
-      * https://github.com/locationtech/geomesa/blob/master/geomesa-tools/src/main/scala/org/locationtech/geomesa/tools/accumulo/ingest/AbstractIngest.scala#L104
-      */
+   /** The method for ingest here is based on:
+    * https://github.com/locationtech/geomesa/blob/master/geomesa-tools/src/main/scala/org/locationtech/geomesa/tools/accumulo/ingest/AbstractIngest.scala#L104
+   **/
+   def ingestRDD(params: Params)(rdd: RDD[SimpleFeature]): Unit =
      rdd.foreachPartition { featureIter =>
        val ds = DataStoreFinder.getDataStore(params.convertToJMap)
 

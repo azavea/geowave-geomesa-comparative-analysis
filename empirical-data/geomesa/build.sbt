@@ -10,8 +10,7 @@ libraryDependencies ++= Seq(
   "org.apache.accumulo" % "accumulo-core" % "1.7.0",
   "org.locationtech.geomesa" % "geomesa-accumulo-datastore" % Version.geomesa
     excludeAll(ExclusionRule("org.slf4j")),
-  "org.locationtech.geomesa" % "geomesa-jobs" % Version.geomesa
-    excludeAll(ExclusionRule("org.slf4j")),
+  "org.locationtech.geomesa" % "geomesa-jobs" % Version.geomesa,
   "org.locationtech.geomesa" % "geomesa-utils" % Version.geomesa
     excludeAll(ExclusionRule("org.slf4j"))
 )
