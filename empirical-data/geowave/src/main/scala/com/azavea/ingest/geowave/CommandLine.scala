@@ -87,6 +87,16 @@ object CommandLine {
       .action( (_, conf) => { conf.copy(pointOnly = true) })
       .text("Index this as a point-only dataset.")
 
+    opt[Int]('r', "numPartitions")
+      .action( (v, conf) => { conf.copy(numPartitions = v) })
+      .text("Number of partitions for partitioning strategy")
+    opt[String]('y', "partitionStrategy")
+      .action( (v, conf) => { conf.copy(partitionStrategy = v) })
+      .text("Partition strategy, must have numPartitions > 1, one of: HASH, ROUND_ROBIN")
+    opt[Int]('w', "numSplits")
+      .action( (v, conf) => { conf.copy(numSplits = Some(v)) })
+      .text("Number of splits to set up")
+
     help("help").text("Display this help message")
     note("")
 

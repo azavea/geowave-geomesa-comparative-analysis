@@ -26,7 +26,7 @@ import com.azavea.ingest.common.csv.HydrateRDD._
 import com.azavea.ingest.common.shp.HydrateRDD._
 
 object Main {
-  def main(args: Array[String]) = {
+  def main(args: Array[String]): Unit = {
     val params = CommandLine.parser.parse(args, Ingest.Params()) match {
       case Some(p) => p
       case None => {
