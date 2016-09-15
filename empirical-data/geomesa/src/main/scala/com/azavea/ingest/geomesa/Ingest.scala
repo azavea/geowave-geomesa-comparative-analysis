@@ -77,7 +77,7 @@ object Ingest {
      ds.dispose
    }
 
-   def ingestRDD2(params: Params)(rdd: RDD[SimpleFeature]) = {
+   def ingestRDD(params: Params)(rdd: RDD[SimpleFeature]) = {
      val conf = rdd.sparkContext.hadoopConfiguration
      val job = new Job(conf, "ingest job")
 
@@ -92,52 +92,4 @@ object Ingest {
        .map { z => (new org.apache.hadoop.io.Text, z) }
        .saveAsNewAPIHadoopDataset(job.getConfiguration)
    }
-
-   def ingestRDD(params: Params)(rdd: RDD[SimpleFeature]) =
-     /* The method for ingest here is based on:
-      * https://github.com/locationtech/geomesa/blob/master/geomesa-tools/src/main/scala/org/locationtech/geomesa/tools/accumulo/ingest/AbstractIngest.scala#L104
-      */
-     rdd.foreachPartition { featureIter =>
-       val ds = DataStoreFinder.getDataStore(params.convertToJMap)
-
-       if (ds == null) {
-         println("Could not build AccumuloDataStore")
-         java.lang.System.exit(-1)
-       }
-
-       var registered = TrieMap.empty[String, FeatureWriter[SimpleFeatureType, SimpleFeature]]
-
-       try {
-         featureIter.foreach { feature: SimpleFeature =>
-           val sft = feature.getType
-           val fw = registered.getOrElseUpdate(sft.getTypeName, {
-                                                 ds.createSchema(sft) // register every new schema type
-                                                 ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)
-                                               })
-
-           val toWrite = fw.next()
-           toWrite.setAttributes(feature.getAttributes)
-           toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(feature.getID)
-           toWrite.getUserData.putAll(feature.getUserData)
-           toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-
-           try {
-             fw.write()
-           } catch {
-             case e: Exception =>
-               println(s"Failed to write a feature", feature, e)
-               throw e
-           }
-         }
-       }
-       catch {
-         case e: Exception =>
-           println(e)
-           throw e
-       }
-       finally {
-         for ((_, fw) <- registered) fw.close()
-         if (ds != null) ds.dispose()
-       }
-     }
 }
