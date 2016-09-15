@@ -10,12 +10,22 @@ import org.geotools.feature._
 import com.amazonaws.auth._
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model.ListObjectsRequest
-
+import org.opengis.feature.`type`.Name
 import java.util.HashMap
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 import com.azavea.ingest.common._
+
+class IteratorWrapper[I, T](iter: I)(hasNext: I => Boolean, next: I => T, close: I => Unit) extends Iterator[T] {
+  def hasNext = {
+    val has = hasNext(iter)
+    if (! has) close(iter)
+    has
+  }
+
+  def next = next(iter)
+}
 
 object HydrateRDD extends HydrateRDDUtils {
   def getShpUrls(s3bucket: String, s3prefix: String): Array[String] = {
@@ -29,21 +39,24 @@ object HydrateRDD extends HydrateRDDUtils {
       }).toArray
   }
 
-  def shpUrlsToRdd(urlArray: Array[String])(implicit sc: SparkContext): RDD[SimpleFeature] = {
-    val urlRdd: RDD[String] = sc.parallelize(urlArray, urlArray.size / 10)
-    urlRdd.mapPartitions({ urlIter =>
-      val urls = urlIter.toList
-      urls.map({ url =>
-        val datastoreParams = Map("url" -> url)
+  def shpUrlsToRdd(urlArray: Array[String], partitionSize: Int = 10)(implicit sc: SparkContext): RDD[SimpleFeature] = {
+    val urlRdd: RDD[String] = sc.parallelize(urlArray, urlArray.size / partitionSize)
+    urlRdd.mapPartitions { urls =>
+      urls.flatMap { url =>
+        val datastoreParams = Map("url" -> url).asJava
         val shpDS = DataStoreFinder.getDataStore(datastoreParams)
-        if (shpDS == null) {
-          println("Could not build ShapefileDataStore")
-          java.lang.System.exit(-1)
+        require(shpDS != null, "Could not build ShapefileDataStore")
+
+        shpDS.getNames.asScala.flatMap { name: Name =>
+          val features =
+            shpDS
+            .getFeatureSource(name)
+            .getFeatures
+            .features
+          new IteratorWrapper(features)(_.hasNext, _.next, _.close)
         }
-        val featureCollection = shpDS.getFeatureSource(shpDS.getNames()(0)).getFeatures
-        featureCollection.toArray.asInstanceOf[Array[SimpleFeature]]
-      }).flatten.iterator
-    })
+      }
+    }
   }
 
 }
