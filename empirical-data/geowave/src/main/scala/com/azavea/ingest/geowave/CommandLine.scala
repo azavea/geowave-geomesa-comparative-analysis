@@ -14,6 +14,10 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.feature.FeatureCollection
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+import geotrellis.vector._
+import geotrellis.vector.io._
+import geotrellis.vector.io.json._
+import scala.util._
 
 import java.util.HashMap
 import scala.collection.JavaConversions._
@@ -95,6 +99,23 @@ object CommandLine {
 
     help("help").text("Display this help message")
     note("")
+
+    opt[String]("translationPoints")
+      .action( (uri, conf) => conf.copy(translationPoints = {
+                                          val str = Util.readFile(uri)
+                                          Try { str.parseGeoJson[GeometryCollection].points }
+                                            .getOrElse { str.parseGeoJson[JsonFeatureCollection].getAllPoints }
+                                        }))
+      .text("URI of GeoJSON container translation center points")
+
+    opt[String]("translationOrigin")
+      .action( (s, conf) => conf.copy(translationOrigin = {
+                                        val c = s.split(",")
+                                        Some(Point(c(0).toDouble, c(1).toDouble))
+                                      }))
+      .text("Center point of the dataset to be used as translation origin: lat,lng")
+
+
 
     arg[String]("<s3 bucket>")
       .action( (s, conf) => conf.copy(s3bucket = s) )

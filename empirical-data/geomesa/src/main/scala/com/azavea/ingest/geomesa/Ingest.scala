@@ -1,5 +1,7 @@
  package com.azavea.ingest.geomesa
 
+import com.azavea.ingest.common._
+
 import com.typesafe.scalalogging.Logger
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.spark.rdd._
@@ -14,14 +16,15 @@ import org.geotools.data.{DataStoreFinder, DataUtilities, FeatureWriter, Transac
 
 import org.locationtech.geomesa.jobs.interop.mapreduce.GeoMesaOutputFormat
 
+import geotrellis.vector.Point
 import java.util.HashMap
 import scala.collection.concurrent._
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
- import com.azavea.ingest.common._
+import scala.collection.concurrent.TrieMap
 
- object Ingest {
+object Ingest {
    trait CSVorSHP
    case object CSV extends CSVorSHP
    case object SHP extends CSVorSHP
@@ -46,7 +49,10 @@ import scala.collection.JavaConverters._
                       featureName: String = "default-feature-name",
                       s3bucket: String = "",
                       s3prefix: String = "",
-                      csvExtension: String = ".csv") {
+                      csvExtension: String = ".csv",
+                      translationPoints: Seq[Point] = Seq.empty,
+                      translationOrigin: Option[Point] = None,
+                      unifySFT: Boolean = true) {
 
      def convertToJMap(): HashMap[String, String] = {
        val result = new HashMap[String, String]

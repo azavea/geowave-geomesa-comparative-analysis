@@ -33,6 +33,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.opengis.filter.Filter
 import org.apache.spark.rdd._
+import geotrellis.vector.Point
 
 import java.util.HashMap
 import scala.collection.JavaConversions._
@@ -66,6 +67,8 @@ object Ingest {
                      s3bucket: String = "",
                      s3prefix: String = "",
                      csvExtension: String = ".csv",
+                     translationPoints: Seq[Point] = Seq.empty,
+                     translationOrigin: Option[Point] = None,
                      temporal: Boolean = false,
                      pointOnly: Boolean = false,
                      numPartitions: Int = 1,
