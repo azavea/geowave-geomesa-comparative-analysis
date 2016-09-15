@@ -151,7 +151,7 @@ ingest-generated-tracks-gm:
 	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest shapefiles" \
 spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geomesa.Main  $${ASSEMBLY_URI} \
 shapefile -i gis -z ${GEOMESA_ZOOKEEPER} -u root \
--p secret -t geomesa.shptest \
+-p secret -t geomesa.tracks --inputPartitionSize 1 \
 --featurename gmgenerated-tracks \
 geotrellis-sample-datasets generated-tracks/
 
@@ -161,8 +161,8 @@ ingest-generated-tracks-gw:
 	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest shapefiles" \
 spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.Main  $${ASSEMBLY_URI} \
 shapefile -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
--p secret -t geowave.shptest \
---featurename gmgenerated-tracks \
+-p secret -t geowave.tracks \
+--featurename gmgenerated-tracks --temporal --inputPartitionSize 1 \
 geotrellis-sample-datasets generated-tracks/
 
 ingest-vienna-gm: export ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)

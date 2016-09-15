@@ -34,7 +34,7 @@ object Main {
       case Ingest.SHP => {
         val urls = getShpUrls(params.s3bucket, params.s3prefix)
         println(s"\n\nNUMBER OF URLS = ${urls.size}")
-        val shpUrlRdd = shpUrlsToRdd(urls)
+        val shpUrlRdd = shpUrlsToRdd(urls, params.inputPartitionSize)
         val shpSimpleFeatureRdd: RDD[SimpleFeature] = NormalizeRDD.normalizeFeatureName(shpUrlRdd, params.featureName)
         val reprojected = shpSimpleFeatureRdd.map(Reproject(_, CRS.decode("EPSG:4326")))
 

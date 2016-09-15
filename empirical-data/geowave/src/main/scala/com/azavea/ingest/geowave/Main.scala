@@ -47,7 +47,7 @@ object Main {
     params.csvOrShp match {
       case Ingest.SHP => {
         val urls = getShpUrls(params.s3bucket, params.s3prefix)
-        val shpUrlRdd: RDD[SimpleFeature] = shpUrlsToRdd(urls)
+        val shpUrlRdd: RDD[SimpleFeature] = shpUrlsToRdd(urls, params.inputPartitionSize)
         val shpSimpleFeatureRdd: RDD[SimpleFeature] = NormalizeRDD.normalizeFeatureName(shpUrlRdd, params.featureName)
 
         if (params.translationPoints.nonEmpty && params.translationOrigin.isDefined)

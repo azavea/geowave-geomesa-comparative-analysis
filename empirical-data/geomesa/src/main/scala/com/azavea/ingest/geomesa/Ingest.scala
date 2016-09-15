@@ -50,6 +50,7 @@ object Ingest {
                       s3bucket: String = "",
                       s3prefix: String = "",
                       csvExtension: String = ".csv",
+                      inputPartitionSize: Int = 10,
                       translationPoints: Seq[Point] = Seq.empty,
                       translationOrigin: Option[Point] = None,
                       unifySFT: Boolean = true) {

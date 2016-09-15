@@ -61,6 +61,9 @@ object CommandLine {
       .action( (s, conf) => { conf.copy(featureName = s) })
       .required
       .text("Name for the SimpleFeatureType")
+    opt[Int]("inputPartitionSize")
+      .action ( (size, conf) => {conf.copy(inputPartitionSize = size)} )
+      .text("Number of inputs per partition")
     help("help").text("Display this help message")
     note("")
 

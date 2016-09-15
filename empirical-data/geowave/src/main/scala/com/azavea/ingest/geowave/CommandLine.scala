@@ -96,7 +96,9 @@ object CommandLine {
     opt[Int]('w', "numSplits")
       .action( (v, conf) => { conf.copy(numSplits = Some(v)) })
       .text("Number of splits to set up")
-
+    opt[Int]("inputPartitionSize")
+      .action ( (size, conf) => {conf.copy(inputPartitionSize = size)} )
+      .text("Number of inputs per partition")
     help("help").text("Display this help message")
     note("")
 
