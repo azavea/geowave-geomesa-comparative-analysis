@@ -20,9 +20,6 @@ import com.azavea.ingest.common._
 object HydrateRDD extends HydrateRDDUtils {
 
   def getShpUrls(s3bucket: String, s3prefix: String, recursive: Boolean = false): Array[String] = {
-    val cred = new DefaultAWSCredentialsProviderChain()
-    val client = new AmazonS3Client(cred)
-
     val objectRequest = (new ListObjectsRequest)
       .withBucketName(s3bucket)
       .withPrefix(s3prefix)

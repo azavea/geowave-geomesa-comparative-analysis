@@ -144,4 +144,3 @@ object CSVSchemaParser {
     builder.buildFeatureType
   }
 }
-

@@ -77,7 +77,7 @@ object Ingest {
      ds.dispose
    }
 
-   def ingestRDD2(params: Params)(rdd: RDD[SimpleFeature]) = {
+   def ingestRDD(params: Params)(rdd: RDD[SimpleFeature]) = {
      val conf = rdd.sparkContext.hadoopConfiguration
      val job = new Job(conf, "ingest job")
 
@@ -96,7 +96,7 @@ object Ingest {
    /** The method for ingest here is based on:
     * https://github.com/locationtech/geomesa/blob/master/geomesa-tools/src/main/scala/org/locationtech/geomesa/tools/accumulo/ingest/AbstractIngest.scala#L104
    **/
-   def ingestRDD(params: Params)(rdd: RDD[SimpleFeature]): Unit =
+   def ingestRDD2(params: Params)(rdd: RDD[SimpleFeature]): Unit =
      rdd.foreachPartition { featureIter =>
        val ds = DataStoreFinder.getDataStore(params.convertToJMap)
 

@@ -33,7 +33,7 @@ object CSVtoSimpleFeature {
     while (iter.hasNext) {
       val row: Array[String] = iter.next.split(delim)
 
-      val feature = schema.makeSimpleFeature(sftName, row, (name + "-" + i.toString))
+      val feature = schema.makeSimpleFeature(sftName, row, java.util.UUID.randomUUID.toString)
       features.add(feature)
       i += 1
     }
@@ -41,4 +41,3 @@ object CSVtoSimpleFeature {
     reader.close
   }
 }
-
