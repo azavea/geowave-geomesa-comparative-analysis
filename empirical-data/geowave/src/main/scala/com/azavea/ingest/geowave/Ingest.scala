@@ -25,6 +25,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.opengis.filter.Filter
 import org.apache.spark.rdd._
+import org.apache.spark._
 
 import java.util.HashMap
 import scala.collection.JavaConversions._
@@ -87,7 +88,7 @@ object Ingest {
       options)
   }
 
-  def ingestRDD(params: Params)(rdd: RDD[SimpleFeature]) =
+  def ingestRDD(params: Params)(rdd: RDD[SimpleFeature])(implicit sc: SparkContext) =
     rdd.foreachPartition({ featureIter =>
       val features = featureIter.buffered
       val ds = getGeowaveDataStore(params)

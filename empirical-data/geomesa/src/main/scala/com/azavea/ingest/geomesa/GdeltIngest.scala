@@ -5,6 +5,7 @@ import org.geotools.feature.simple._
 import org.geotools.data.{DataStoreFinder, DataUtilities, FeatureWriter, Transaction}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.rdd._
+import org.locationtech.geomesa.compute.spark.GeoMesaSpark
 
 import geotrellis.spark.util.SparkUtils
 
@@ -20,14 +21,6 @@ object GdeltIngest {
   def main(args: Array[String]): Unit = {
     println("Initializing gdelt ingest")
     val zookeeper = args(0)
-
-    val conf: SparkConf =
-      new SparkConf()
-        .setAppName("GeoMesa ingest utility")
-        .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-        .set("spark.kryo.registrator", "geotrellis.spark.io.kryo.KryoRegistrator")
-
-    implicit val sc = new SparkContext(conf)
 
     val params = Ingest.Params(
       Ingest.CSV,
@@ -46,20 +39,22 @@ object GdeltIngest {
       unifySFT = true
     )
     println("Params initialized")
-    val urls = getCsvUrls(params.s3bucket, params.s3prefix, params.csvExtension, true)
     val tybuilder = new SimpleFeatureTypeBuilder
     tybuilder.setName(params.featureName)
     params.codec.genSFT(tybuilder)
     val sft = tybuilder.buildFeatureType
     println("Feature type built for ingest")
+
+    val conf: SparkConf = (GeoMesaSpark.init(new SparkConf(), Seq(sft)))
+      .setAppName("GeoMesa ingest utility")
+
+    implicit val sc: SparkContext = new SparkContext(conf)
+
+    val urls = getCsvUrls(params.s3bucket, params.s3prefix, params.csvExtension, true)
     val linesRdd = csvUrlsToLinesRdd(urls, params.dropLines)
-    println("Line RDD constructed")
     val sfRdd = csvLinesToSfRdd(params.codec, linesRdd, params.separator, params.featureName)
     println("SimpleFeature RDD constructed")
 
-    println("registering sft...")
-    Ingest.registerSFT(params)(sft)
-    println("ingesting features...")
     Ingest.ingestRDD(params)(sfRdd)
   }
 

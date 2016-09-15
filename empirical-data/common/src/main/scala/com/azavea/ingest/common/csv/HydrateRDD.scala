@@ -21,10 +21,7 @@ import com.azavea.ingest.common._
 
 object HydrateRDD extends HydrateRDDUtils {
 
-  def getCsvUrls(s3bucket: String, s3prefix: String, extension: String, recursive: Boolean = false): Array[String] = {
-    val cred = new DefaultAWSCredentialsProviderChain()
-    val client = new AmazonS3Client(cred)
-
+  def getCsvUrls(s3bucket: String, s3prefix: String, extension: String, recursive: Boolean = true): Array[String] = {
     val objectRequest = (new ListObjectsRequest)
       .withBucketName(s3bucket)
       .withPrefix(s3prefix)
@@ -47,9 +44,8 @@ object HydrateRDD extends HydrateRDDUtils {
     urlArray: Array[String],
     drop: Int
   )(implicit sc: SparkContext): RDD[String] = {
-    println("Building linesRDD")
     val urlRdd = sc.parallelize(urlArray, urlArray.size)
-    val linesRdd = urlRdd.flatMap({ address =>
+    urlRdd.flatMap({ address =>
       val url = new java.net.URL(address)
 
       val reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(url.openStream)))
@@ -59,8 +55,6 @@ object HydrateRDD extends HydrateRDDUtils {
       }
       iter
     }).repartition(30000)
-    println("Parallelizing lines iterator for spark consumption...")
-    linesRdd
   }
 
   def csvLinesToSfRdd(schema: CSVSchemaParser.Expr,
