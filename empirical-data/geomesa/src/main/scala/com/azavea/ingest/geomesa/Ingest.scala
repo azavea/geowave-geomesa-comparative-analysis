@@ -10,11 +10,11 @@ import org.opengis.feature.`type`.Name
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.data.{DataStoreFinder, DataUtilities, FeatureWriter, Transaction}
-
+import geotrellis.vector.Point
 import java.util.HashMap
 import scala.collection.JavaConversions._
-
- import com.azavea.ingest.common._
+import scala.collection.concurrent.TrieMap
+import com.azavea.ingest.common._
 
  object Ingest {
    trait CSVorSHP
@@ -42,6 +42,8 @@ import scala.collection.JavaConversions._
                       s3bucket: String = "",
                       s3prefix: String = "",
                       csvExtension: String = ".csv",
+                      translationPoints: Seq[Point] = Seq.empty,
+                      translationOrigin: Option[Point] = None,
                       unifySFT: Boolean = true) {
 
      def convertToJMap(): HashMap[String, String] = {

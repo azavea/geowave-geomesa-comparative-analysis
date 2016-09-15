@@ -36,8 +36,13 @@ object Main {
         println(s"\n\nNUMBER OF URLS = ${urls.size}")
         val shpUrlRdd = shpUrlsToRdd(urls)
         val shpSimpleFeatureRdd: RDD[SimpleFeature] = NormalizeRDD.normalizeFeatureName(shpUrlRdd, params.featureName)
+        val reprojected = shpSimpleFeatureRdd.map(Reproject(_, CRS.decode("EPSG:4326")))
 
-        Ingest.ingestRDD(params)(shpSimpleFeatureRdd.map(Reproject(_, CRS.decode("EPSG:4326"))))
+        if (params.translationPoints.nonEmpty && params.translationOrigin.isDefined)
+          Ingest.ingestRDD(params)(
+            TranslateRDD(reprojected, params.translationOrigin.get, params.translationPoints))
+        else
+          Ingest.ingestRDD(params)(reprojected)
       }
       case Ingest.CSV => {
         val urls = getCsvUrls(params.s3bucket, params.s3prefix, params.csvExtension)
