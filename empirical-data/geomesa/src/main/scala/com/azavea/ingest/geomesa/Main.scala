@@ -54,7 +54,6 @@ object Main {
         val sft = tybuilder.buildFeatureType
         val csvRdd: RDD[SimpleFeature] = csvUrlsToRdd(urls, params.featureName, params.codec, params.dropLines, params.separator)
 
-        Ingest.registerSFT(params)(sft)
         Ingest.ingestRDD(params)(csvRdd)
       }
     }

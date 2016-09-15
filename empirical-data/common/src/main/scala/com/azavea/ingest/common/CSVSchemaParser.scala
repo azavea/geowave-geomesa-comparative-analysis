@@ -4,8 +4,10 @@ import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import scala.util.Try
 import scala.collection.JavaConversions._
 import scala.util.parsing.combinator.RegexParsers
+import java.util.Date
 
 object CSVSchemaParser {
 
@@ -21,7 +23,8 @@ object CSVSchemaParser {
 
       val builder = new SimpleFeatureBuilder(sftBuilder.buildFeatureType)
       builder.addAll(values.map(_._2))
-      builder.buildFeature(builder.getFeatureType.getName.toString)
+      val genFeature = builder.buildFeature(builder.getFeatureType.getName.toString)
+      genFeature
     }
 
     def makeSimpleFeature(sftName: String, csvrow: Array[String], id: String): SimpleFeature = {
@@ -32,7 +35,8 @@ object CSVSchemaParser {
 
       val builder = new SimpleFeatureBuilder(sftBuilder.buildFeatureType)
       builder.addAll(values.map(_._2))
-      builder.buildFeature(id)
+      val genFeature = builder.buildFeature(id)
+      genFeature
     }
   }
 
@@ -46,10 +50,10 @@ object CSVSchemaParser {
 
   case class Func(f: String, args: Seq[Expr]) extends Expr {
     def returnType(): Class[_] = f match {
-      case "int" => classOf[Int]
-      case "double" => classOf[Double]
+      case "int" => classOf[java.lang.Integer]
+      case "double" => classOf[java.lang.Double]
       case "point" => classOf[Point]
-      case "date" => classOf[java.util.Date]
+      case "date" => classOf[Date]
       case "concat" => classOf[String]
     }
 
@@ -60,19 +64,40 @@ object CSVSchemaParser {
     }
 
     def eval(csvrow: Array[String]) = f match {
-      case "int" => { assertArity(1) ; args(0).eval(csvrow).asInstanceOf[String].toInt }
-      case "double" => { assertArity(1) ; args(0).eval(csvrow).asInstanceOf[String].toDouble }
+      case "int" => {
+        assertArity(1)
+        Try{
+          args(0).eval(csvrow).asInstanceOf[String].toInt
+        } getOrElse {
+          Int.MinValue
+        }
+      }
+      case "double" => {
+        assertArity(1)
+        Try {
+          args(0).eval(csvrow).asInstanceOf[String].toDouble
+        } getOrElse {
+          Double.NaN
+        }
+      }
       case "concat" => { ("" /: args) { case (str, ex) => str + ex.eval(csvrow).asInstanceOf[String] } }
       case "point" => {
         assertArity(2)
-        val gf = new GeometryFactory
-        gf.createPoint(new Coordinate(args(0).eval(csvrow).asInstanceOf[String].toDouble,
-                                      args(1).eval(csvrow).asInstanceOf[String].toDouble))
+        Try {
+          (new GeometryFactory).createPoint(new Coordinate(args(0).eval(csvrow).asInstanceOf[String].toDouble,
+                                                           args(1).eval(csvrow).asInstanceOf[String].toDouble))
+        } getOrElse {
+          (new GeometryFactory).createPoint(new Coordinate(0, 0))
+        }
       }
       case "date" => {
         assertArity(2)
-        val df = new java.text.SimpleDateFormat(args(0).eval(csvrow).asInstanceOf[String])
-        df.parse(args(1).eval(csvrow).asInstanceOf[String])
+        Try {
+          val df = new java.text.SimpleDateFormat(args(0).eval(csvrow).asInstanceOf[String])
+          df.parse(args(1).eval(csvrow).asInstanceOf[String])
+        } getOrElse {
+          new Date(-1)
+        }
       }
     }
   }
@@ -119,4 +144,3 @@ object CSVSchemaParser {
     builder.buildFeatureType
   }
 }
-

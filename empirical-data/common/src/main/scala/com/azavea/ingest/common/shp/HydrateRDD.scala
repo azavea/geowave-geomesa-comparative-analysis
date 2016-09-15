@@ -18,10 +18,15 @@ import scala.collection.mutable
 import com.azavea.ingest.common._
 
 object HydrateRDD extends HydrateRDDUtils {
-  def getShpUrls(s3bucket: String, s3prefix: String): Array[String] = {
+
+  def getShpUrls(s3bucket: String, s3prefix: String, recursive: Boolean = false): Array[String] = {
     val objectRequest = (new ListObjectsRequest)
       .withBucketName(s3bucket)
       .withPrefix(s3prefix)
+
+    if (! recursive) { // Avoid digging into a deeper directory
+      objectRequest.withDelimiter("/")
+    }
 
     listKeys(objectRequest)
       .collect({ case key if key.endsWith(".shp") =>
