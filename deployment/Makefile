@@ -184,7 +184,7 @@ save-metrics:
 	@mkdir -p ../metrics
 	@echo Saving GeoMesa metrics...
 	@aws emr ssh --cluster-id ${GEOMESA_CLUSTER_ID} --key-pair-file "${EC2_KEY_FILE}" \
-		--command "cd /mnt/var/lib/ganglia/rrds && tar czf ~/metrics.tgz j-* && aws s3 cp ${S3_URI}/metrics/${GEOMESA_CLUSTER_ID}.tgz"
+		--command "cd /mnt/var/lib/ganglia/rrds && tar czf ~/metrics.tgz j-* && aws s3 cp ~/metrics.tgz ${S3_URI}/metrics/${GEOMESA_CLUSTER_ID}.tgz"
 
 	@echo Save GeoWave metrics...
 	@aws emr ssh --cluster-id ${GEOWAVE_CLUSTER_ID} --key-pair-file "${EC2_KEY_FILE}" \
