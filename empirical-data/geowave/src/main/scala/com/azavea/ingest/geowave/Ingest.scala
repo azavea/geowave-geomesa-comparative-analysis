@@ -12,6 +12,7 @@ import mil.nga.giat.geowave.core.geotime.index.dimension._
 import mil.nga.giat.geowave.core.geotime.index.dimension.TemporalBinningStrategy.{ Unit => BinUnit }
 import mil.nga.giat.geowave.core.geotime.ingest._
 import mil.nga.giat.geowave.core.index.ByteArrayId
+import mil.nga.giat.geowave.core.index.StringUtils
 import mil.nga.giat.geowave.core.index.dimension.NumericDimensionDefinition
 import mil.nga.giat.geowave.core.index.sfc.SFCDimensionDefinition
 import mil.nga.giat.geowave.core.index.sfc.SFCFactory.SFCType
@@ -69,7 +70,7 @@ object Ingest {
                      pointOnly: Boolean = false,
                      numPartitions: Int = 1,
                      partitionStrategy: String = "NONE",
-                     unifySFT: Boolean = true)
+                     numSplits: Option[Int] = None)
 
   def registerSFT(params: Params)(sft: SimpleFeatureType): Unit = ???
 
@@ -107,7 +108,7 @@ object Ingest {
         // Create both a spatialtemporal and a spatail-only index
         val b = new SpatialTemporalDimensionalityTypeProvider.SpatialTemporalIndexBuilder
         b.setPointOnly(params.pointOnly)
-        Seq(b.createIndex, (new SpatialDimensionalityTypeProvider.SpatialIndexBuilder).createIndex)
+        Seq((new SpatialDimensionalityTypeProvider.SpatialIndexBuilder).createIndex, b.createIndex)
       } else {
         Seq((new SpatialDimensionalityTypeProvider.SpatialIndexBuilder).createIndex)
       }
@@ -119,7 +120,9 @@ object Ingest {
         else if (params.partitionStrategy == "HASH") { PartitionStrategy.HASH }
         else { sys.error(s"Partition strategy was ${params.partitionStrategy}, needs to be either ROUND_ROBIN or HASH") }
 
-      idxs.map { i => compoundPartitioningIndex(i, params.numPartitions, partitionStrategy) }
+      // Can only set spatial via this method,
+      // because of bug found here: https://github.com/ngageoint/geowave/issues/896
+      compoundPartitioningIndex(idxs.head, params.numPartitions, partitionStrategy) +: idxs.tail
     } else {
       idxs
     }
@@ -141,12 +144,17 @@ object Ingest {
       }
     })
 
-    if(params.partitionStrategy == "NONE" && params.numPartitions > 1) {
-      val ops = getOperations(params)
-      val connector = ops.getConnector
-      for(index <- indexes(params)) {
-        AccumuloUtils.setSplitsByNumRows(connector, params.tableName, index, params.numPartitions)
-      }
+    // Set the number of splits if the opiton was provided
+    params.numSplits match {
+      case Some(numSplits) =>
+        val ops = getOperations(params)
+        val connector = ops.getConnector
+        for(index <- indexes(params)) {
+          val tableName = AccumuloUtils.getQualifiedTableName(params.tableName, StringUtils.stringFromBinary(index.getId().getBytes()))
+          println(s"Setting up splits for $tableName...")
+          AccumuloUtils.setSplitsByNumSplits(connector, params.tableName, index, numSplits)
+        }
+      case None => Unit
     }
   }
 
