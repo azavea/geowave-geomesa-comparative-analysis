@@ -16,7 +16,7 @@ export WORKER_INSTANCE := m3.2xlarge
 export CPUS_PER_WORKER := 8
 
 export WORKER_PRICE := 0.5
-export WORKER_COUNT := 3
+export WORKER_COUNT := 5
 
 export DRIVER_MEMORY := 4200M
 export DRIVER_CORES := 2
@@ -25,7 +25,7 @@ export EXECUTOR_CORES := 2
 export YARN_OVERHEAD := 700
 
 # Docker image of benchmarking service
-export SERVICE_TAG := rob22
+export SERVICE_TAG := rob27
 export SERVICE_IMG := quay.io/geotrellis/comparative-analysis-query-server:${SERVICE_TAG}
 
 SPARK_PARAMS := --driver-memory ${DRIVER_MEMORY} \
@@ -99,9 +99,9 @@ destroy-service:
 -var 'geowave_cluster_id=NA'
 
 
-destroy:  destroy-service
+destroy: save-metrics  destroy-service
 	aws emr terminate-clusters --cluster-ids ${GEOMESA_CLUSTER_ID} ${GEOWAVE_CLUSTER_ID}
-	@rm -f *-cluster-id.txt
+	@rm -f ${STACK_NAME}*-cluster-id.txt
 
 ingest-synthetic-data-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../synthetic-data mesaPoke ${S3_URI}/jars)
 ingest-synthetic-data-gm:
@@ -205,13 +205,13 @@ geotrellis-sample-datasets Vienna/buildings/
 ingest-gdelt-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
 ingest-gdelt-gm:
 	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
-	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest shapefiles" \
+	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest GDELT GeoMesa" \
 spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geomesa.GdeltIngest ${ASSEMBLY_URI} ${GEOMESA_ZOOKEEPER}
 
 ingest-gdelt-gw: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geowave ${S3_URI}/jars)
 ingest-gdelt-gw:
 	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
-	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest shapefiles" \
+	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest GDELT GeoWave" \
 spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.GdeltIngest ${ASSEMBLY_URI} ${GEOWAVE_ZOOKEEPER}
 
 explore:
@@ -230,7 +230,7 @@ save-metrics:
 
 	@echo Save GeoWave metrics...
 	@aws emr ssh --cluster-id ${GEOWAVE_CLUSTER_ID} --key-pair-file "${EC2_KEY_FILE}" \
-		--command "cd /mnt/var/lib/ganglia/rrds && tar czf ~/metrics.tgz j-* && aws s3 cp ${S3_URI}/metrics/${GEOWAVE_CLUSTER_ID}.tgz"
+		--command "cd /mnt/var/lib/ganglia/rrds && tar czf ~/metrics.tgz j-* && aws s3 cp ~/metrics.tgz ${S3_URI}/metrics/${GEOWAVE_CLUSTER_ID}.tgz"
 
 fetch-metrics:
 	@mkdir -p ../metrics

@@ -15,17 +15,8 @@ object CSVSchemaParser {
     def genSFT(builder: SimpleFeatureTypeBuilder): Unit = ()
     def eval(csvrow: Array[String]): Any
 
-    def makeSimpleFeature(sftName: String, csvrow: Array[String]): SimpleFeature = {
-      val values = eval(csvrow).asInstanceOf[Seq[(String, Object)]]
-      val sftBuilder = new SimpleFeatureTypeBuilder
-      sftBuilder.setName(sftName)
-      genSFT(sftBuilder)
-
-      val builder = new SimpleFeatureBuilder(sftBuilder.buildFeatureType)
-      builder.addAll(values.map(_._2))
-      val genFeature = builder.buildFeature(builder.getFeatureType.getName.toString)
-      genFeature
-    }
+    def makeSimpleFeature(sftName: String, csvrow: Array[String]): SimpleFeature =
+      makeSimpleFeature(sftName, csvrow, java.util.UUID.randomUUID.toString)
 
     def makeSimpleFeature(sftName: String, csvrow: Array[String], id: String): SimpleFeature = {
       val values = eval(csvrow).asInstanceOf[Seq[(String, Object)]]

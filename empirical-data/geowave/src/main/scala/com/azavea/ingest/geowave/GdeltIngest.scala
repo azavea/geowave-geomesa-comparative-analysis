@@ -41,7 +41,9 @@ object GdeltIngest {
       featureName = "gdelt-event",
       s3bucket = "geotrellis-sample-datasets",
       s3prefix = "gdelt/",
-      csvExtension = ".gz"
+      csvExtension = ".gz",
+      temporal = true,
+      pointOnly = false
     )
     println("Params initialized")
     val tybuilder = new SimpleFeatureTypeBuilder
@@ -51,7 +53,7 @@ object GdeltIngest {
     println("Feature type built for ingest")
 
     val urls = getCsvUrls(params.s3bucket, params.s3prefix, params.csvExtension, true)
-    val linesRdd = csvUrlsToLinesRdd(urls, params.dropLines)
+    val linesRdd = csvUrlsToLinesRdd(urls, params.dropLines, 5000)
     val sfRdd: RDD[SimpleFeature] = csvLinesToSfRdd(params.codec, linesRdd, params.separator, params.featureName)
     println("SimpleFeature RDD constructed")
 

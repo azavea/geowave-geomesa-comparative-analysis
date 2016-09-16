@@ -135,6 +135,17 @@ object Ingest {
   }
 
   def ingestRDD(params: Params)(rdd: RDD[SimpleFeature]) = {
+    // Create the tables
+    val ops = getOperations(params)
+    for(index <- indexes(params)) {
+      ops.createTable(
+	StringUtils.stringFromBinary(index.getId.getBytes),
+	true,
+        true,
+	index.getIndexStrategy.getNaturalSplits
+      )
+    }
+
     rdd
       .foreachPartition({ featureIter =>
         val features = featureIter.buffered

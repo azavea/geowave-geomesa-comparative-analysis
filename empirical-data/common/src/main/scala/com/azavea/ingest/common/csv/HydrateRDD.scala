@@ -42,7 +42,8 @@ object HydrateRDD extends HydrateRDDUtils {
 
   def csvUrlsToLinesRdd(
     urlArray: Array[String],
-    drop: Int
+    drop: Int,
+    numPartitions: Int
   )(implicit sc: SparkContext): RDD[String] = {
     val urlRdd = sc.parallelize(urlArray, urlArray.size)
     urlRdd.flatMap({ address =>
@@ -54,7 +55,7 @@ object HydrateRDD extends HydrateRDDUtils {
         iter.next()
       }
       iter
-    }).repartition(30000)
+    }).repartition(numPartitions)
   }
 
   def csvLinesToSfRdd(schema: CSVSchemaParser.Expr,
