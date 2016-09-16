@@ -17,23 +17,7 @@ import scala.collection.mutable
 
 import com.azavea.ingest.common._
 
-object HydrateRDD extends HydrateRDDUtils {
-  def getCsvUrls(s3bucket: String, s3prefix: String, extension: String): Array[String] = {
-    val objectRequest =
-      (new ListObjectsRequest)
-      .withBucketName(s3bucket)
-      .withPrefix(s3prefix)
-
-    val s3objects = client.listObjects(s3bucket, s3prefix)
-    val summaries = s3objects.getObjectSummaries
-
-    listKeys(objectRequest)
-      .collect({ case key if key.endsWith(extension) =>
-        s"https://s3.amazonaws.com/${s3bucket}/${key}"
-      }).toArray
-  }
-
-
+object HydrateRDD {
   def csvUrlsToRdd(
     urlArray: Array[String],
     sftName: String,

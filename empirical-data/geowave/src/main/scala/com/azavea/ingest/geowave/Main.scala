@@ -46,7 +46,7 @@ object Main {
 
     params.csvOrShp match {
       case Ingest.SHP => {
-        val urls = getShpUrls(params.s3bucket, params.s3prefix)
+        val urls = Util.listKeys(params.s3bucket, params.s3prefix, ".shp")
         val shpUrlRdd: RDD[SimpleFeature] = shpUrlsToRdd(urls, params.inputPartitionSize)
         val shpSimpleFeatureRdd: RDD[SimpleFeature] = NormalizeRDD.normalizeFeatureName(shpUrlRdd, params.featureName)
 
@@ -57,7 +57,7 @@ object Main {
           Ingest.ingestRDD(params)(shpSimpleFeatureRdd)
       }
       case Ingest.CSV => {
-        val urls = getCsvUrls(params.s3bucket, params.s3prefix, params.csvExtension)
+        val urls = Util.listKeys(params.s3bucket, params.s3prefix, params.csvExtension)
         val csvRdd: RDD[SimpleFeature] = csvUrlsToRdd(urls, params.featureName, params.codec, params.dropLines, params.separator)
 
         Ingest.ingestRDD(params)(csvRdd)

@@ -27,18 +27,7 @@ class IteratorWrapper[I, T](iter: I)(hasNext: I => Boolean, next: I => T, close:
   def next = next(iter)
 }
 
-object HydrateRDD extends HydrateRDDUtils {
-  def getShpUrls(s3bucket: String, s3prefix: String): Array[String] = {
-    val objectRequest = (new ListObjectsRequest)
-      .withBucketName(s3bucket)
-      .withPrefix(s3prefix)
-
-    listKeys(objectRequest)
-      .collect({ case key if key.endsWith(".shp") =>
-        s"https://s3.amazonaws.com/${s3bucket}/${key}"
-      }).toArray
-  }
-
+object HydrateRDD {
   def shpUrlsToRdd(urlArray: Array[String], partitionSize: Int = 10)(implicit sc: SparkContext): RDD[SimpleFeature] = {
     val urlRdd: RDD[String] = sc.parallelize(urlArray, urlArray.size / partitionSize)
     urlRdd.mapPartitions { urls =>
