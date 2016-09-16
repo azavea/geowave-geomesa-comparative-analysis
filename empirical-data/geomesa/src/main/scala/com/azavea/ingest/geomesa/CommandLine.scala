@@ -39,6 +39,9 @@ object CommandLine {
     cmd("shp")
       .action( (_, conf) => conf.copy(csvOrShp = Ingest.SHP) )
 
+    cmd("avro")
+      .action( (_, conf) => conf.copy(csvOrShp = Ingest.AVRO) )
+
     note("Global options:\n")
 
     opt[String]('i',"instance")
@@ -61,6 +64,9 @@ object CommandLine {
       .action( (s, conf) => { conf.copy(featureName = s) })
       .required
       .text("Name for the SimpleFeatureType")
+    opt[Int]("inputPartitionSize")
+      .action ( (size, conf) => {conf.copy(inputPartitionSize = size)} )
+      .text("Number of inputs per partition")
     help("help").text("Display this help message")
     note("")
 

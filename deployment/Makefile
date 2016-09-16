@@ -145,24 +145,24 @@ csv -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
 --featurename gwtrajectory \
 geotrellis-sample-datasets geolife/
 
-ingest-shp-data-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
-ingest-shp-data-gm:
-	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
-	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest shapefiles" \
-spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geomesa.Main  ${ASSEMBLY_URI} \
-shapefile -i gis -z ${GEOMESA_ZOOKEEPER} -u root \
--p secret -t geomesa.shptest \
---featurename gmgenerated-tracks \
+ingest-generated-tracks-gm: export ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
+ingest-generated-tracks-gm:
+	@if [ -z "$${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
+	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest Generated Tracks" \
+spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geomesa.Main  $${ASSEMBLY_URI} \
+avro -i gis -z ${GEOMESA_ZOOKEEPER} -u root \
+-p secret -t geomesa.tracks --inputPartitionSize 1 \
+--featurename generated-tracks \
 geotrellis-sample-datasets generated-tracks/
 
-ingest-shp-data-gw: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geowave ${S3_URI}/jars)
-ingest-shp-data-gw:
-	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
-	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest shapefiles" \
-spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geomesa.Main  ${ASSEMBLY_URI} \
-shapefile -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
--p secret -t geowave.shptest \
---featurename gmgenerated-tracks \
+ingest-generated-tracks-gw: export ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geowave ${S3_URI}/jars)
+ingest-generated-tracks-gw:
+	@if [ -z "$${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
+	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest Generated Tracks" \
+spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.Main  $${ASSEMBLY_URI} \
+avro -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
+-p secret -t geowave.tracks \
+--featurename generated-tracks --temporal --inputPartitionSize 1 \
 geotrellis-sample-datasets generated-tracks/
 
 ingest-vienna-gm: export ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
@@ -201,6 +201,28 @@ shapefile -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
 -p secret -t geowave.shptest --featurename vienna-buildings \
 --translationPoints s3://geotrellis-test/ca/ingest/city-points.json --translationOrigin "16.36,48.21" \
 geotrellis-sample-datasets Vienna/buildings/
+
+ingest-tracks-translate-gm: export ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
+ingest-tracks-translate-gm:
+	@if [ -z "$${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
+	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest Generated Tracks Translation" \
+spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geomesa.Main  $${ASSEMBLY_URI} \
+avro -i gis -z ${GEOMESA_ZOOKEEPER} -u root \
+-p secret -t geomesa.tracks \
+--featurename generated-tracks \
+--translationPoints s3://geotrellis-test/ca/ingest/city-points.json --translationOrigin "16.36,48.21" \
+geotrellis-sample-datasets generated-tracks/
+
+ingest-tracks-translate-gw: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geowave ${S3_URI}/jars)
+ingest-tracks-translate-gw:
+	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
+	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest Generated Tracks Translation" \
+spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.Main  ${ASSEMBLY_URI} \
+avro -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
+-p secret -t geowave.tracks \
+--featurename generated-tracks \
+--translationPoints s3://geotrellis-test/ca/ingest/city-points.json --translationOrigin "16.36,48.21" \
+geotrellis-sample-datasets generated-tracks/
 
 ingest-gdelt-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
 ingest-gdelt-gm:

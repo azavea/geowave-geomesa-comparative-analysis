@@ -48,6 +48,7 @@ object Ingest {
   trait CSVorSHP
   case object CSV extends CSVorSHP
   case object SHP extends CSVorSHP
+  case object AVRO extends CSVorSHP
   implicit val readsCSVorSHP = scopt.Read.reads[CSVorSHP]({ s: String =>
     s.toLowerCase match {
       case "csv" => CSV
@@ -70,6 +71,7 @@ object Ingest {
                      s3bucket: String = "",
                      s3prefix: String = "",
                      csvExtension: String = ".csv",
+                     inputPartitionSize: Int = 10,
                      translationPoints: Seq[Point] = Seq.empty,
                      translationOrigin: Option[Point] = None,
                      temporal: Boolean = false,

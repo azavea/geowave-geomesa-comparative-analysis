@@ -11,11 +11,13 @@ import scala.collection.JavaConverters._
 
 object Reproject {
   def apply(sf: SimpleFeature, crs: CoordinateReferenceSystem): SimpleFeature = {
+    val srcCrs = sf.getType.getCoordinateReferenceSystem
+    if (srcCrs == null) return sf // can't reproject without known CRS
     val sftb = new SimpleFeatureTypeBuilder()
     sftb.init(sf.getType)
     sftb.setCRS(crs)
     val sft = sftb.buildFeatureType
-    val transform = CRS.findMathTransform(sf.getType.getCoordinateReferenceSystem, crs, true)
+    val transform = CRS.findMathTransform(srcCrs, crs, true)
     Transform(sft, sf, transform)
   }
 }
