@@ -95,8 +95,12 @@ object Ingest {
     val instance = getOperations(conf)
 
     val options = new AccumuloOptions
-    options.setPersistDataStatistics(true)
-    //options.setUseAltIndex(true)
+
+    // This was causing problems with GDELT.
+    // Can run `geowave remote recalcstats` to calculate statistics after ingest.
+    options.setPersistDataStatistics(false)
+
+    // options.setUseAltIndex(true)
 
     return new AccumuloDataStore(
       new AccumuloIndexStore(instance),

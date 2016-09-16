@@ -144,6 +144,11 @@ DFS Used: 118.46 GB (16.46%)
 
 #### GeoWave
 
+We had problems ingesting GDELT, where the `geowave.gdelt_GEOWAVE_METADATA` table had way too many entries, all stored to memory,
+and never flushing to disk although there was one minor compaction running the whole time. Any query or compact command
+to that table would hang and timeout. We got around this issue by not saving any statistics to the table, by using the
+`AccumuloOptions.setPersistDataStatistics(false)` method for our datastore options.
+
 - Disk Used: 90.67G
 - Total Entries: 47.24M
 

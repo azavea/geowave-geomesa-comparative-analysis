@@ -54,7 +54,7 @@ object GdeltIngest {
     val sfRdd = csvLinesToSfRdd(params.codec, linesRdd, params.separator, params.featureName)
     println("SimpleFeature RDD constructed")
 
-    Ingest.ingestRDD2(params)(sfRdd)
+    Ingest.ingestRDD(params)(sfRdd)
   }
 
 }

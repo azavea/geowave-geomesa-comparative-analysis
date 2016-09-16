@@ -77,7 +77,7 @@ object Ingest {
     ds.dispose
   }
 
-  def ingestRDD(params: Params, useOutputFormat: Boolean = false)(rdd: RDD[SimpleFeature]) =
+  def ingestRDD(params: Params, useOutputFormat: Boolean = true)(rdd: RDD[SimpleFeature]) =
     if(useOutputFormat)
       ingestRDDWithOutputFormat(params)(rdd)
     else

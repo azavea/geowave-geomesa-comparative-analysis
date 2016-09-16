@@ -1,5 +1,5 @@
 # No spaces in STACK_NAME
-export STACK_NAME := ${USER}
+export STACK_NAME := ${USER}_GDELT
 export EC2_KEY := geotrellis-cluster
 export EC2_KEY_FILE := "${HOME}/${EC2_KEY}.pem"
 export AWS_DEFAULT_REGION := us-east-1
@@ -35,7 +35,6 @@ SPARK_PARAMS := --driver-memory ${DRIVER_MEMORY} \
 --conf spark.dynamicAllocation.enabled=true \
 --conf spark.yarn.executor.memoryOverhead=${YARN_OVERHEAD} \
 --conf spark.yarn.driver.memoryOverhead=${YARN_OVERHEAD}
-
 
 SPARK_OPTIONS := --master yarn \
 --deploy-mode cluster ${SPARK_PARAMS}
@@ -73,6 +72,8 @@ ${STACK_NAME}-geomesa-cluster-id.txt:
 
 ${STACK_NAME}-geowave-cluster-id.txt:
 	$(call EMR_CREATE_CLUSTER,geowave,quay.io/geodocker/accumulo-geowave)
+
+rwildcard=$(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
 
 deploy: ${STACK_NAME}-geomesa-cluster-id.txt ${STACK_NAME}-geowave-cluster-id.txt
 	terraform apply \
@@ -214,9 +215,11 @@ ingest-gdelt-gw:
 	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest GDELT GeoWave" \
 spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.GdeltIngest ${ASSEMBLY_URI} ${GEOWAVE_ZOOKEEPER}
 
-explore:
-	cd ../query-server && ./sbt "project explore" assembly
-	echo "spark-shell --master yarn --deploy-mode client ${SPARK_PARAMS} --jars explore-assembly-0.0.1.jar" > run-explore-shell.sh
+../query-server/explore/target/scala-2.11/explore-assembly-0.0.1.jar: $(call rwildcard, $(call rwildcard, server, *.scala) build.sbt, *.scala) ../query-server/explore/build.sbt
+	cd ../query-server/ && ./sbt "project explore" assembly
+
+explore: ../query-server/explore/target/scala-2.11/explore-assembly-0.0.1.jar
+	echo "GM_CLUSTER_ID=${GEOMESA_CLUSTER_ID} GW_CLUSTER_ID=${GEOWAVE_CLUSTER_ID} GM_ZK=${GEOMESA_ZOOKEEPER} GW_ZK=${GEOWAVE_ZOOKEEPER} GM_USER=root GW_USER=root GM_PASS=secret GW_PASS=secret GM_INSTANCE=gis GW_INSTANCE=gis spark-shell --master yarn --deploy-mode client ${SPARK_PARAMS} --jars explore-assembly-0.0.1.jar" > run-explore-shell.sh
 	chmod a+x run-explore-shell.sh
 	scp -i ~/.keys/geotrellis-cluster.pem ../query-server/explore/target/scala-2.11/explore-assembly-0.0.1.jar hadoop@${GEOMESA_ZOOKEEPER}:/home/hadoop
 	scp -i ~/.keys/geotrellis-cluster.pem run-explore-shell.sh hadoop@${GEOMESA_ZOOKEEPER}:/home/hadoop
