@@ -13,6 +13,8 @@ import org.opengis.feature.`type`.Name
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.data.{DataStoreFinder, DataUtilities, FeatureWriter, Transaction}
+import org.apache.spark.rdd._
+import org.apache.spark._
 
 import org.locationtech.geomesa.jobs.interop.mapreduce.GeoMesaOutputFormat
 
@@ -21,8 +23,6 @@ import java.util.HashMap
 import scala.collection.concurrent._
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
-
-import scala.collection.concurrent.TrieMap
 
 object Ingest {
   trait CSVorSHP
@@ -95,4 +95,52 @@ object Ingest {
        .map { z => (new org.apache.hadoop.io.Text, z) }
        .saveAsNewAPIHadoopDataset(job.getConfiguration)
    }
+
+   /** The method for ingest here is based on:
+    * https://github.com/locationtech/geomesa/blob/master/geomesa-tools/src/main/scala/org/locationtech/geomesa/tools/accumulo/ingest/AbstractIngest.scala#L104
+   **/
+   def ingestRDD2(params: Params)(rdd: RDD[SimpleFeature]): Unit =
+     rdd.foreachPartition { featureIter =>
+       val ds = DataStoreFinder.getDataStore(params.convertToJMap)
+
+       if (ds == null) {
+         println("Could not build AccumuloDataStore")
+         java.lang.System.exit(-1)
+       }
+
+       var registered = TrieMap.empty[String, FeatureWriter[SimpleFeatureType, SimpleFeature]]
+
+       try {
+         featureIter.foreach { feature: SimpleFeature =>
+           val sft = feature.getType
+           val fw = registered.getOrElseUpdate(sft.getTypeName, {
+                                                 ds.createSchema(sft) // register every new schema type
+                                                 ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)
+                                               })
+
+           val toWrite = fw.next()
+           toWrite.setAttributes(feature.getAttributes)
+           toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(feature.getID)
+           toWrite.getUserData.putAll(feature.getUserData)
+           toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+
+           try {
+             fw.write()
+           } catch {
+             case e: Exception =>
+               println(s"Failed to write a feature", feature, e)
+               throw e
+           }
+         }
+       }
+       catch {
+         case e: Exception =>
+           println(e)
+           throw e
+       }
+       finally {
+         for ((_, fw) <- registered) fw.close()
+         if (ds != null) ds.dispose()
+       }
+     }
 }

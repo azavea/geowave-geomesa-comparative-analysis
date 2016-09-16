@@ -31,8 +31,11 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.feature.FeatureCollection
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
+import org.geotools.filter.identity.FeatureIdImpl
 import org.opengis.filter.Filter
+import org.apache.spark._
 import org.apache.spark.rdd._
+
 import geotrellis.vector.Point
 
 import java.util.HashMap
@@ -134,33 +137,33 @@ object Ingest {
   }
 
   def ingestRDD(params: Params)(rdd: RDD[SimpleFeature]) = {
+    rdd
+      .foreachPartition({ featureIter =>
+        val features = featureIter.buffered
+        val ds = getGeowaveDataStore(params)
 
-    rdd.foreachPartition({ featureIter =>
-      val features = featureIter.buffered
-      val ds = getGeowaveDataStore(params)
+        val adapter = new FeatureDataAdapter(features.head.getType())
 
-      val adapter = new FeatureDataAdapter(features.head.getType())
-
-      val indexWriter = ds.createWriter(adapter, indexes(params):_*).asInstanceOf[IndexWriter[SimpleFeature]]
-      try {
-        features.foreach({ feature => indexWriter.write(feature) })
-      } finally {
-        indexWriter.close()
-      }
-    })
-
-    // Set the number of splits if the opiton was provided
-    params.numSplits match {
-      case Some(numSplits) =>
-        val ops = getOperations(params)
-        val connector = ops.getConnector
-        for(index <- indexes(params)) {
-          val tableName = AccumuloUtils.getQualifiedTableName(params.tableName, StringUtils.stringFromBinary(index.getId().getBytes()))
-          println(s"Setting up splits for $tableName...")
-          AccumuloUtils.setSplitsByNumSplits(connector, params.tableName, index, numSplits)
+        val indexWriter = ds.createWriter(adapter, indexes(params):_*).asInstanceOf[IndexWriter[SimpleFeature]]
+        try {
+          features.foreach({ feature => indexWriter.write(feature) })
+        } finally {
+          indexWriter.close()
         }
-      case None => Unit
-    }
+      })
+
+      // Set the number of splits if the opiton was provided
+      params.numSplits match {
+        case Some(numSplits) =>
+          val ops = getOperations(params)
+          val connector = ops.getConnector
+          for(index <- indexes(params)) {
+            val tableName = AccumuloUtils.getQualifiedTableName(params.tableName, StringUtils.stringFromBinary(index.getId().getBytes()))
+            println(s"Setting up splits for $tableName...")
+            AccumuloUtils.setSplitsByNumSplits(connector, params.tableName, index, numSplits)
+          }
+        case None => Unit
+      }
   }
 
   def compoundPartitioningIndex(index: PrimaryIndex, numPartitions: Int, partitionStrategy: IndexPluginOptions.PartitionStrategy): PrimaryIndex = {

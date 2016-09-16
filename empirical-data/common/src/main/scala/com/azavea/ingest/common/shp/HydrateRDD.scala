@@ -23,11 +23,14 @@ class IteratorWrapper[I, T](iter: I)(hasNext: I => Boolean, next: I => T, close:
     if (! has) close(iter)
     has
   }
-
   def next = next(iter)
 }
 
 object HydrateRDD {
+
+  def getShpUrls(s3bucket: String, s3prefix: String, recursive: Boolean = false): Array[String] =
+    Util.listKeys(s3bucket, s3prefix, ".shp", recursive)
+
   def shpUrlsToRdd(urlArray: Array[String], partitionSize: Int = 10)(implicit sc: SparkContext): RDD[SimpleFeature] = {
     val urlRdd: RDD[String] = sc.parallelize(urlArray, urlArray.size / partitionSize)
     urlRdd.mapPartitions { urls =>
@@ -47,5 +50,4 @@ object HydrateRDD {
       }
     }
   }
-
 }

@@ -22,19 +22,27 @@ object Util {
   val cred = new DefaultAWSCredentialsProviderChain()
   val client = new AmazonS3Client(cred)
 
-  def listKeysS3(s3bucket: String, s3prefix: String, ext: String): Array[String] = {
+  def listKeysS3(s3bucket: String, s3prefix: String, ext: String, recursive: Boolean = false): Array[String] = {
     val objectRequest = (new ListObjectsRequest)
       .withBucketName(s3bucket)
       .withPrefix(s3prefix)
+
+    if (! recursive) { // Avoid digging into a deeper directory
+      objectRequest.withDelimiter("/")
+    }
 
     listKeys(objectRequest)
       .collect { case key if key.endsWith(ext) => s"s3://${s3bucket}/${key}" }.toArray
   }
 
-  def listKeys(s3bucket: String, s3prefix: String, ext: String): Array[String] = {
+  def listKeys(s3bucket: String, s3prefix: String, ext: String, recursive: Boolean = false): Array[String] = {
     val objectRequest = (new ListObjectsRequest)
       .withBucketName(s3bucket)
       .withPrefix(s3prefix)
+
+    if (! recursive) { // Avoid digging into a deeper directory
+      objectRequest.withDelimiter("/")
+    }
 
     listKeys(objectRequest)
       .collect { case key if key.endsWith(ext) =>
