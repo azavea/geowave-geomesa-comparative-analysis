@@ -45,6 +45,7 @@ object Ingest {
   trait CSVorSHP
   case object CSV extends CSVorSHP
   case object SHP extends CSVorSHP
+  case object AVRO extends CSVorSHP
   implicit val readsCSVorSHP = scopt.Read.reads[CSVorSHP]({ s: String =>
     s.toLowerCase match {
       case "csv" => CSV

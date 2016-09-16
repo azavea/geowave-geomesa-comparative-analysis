@@ -39,6 +39,9 @@ object CommandLine {
     cmd("shp")
       .action( (_, conf) => conf.copy(csvOrShp = Ingest.SHP) )
 
+    cmd("avro")
+      .action( (_, conf) => conf.copy(csvOrShp = Ingest.AVRO) )
+
     note("Global options:\n")
 
     opt[String]('i',"instance")

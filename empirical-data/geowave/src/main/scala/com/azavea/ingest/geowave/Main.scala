@@ -24,6 +24,7 @@ import scala.util.Try
 import com.azavea.ingest.common._
 import com.azavea.ingest.common.csv.HydrateRDD._
 import com.azavea.ingest.common.shp.HydrateRDD._
+import com.azavea.ingest.common.avro.AvroRDD
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -45,6 +46,16 @@ object Main {
     implicit val sc = new SparkContext(conf)
 
     params.csvOrShp match {
+      case Ingest.AVRO =>
+        val urls = Util.listKeysS3(params.s3bucket, params.s3prefix, ".avro")
+        val rdd = AvroRDD(params.featureName, urls, params.inputPartitionSize)
+
+        if (params.translationPoints.nonEmpty && params.translationOrigin.isDefined)
+          Ingest.ingestRDD(params)(
+            TranslateRDD(rdd, params.translationOrigin.get, params.translationPoints))
+        else
+          Ingest.ingestRDD(params)(rdd)
+
       case Ingest.SHP => {
         val urls = Util.listKeys(params.s3bucket, params.s3prefix, ".shp")
         val shpUrlRdd: RDD[SimpleFeature] = shpUrlsToRdd(urls, params.inputPartitionSize)
