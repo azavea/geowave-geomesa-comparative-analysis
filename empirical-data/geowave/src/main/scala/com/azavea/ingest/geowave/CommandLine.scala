@@ -58,6 +58,9 @@ object CommandLine {
     cmd("shp")
       .action( (_, conf) => conf.copy(csvOrShp = Ingest.SHP) )
 
+    cmd("avro")
+      .action( (_, conf) => conf.copy(csvOrShp = Ingest.AVRO) )
+
     note("Global options:\n")
 
     opt[String]('i',"instance")
@@ -96,7 +99,9 @@ object CommandLine {
     opt[Int]('w', "numSplits")
       .action( (v, conf) => { conf.copy(numSplits = Some(v)) })
       .text("Number of splits to set up")
-
+    opt[Int]("inputPartitionSize")
+      .action ( (size, conf) => {conf.copy(inputPartitionSize = size)} )
+      .text("Number of inputs per partition")
     help("help").text("Display this help message")
     note("")
 

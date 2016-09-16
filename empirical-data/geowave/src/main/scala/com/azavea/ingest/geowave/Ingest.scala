@@ -48,14 +48,7 @@ object Ingest {
   trait CSVorSHP
   case object CSV extends CSVorSHP
   case object SHP extends CSVorSHP
-  implicit val readsCSVorSHP = scopt.Read.reads[CSVorSHP]({ s: String =>
-    s.toLowerCase match {
-      case "csv" => CSV
-      case "shp" => SHP
-      case "shapefile" => SHP
-      case _ => throw new IllegalArgumentException("Must choose either CSV or SHP")
-    }
-  })
+  case object AVRO extends CSVorSHP
 
   case class Params (csvOrShp: CSVorSHP = CSV,
                      instanceId: String = "geowave",
@@ -70,6 +63,7 @@ object Ingest {
                      s3bucket: String = "",
                      s3prefix: String = "",
                      csvExtension: String = ".csv",
+                     inputPartitionSize: Int = 10,
                      translationPoints: Seq[Point] = Seq.empty,
                      translationOrigin: Option[Point] = None,
                      temporal: Boolean = false,

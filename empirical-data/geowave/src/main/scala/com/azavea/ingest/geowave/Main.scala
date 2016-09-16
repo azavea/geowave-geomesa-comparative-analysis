@@ -24,6 +24,7 @@ import scala.util.Try
 import com.azavea.ingest.common._
 import com.azavea.ingest.common.csv.HydrateRDD._
 import com.azavea.ingest.common.shp.HydrateRDD._
+import com.azavea.ingest.common.avro.HydrateRDD._
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -45,9 +46,19 @@ object Main {
     implicit val sc = new SparkContext(conf)
 
     params.csvOrShp match {
+      case Ingest.AVRO =>
+        val urls = Util.listKeysS3(params.s3bucket, params.s3prefix, ".avro")
+        val rdd = avroUrlsToRdd(params.featureName, urls, params.inputPartitionSize)
+
+        if (params.translationPoints.nonEmpty && params.translationOrigin.isDefined)
+          Ingest.ingestRDD(params)(
+            TranslateRDD(rdd, params.translationOrigin.get, params.translationPoints))
+        else
+          Ingest.ingestRDD(params)(rdd)
+
       case Ingest.SHP => {
-        val urls = getShpUrls(params.s3bucket, params.s3prefix)
-        val shpUrlRdd: RDD[SimpleFeature] = shpUrlsToRdd(urls)
+        val urls = Util.listKeys(params.s3bucket, params.s3prefix, ".shp")
+        val shpUrlRdd: RDD[SimpleFeature] = shpUrlsToRdd(urls, params.inputPartitionSize)
         val shpSimpleFeatureRdd: RDD[SimpleFeature] = NormalizeRDD.normalizeFeatureName(shpUrlRdd, params.featureName)
 
         if (params.translationPoints.nonEmpty && params.translationOrigin.isDefined)
@@ -57,7 +68,7 @@ object Main {
           Ingest.ingestRDD(params)(shpSimpleFeatureRdd)
       }
       case Ingest.CSV => {
-        val urls = getCsvUrls(params.s3bucket, params.s3prefix, params.csvExtension)
+        val urls = Util.listKeys(params.s3bucket, params.s3prefix, params.csvExtension)
         val csvRdd: RDD[SimpleFeature] = csvUrlsToRdd(urls, params.featureName, params.codec, params.dropLines, params.separator)
 
         Ingest.ingestRDD(params)(csvRdd)
