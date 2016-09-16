@@ -67,10 +67,10 @@ lazy val root = Project("aggregate", file("."))
 lazy val core = Project("core", file("core"))
   .settings(commonSettings: _*)
 
-lazy val explore = Project("explore", file("explore"))
-  .settings(commonSettings: _*)
-  .dependsOn(core)
-
 lazy val server = Project("server", file("server"))
   .settings(commonSettings: _*)
   .dependsOn(core)
+
+lazy val explore = Project("explore", file("explore"))
+  .settings(commonSettings: _*)
+  .dependsOn(server)
