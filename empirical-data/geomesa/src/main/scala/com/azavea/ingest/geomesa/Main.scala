@@ -14,7 +14,7 @@ import geotrellis.spark.util.SparkUtils
 import com.azavea.ingest.common._
 import com.azavea.ingest.common.csv.HydrateRDD._
 import com.azavea.ingest.common.shp.HydrateRDD._
-import com.azavea.ingest.common.avro.AvroRDD
+import com.azavea.ingest.common.avro.HydrateRDD._
 
 
 object Main {
@@ -35,7 +35,7 @@ object Main {
     params.csvOrShp match {
       case Ingest.AVRO =>
         val urls = Util.listKeysS3(params.s3bucket, params.s3prefix, ".avro")
-        val rdd = AvroRDD(params.featureName, urls, params.inputPartitionSize)
+        val rdd = avroUrlsToRdd(params.featureName, urls, params.inputPartitionSize)
 
         if (params.translationPoints.nonEmpty && params.translationOrigin.isDefined)
           Ingest.ingestRDD(params)(

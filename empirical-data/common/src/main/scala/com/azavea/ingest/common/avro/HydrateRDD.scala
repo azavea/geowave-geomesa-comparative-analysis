@@ -27,7 +27,7 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 
-object AvroRDD {
+object HydrateRDD {
 
   def generatedTrackSFT(featureName: String) = {
     val builder = new SimpleFeatureTypeBuilder
@@ -88,7 +88,7 @@ object AvroRDD {
     result
   }
 
-  def apply(featureName: String, urls: Seq[String], partitionSize: Int = 10)(implicit sc: SparkContext): RDD[SimpleFeature] = {
+  def avroUrlsToRdd(featureName: String, urls: Seq[String], partitionSize: Int = 10)(implicit sc: SparkContext): RDD[SimpleFeature] = {
     sc.parallelize(urls, urls.size / partitionSize)
       .flatMap { url =>
         println(s"Read: $url")
