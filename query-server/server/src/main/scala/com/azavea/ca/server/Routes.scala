@@ -11,9 +11,6 @@ import scala.concurrent.duration._
 
 object Routes {
 
-  lazy val geolifeRoutes =
-    GeolifeQueries.routes
-
   lazy val randomExtentQueryRoutes =
     withRequestTimeout(60.seconds) {
       RandomExtentQuery.queryBoth(geowave.GeoWaveRandomExtentQuery.query, geomesa.GeoMesaRandomExtentQuery.query)
@@ -80,6 +77,7 @@ object Routes {
     systemRoutes ~
     geomesaRoutes ~
     geowaveRoutes ~
-    geolifeRoutes ~
+    GeolifeQueries.routes ~
+    GDELTQueries.routes ~
     randomExtentQueryRoutes
 }

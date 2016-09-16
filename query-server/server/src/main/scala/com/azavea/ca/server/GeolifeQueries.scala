@@ -17,83 +17,15 @@ import scala.concurrent.Future
 
 object GeolifeQueries
     extends BaseService
+    with CAQueryUtils
     with CirceSupport
     with AkkaSystem.LoggerExecutor {
 
-  val GM_SFT = "gmtrajectory"
-  val GW_SFT = "gwtrajectory"
+  val gmTableName = "geomesa.geolife"
+  val gmFeatureTypeName = "gmtrajectory"
 
-  // Only use for server-side count aggregations.
-  private var _geowaveQuerier: Option[GeoWaveQuerier] = None
-  def geowaveQuerier: GeoWaveQuerier =
-    _geowaveQuerier match {
-      case Some(q) => q
-      case None =>
-        val q = GeoWaveQuerier("geowave.geolife", GW_SFT)
-        _geowaveQuerier.synchronized {
-          _geowaveQuerier = Some(q)
-        }
-        q
-    }
-
-  private var _geowaveDs: Option[org.geotools.data.DataStore] = None
-  def geowaveDs =
-    _geowaveDs match {
-      case Some(ds) => ds
-      case None =>
-        val ds = GeoWaveConnection.geotoolsDataStore("geowave.geolife")
-        _geowaveDs.synchronized {
-          _geowaveDs = Some(ds)
-        }
-        ds
-    }
-
-  private var _geomesaDs: Option[org.locationtech.geomesa.accumulo.data.AccumuloDataStore] = None
-  def geomesaDs =
-    _geomesaDs match {
-      case Some(ds) => ds
-      case None =>
-        val ds = GeoMesaConnection.dataStore("geomesa.geolife")
-        _geomesaDs.synchronized {
-          _geomesaDs = Some(ds)
-        }
-          ds
-    }
-
-  def resetDataStores(): Unit = {
-    _geowaveQuerier = None
-    _geowaveDs = None
-    _geomesaDs = None
-  }
-
-  def geowaveFeatureSource() = geowaveDs.getFeatureSource(GW_SFT)
-  def geomesaFeatureSource() = geomesaDs.getFeatureSource(GM_SFT)
-
-  def captureGeoWaveQuery(query: Filter): TestResult =
-    TestResult.capture(GeoWaveConnection.clusterId, {
-      geowaveFeatureSource().getFeatures(new Query(GW_SFT, query))
-    })
-
-  def captureGeoMesaQuery(query: Filter, loose: Boolean = false): TestResult = {
-    val q = new Query(GM_SFT, query)
-    q.getHints.put(org.locationtech.geomesa.accumulo.index.QueryHints.LOOSE_BBOX, loose)
-    TestResult.capture(GeoMesaConnection.clusterId, {
-      geomesaFeatureSource().getFeatures(q)
-    })
-  }
-
-  def captureGeoMesaCountQuery(query: Filter, loose: Boolean = false): TestResult = {
-    val q = new Query(GM_SFT, query)
-    q.getHints.put(org.locationtech.geomesa.accumulo.index.QueryHints.EXACT_COUNT, true)
-    q.getHints.put(org.locationtech.geomesa.accumulo.index.QueryHints.LOOSE_BBOX, loose)
-    TestResult.capture(GeoMesaConnection.clusterId, {
-      geomesaFeatureSource().getFeatures(q)
-    })
-  }
-
-  def looseSuffix(opt: Option[String]): String =
-    if(checkIfIsLoose(opt)) "-LOOSE"
-    else ""
+  val gwTableName = "geowave.geolife"
+  val gwFeatureTypeName = "gwtrajectory"
 
   def routes =
     pathPrefix("geolife") {
@@ -428,8 +360,6 @@ object GeolifeQueries
         }
       } ~
       pathPrefix("spatiotemporal") {
-        // Temporal Only queries.
-
         pathPrefix("in-beijing-aug-2011-iterate") {
           // Query the dataset and return everything in Beijing in August 2011
 

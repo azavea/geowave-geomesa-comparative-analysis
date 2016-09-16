@@ -8,4 +8,8 @@ trait BaseService extends BaseComponent with CirceSupport with Config {
 
   // Check query option to see if we should do a loose bbox query for geomesa
   def checkIfIsLoose(q: Option[String]) = q.map { x => if(x == "true") true else false }.getOrElse(false)
+
+  def looseSuffix(opt: Option[String]): String =
+    if(checkIfIsLoose(opt)) "-LOOSE"
+    else ""
 }
