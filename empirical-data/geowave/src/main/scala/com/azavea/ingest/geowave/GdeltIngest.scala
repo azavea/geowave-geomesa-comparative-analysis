@@ -43,7 +43,8 @@ object GdeltIngest {
       s3prefix = "gdelt/",
       csvExtension = ".gz",
       temporal = true,
-      pointOnly = false
+      pointOnly = false,
+      calcStats = false
     )
     println("Params initialized")
     val tybuilder = new SimpleFeatureTypeBuilder
