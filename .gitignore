@@ -7,3 +7,4 @@ metrics/
 .#*
 
 deployment/run-explore-shell.sh
+curl/*.txt

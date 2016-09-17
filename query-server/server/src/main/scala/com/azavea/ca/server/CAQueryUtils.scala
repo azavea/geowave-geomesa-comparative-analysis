@@ -78,9 +78,9 @@ trait CAQueryUtils {
     val q = new Query(gmFeatureTypeName, query)
     q.getHints.put(org.locationtech.geomesa.accumulo.index.QueryHints.EXACT_COUNT, true)
     q.getHints.put(org.locationtech.geomesa.accumulo.index.QueryHints.LOOSE_BBOX, loose)
-    TestResult.capture(GeoMesaConnection.clusterId, {
+    TestResult.capture(GeoMesaConnection.clusterId) { _ =>
       geomesaFeatureSource().getCount(q)
-    })
+    }
   }
 
 }

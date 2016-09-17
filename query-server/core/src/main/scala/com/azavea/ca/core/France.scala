@@ -4,41 +4,37 @@ import geotrellis.vector._
 import geotrellis.vector.io._
 import geotrellis.vector.io.json._
 
-case class RegionData(name: String, code: Int)
+import spray.json._
 
-object RegionData {
-  implicit object RegionDataJsonReader
+case class FranceRegion(name: String, code: Int)
+
+object FranceRegion {
+  implicit object FranceRegionJsonReader extends JsonReader[FranceRegion] {
+    def read(value: JsValue): FranceRegion =
+      value.asJsObject.getFields("nom", "code") match {
+        case Seq(JsString(name), JsNumber(code)) =>
+          FranceRegion(name.replace(" ", "-"), code.toInt)
+        case v =>
+          throw new DeserializationException("FranceRegion expected, got $v")
+      }
+  }
 }
 
 object France {
-  val regions: Vector[MultiPolygon] = {
+  val regions: Vector[MultiPolygonFeature[FranceRegion]] = {
     val collection = Resource("france-regions.geojson").parseGeoJson[JsonFeatureCollection]
-    (collection.getAllMultiPolygons ++ collection.getAllPolygons.map(MultiPolygon(_)))
+    (collection.getAllMultiPolygonFeatures[FranceRegion] ++ collection.getAllPolygonFeatures[FranceRegion].map(_.mapGeom(MultiPolygon(_))))
   }
 
-  val geom = regions.unionGeometries.as[MultiPolygon].get
+  val regionsByName: Map[String, MultiPolygon] =
+    regions
+      .map { case Feature(geom, data) => (data.name, geom) }
+      .toMap
+
+  val geom = regions.map(_.geom).unionGeometries.as[MultiPolygon].get
 
   val boundingBox = geom.envelope
   val boundingBoxGeom = boundingBox.toPolygon
-
-  // def boundingBoxes(dimension: Int): Seq[(Int, Int, Extent)] = boundingBoxes(dimension, dimension)
-  // def boundingBoxes(layoutCols: Int, layoutRows: Int): Seq[(Int, Int, Extent)] = {
-  //   val Extent(xmin, ymin, xmax, ymax) = boundingBox
-  //   val cw = boundingBox.width / layoutCols
-  //   val ch = boundingBox.height / layoutCols
-  //   (for(col <- 0 until layoutCols;
-  //       row <- 0 until layoutRows) yield {
-  //     (col, row,
-  //       Extent(
-  //         xmin + (col * cw),
-  //         ymax - ((row + 1) * ch),
-  //         xmin + ((col + 1) * cw),
-  //         ymax - (row * ch)
-  //       )
-  //     )
-  //   }).toSeq
-  // }
-
 
   object CQL {
     val inBoundingBox = CQLUtils.toBBOXquery("the_geom", boundingBox)
