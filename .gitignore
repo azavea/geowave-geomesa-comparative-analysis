@@ -5,3 +5,5 @@ metrics/
 *~
 \#*#
 .#*
+
+deployment/run-explore-shell.sh

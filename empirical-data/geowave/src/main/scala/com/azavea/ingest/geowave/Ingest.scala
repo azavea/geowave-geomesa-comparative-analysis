@@ -49,14 +49,6 @@ object Ingest {
   case object CSV extends CSVorSHP
   case object SHP extends CSVorSHP
   case object AVRO extends CSVorSHP
-  implicit val readsCSVorSHP = scopt.Read.reads[CSVorSHP]({ s: String =>
-    s.toLowerCase match {
-      case "csv" => CSV
-      case "shp" => SHP
-      case "shapefile" => SHP
-      case _ => throw new IllegalArgumentException("Must choose either CSV or SHP")
-    }
-  })
 
   case class Params (csvOrShp: CSVorSHP = CSV,
                      instanceId: String = "geowave",
@@ -97,8 +89,12 @@ object Ingest {
     val instance = getOperations(conf)
 
     val options = new AccumuloOptions
-    options.setPersistDataStatistics(true)
-    //options.setUseAltIndex(true)
+
+    // This was causing problems with GDELT.
+    // Can run `geowave remote recalcstats` to calculate statistics after ingest.
+    options.setPersistDataStatistics(false)
+
+    // options.setUseAltIndex(true)
 
     return new AccumuloDataStore(
       new AccumuloIndexStore(instance),
@@ -137,6 +133,17 @@ object Ingest {
   }
 
   def ingestRDD(params: Params)(rdd: RDD[SimpleFeature]) = {
+    // Create the tables
+    val ops = getOperations(params)
+    for(index <- indexes(params)) {
+      ops.createTable(
+	StringUtils.stringFromBinary(index.getId.getBytes),
+	true,
+        true,
+	index.getIndexStrategy.getNaturalSplits
+      )
+    }
+
     rdd
       .foreachPartition({ featureIter =>
         val features = featureIter.buffered

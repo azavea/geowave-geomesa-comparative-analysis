@@ -5,15 +5,7 @@ libraryDependencies ++= {
   Seq(
     "org.apache.spark" %% "spark-core" % Version.spark % "provided",
     "org.apache.hadoop" % "hadoop-client" % Version.hadoop % "provided",
-    "org.apache.accumulo" % "accumulo-core" % Version.accumulo
-      excludeAll(ExclusionRule(organization = "org.mortbay.jetty"),
-        ExclusionRule(organization = "org.apache.hadoop")
-      ),
 
-    "com.azavea.geotrellis" %% "geotrellis-vector" % "0.10.2",
-
-    "org.locationtech.geomesa" % "geomesa-accumulo-datastore" % Version.geomesa,
-    "org.locationtech.geomesa" % "geomesa-utils" % Version.geomesa,
     "org.locationtech.geomesa" % "geomesa-compute" % Version.geomesa
   )
 }

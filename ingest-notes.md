@@ -82,7 +82,7 @@ This gave the following entries per table:
 
 #### GeoWave - 2D and 3D
 
-Disk Used	1.45G
+- Disk Used: 1.45G
 - Total Entries: 47.24M
 
 ###### Tables
@@ -113,3 +113,57 @@ This gave the following entries per table:
 ###### HDFS usage report
 
 - DFS Used: 12.5 GB (1.74%)
+
+
+## GDELT
+
+Based on ingests into a cluster with 5 m3.2xlarge workers.
+
+#### GeoMesa
+
+- Disk Used:      56.76G
+- Total Entries:   1.22B
+
+###### Tables
+
+| Tables                                | Number of Entries |
+| ------------------------------------- |:-----------------:|
+| `geomesa.geodelt`                     |        10         |
+| `geomesa.gdelt_gdelt_2devent_z3 `     |    406.46M        |
+| `geomesa.gdelt_records`               |    406.51M        |
+| `geomesa.gdelt_stats`                 |      5.41K        |
+| `geomesa.gdelt_z2`                    |     24.55M        |
+
+###### Entries per tablet server
+
+`253.47M, 216.26M, 253.87M, 229.07M, 266.79M`
+
+###### HDFS usage report
+
+DFS Used: 118.46 GB (16.46%)
+
+#### GeoWave
+
+We had problems ingesting GDELT, where the `geowave.gdelt_GEOWAVE_METADATA` table had way too many entries, all stored to memory,
+and never flushing to disk although there was one minor compaction running the whole time. Any query or compact command
+to that table would hang and timeout. We got around this issue by not saving any statistics to the table, by using the
+`AccumuloOptions.setPersistDataStatistics(false)` method for our datastore options.
+
+- Disk Used: 90.67G
+- Total Entries: 47.24M
+
+###### Tables
+
+| Tables                                                       | Number of Entries |
+| -------------------------------------                        |:-----------------:|
+| `geowave.gdelt_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR_POINTONLY` |      406.51M      |
+| `geowave.gdelt_GEOWAVE_METADATA`                             |      165.08K      |
+| `geowave.gdelt_SPATIAL_IDX`                                  |      406.50M      |
+
+###### Entries per tablet server
+
+`176.59M,139.30M,165.28M,179.07M,152.93M`
+
+###### HDFS usage report
+
+- 187.7 GB (26.09%)

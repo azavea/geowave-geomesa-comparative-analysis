@@ -4,6 +4,12 @@ import geotrellis.vector._
 import geotrellis.vector.io._
 import geotrellis.vector.io.json._
 
+case class RegionData(name: String, code: Int)
+
+object RegionData {
+  implicit object RegionDataJsonReader
+}
+
 object France {
   val regions: Vector[MultiPolygon] = {
     val collection = Resource("france-regions.geojson").parseGeoJson[JsonFeatureCollection]
@@ -12,8 +18,8 @@ object France {
 
   val geom = regions.unionGeometries.as[MultiPolygon].get
 
-  // val boundingBox = geom.envelope
-  // val boundingBoxGeom = boundingBox.toPolygon
+  val boundingBox = geom.envelope
+  val boundingBoxGeom = boundingBox.toPolygon
 
   // def boundingBoxes(dimension: Int): Seq[(Int, Int, Extent)] = boundingBoxes(dimension, dimension)
   // def boundingBoxes(layoutCols: Int, layoutRows: Int): Seq[(Int, Int, Extent)] = {
@@ -34,12 +40,12 @@ object France {
   // }
 
 
-  // object CQL {
-  //   val inBoundingBox = CQLUtils.toBBOXquery("the_geom", boundingBox)
-  //   val notInBoundingBox = s"DISJOINT(the_geom, ${boundingBox.toPolygon.toWKT})"
+  object CQL {
+    val inBoundingBox = CQLUtils.toBBOXquery("the_geom", boundingBox)
+    val notInBoundingBox = s"DISJOINT(the_geom, ${boundingBoxGeom.toWKT})"
 
-  //   val inBeijing = s"INTERSECTS(the_geom, ${geom.toWKT})"
-  //   val notInBeijing = s"DISJOINT(the_geom, ${geom.toWKT})"
+    val inFrance = s"INTERSECTS(the_geom, ${geom.toWKT})"
+    val notInFrance = s"DISJOINT(the_geom, ${geom.toWKT})"
 
-  // }
+  }
 }
