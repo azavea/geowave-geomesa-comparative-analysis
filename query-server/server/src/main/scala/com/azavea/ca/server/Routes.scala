@@ -79,5 +79,6 @@ object Routes {
     geowaveRoutes ~
     GeolifeQueries.routes ~
     GDELTQueries.routes ~
+    TracksQueries.routes ~
     randomExtentQueryRoutes
 }
