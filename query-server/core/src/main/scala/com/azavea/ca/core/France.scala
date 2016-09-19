@@ -1,5 +1,6 @@
 package com.azavea.ca.core
 
+import geotrellis.proj4._
 import geotrellis.vector._
 import geotrellis.vector.io._
 import geotrellis.vector.io.json._
@@ -21,6 +22,19 @@ object FranceRegion {
 }
 
 object France {
+  val paris = Point(2.3675537109375, 48.814098527355746)
+
+  def buffer(p: Point, d: Double): Polygon =
+    p.reproject(LatLng, WebMercator).buffer(d).reproject(WebMercator, LatLng)
+
+  def parisBuffers: Map[String, Polygon] =
+    Seq(5, 15, 25, 35, 45, 55, 65)
+      .map { z =>
+        val m = z * 10000
+      (s"${m}-METERS", buffer(paris, m))
+      }
+      .toMap
+
   val regions: Vector[MultiPolygonFeature[FranceRegion]] = {
     val collection = Resource("france-regions.geojson").parseGeoJson[JsonFeatureCollection]
     (collection.getAllMultiPolygonFeatures[FranceRegion] ++ collection.getAllPolygonFeatures[FranceRegion].map(_.mapGeom(MultiPolygon(_))))

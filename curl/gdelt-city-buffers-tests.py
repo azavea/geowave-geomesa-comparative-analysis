@@ -2,13 +2,14 @@ import httplib
 import json
 import sys, os
 
-TEST = False
+TEST = True
 
 LB = 'tf-lb-20160919004959840277920myr-756430227.us-east-1.elb.amazonaws.com'
 
 AH
 # test_region = 'Picardie'
-regions = ["Bourgogne", "Lorraine", "Champagne-Ardenne", "Provence-Alpes-Cote-dAzur", "Ile-de-France", "Picardie", "Auvergne", "Franche-Comte", "Pays-de-la-Loire", "Rhone-Alpes", "Basse-Normandie", "Midi-Pyrenees", "Haute-Normandie", "Languedoc-Roussillon", "Nord-Pas-de-Calais", "Aquitaine", "Alsace", "Bretagne", "Centre", "Poitou-Charentes", "Limousin"]
+cities = ["Paris",
+          "Philadelphia"]
 
 # start_year = 1990
 # end_year = 2016
@@ -30,26 +31,29 @@ else:
 
 BASE = "/gdelt/spatiotemporal"
 
-def in_france_regions_two_years(year, region):
-    print "RUNNING FRANCE-REGIONS-TWO-YEARS %s %d" % (region, year)
-    return '%s/in-france-regions-two-years?test=%s&year=%d&region=%s' % (BASE, TEST_STR, year, region)
+def in_city_buffers_fourteen_months(year, city):
+    print "RUNNING FRANCE-CITYS-FOURTEEN-MONTHS %s %d" % (city, year)
+    return '%s/in-city-buffers-fourteen-months?test=%s&year=%d&city=%s' % (BASE, TEST_STR, year, city)
 
-def in_france_regions_bbox_one_year(year, region):
-    print "RUNNING FRANCE-REGIONS-ONE-YEAR %s %d" % (region, year)
-    return '%s/in-france-regions-one-year?test=%s&year=%d&region=%s' % (BASE, TEST_STR, year, region)
+def in_city_buffers_ten_months(year, city):
+    print "RUNNING FRANCE-CITYS-TEN-MONTHS %s %d" % (city, year)
+    return '%s/in-city-buffers-ten-months?test=%s&year=%d&city=%s' % (BASE, TEST_STR, year, city)
 
-def in_france_regions_ten_months(year, region):
-    print "RUNNING FRANCE-REGIONS-TEN-MONTHS %s %d" % (region, year)
-    return '%s/in-france-regions-ten-months?test=%s&year=%d&region=%s' % (BASE, TEST_STR, year, region)
+def in_city_buffers_six_months(year, city):
+    print "RUNNING FRANCE-CITYS-SIX-MONTHS %s %d" % (city, year)
+    return '%s/in-city-buffers-six-months?test=%s&year=%d&city=%s' % (BASE, TEST_STR, year, city)
 
-def in_france_regions_six_months(year, region='all'):
-    print "RUNNING FRANCE-REGIONS-SIX-MONTHS %s %d" % (region, year)
-    return '%s/in-france-regions-six-months?test=%s&year=%d&region=%s' % (BASE, TEST_STR, year, region)
+def in_city_buffers_two_months(year, city):
+    print "RUNNING FRANCE-CITYS-TWO-MONTHS %s %d" % (city, year)
+    return '%s/in-city-buffers-two-months?test=%s&year=%d&city=%s' % (BASE, TEST_STR, year, city)
 
-def in_france_regions_three_months(year, region='all'):
-    print "RUNNING FRANCE-REGIONS-THREE-MONTHS %s %d" % (region, year)
-    return '%s/in-france-regions-three-months?test=%s&year=%d&region=%s' % (BASE, TEST_STR, year, region)
+def in_city_buffers_two_weeks(year, city):
+    print "RUNNING FRANCE-CITYS-TWO-WEEKS %s %d" % (city, year)
+    return '%s/in-city-buffers-two-weeks?test=%s&year=%d&city=%s' % (BASE, TEST_STR, year, city)
 
+def in_city_buffers_six_days(year, city):
+    print "RUNNING FRANCE-CITYS-SIX-DAYS %s %d" % (city, year)
+    return '%s/in-city-buffers-six-days?test=%s&year=%d&city=%s' % (BASE, TEST_STR, year, city)
 
 gwWins = []
 gmWins = []
@@ -93,12 +97,13 @@ def run(req):
         print
 
 for year in range(start_year,end_year + 1):
-    for region in regions:
-        # run(in_france_regions_two_years(year, region))
-        # run(in_france_regions_bbox_one_year(year, region))
-        run(in_france_regions_ten_months(year, region))
-        # run(in_france_regions_six_months(year, region))
-        # run(in_france_regions_three_months(year, region))
+    for city in citys:
+        run(in_city_buffers_fourteen_months(year, city))
+        run(in_city_buffers_ten_months(year, city))
+        run(in_city_buffers_six_months(year, city))
+        run(in_city_buffers_two_months(year, city))
+        run(in_city_buffers_two_weeks(year, city))
+        run(in_city_buffers_six_days(year, city))
 
 print "GeoWave wins: %d" % len(gwWins)
 for w in gwWins:

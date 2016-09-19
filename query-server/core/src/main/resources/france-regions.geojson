@@ -3023,7 +3023,7 @@
         ]
       },
       "properties": {
-        "nom": "Île-de-France",
+        "nom": "Ile-de-France",
         "code": 11
       }
     },
@@ -42341,7 +42341,7 @@
         ]
       },
       "properties": {
-        "nom": "Franche-Comté",
+        "nom": "Franche-Comte",
         "code": 43
       }
     },
@@ -70485,7 +70485,7 @@
         ]
       },
       "properties": {
-        "nom": "Midi-Pyrénées",
+        "nom": "Midi-Pyrenees",
         "code": 73
       }
     },
@@ -79699,7 +79699,7 @@
         ]
       },
       "properties": {
-        "nom": "Rhône-Alpes",
+        "nom": "Rhone-Alpes",
         "code": 82
       }
     },
@@ -94071,7 +94071,7 @@
         ]
       },
       "properties": {
-        "nom": "Provence-Alpes-Côte d'Azur",
+        "nom": "Provence-Alpes-Cote dAzur",
         "code": 93
       }
     }
