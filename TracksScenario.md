@@ -54,7 +54,7 @@ Query Profile: 1 user at a time, over 10 minutes
 
 ### GeoMesa
 
-`TRACKS-USA-GRID-SET1-5DAY`
+`TRACKS-USA-GRID-SET1-5DAY`, `ZOOM_LEVEL=4`
 
 ```
 ================================================================================
@@ -79,9 +79,34 @@ Query Profile: 1 user at a time, over 10 minutes
 
 log: `/Users/eugene/proj/geowave-geomesa-comparative-analysis/benchmarks-client/target/gatling/tracksgrid-1474397103629/index.html`
 
+`TRACKS-USA-GRID-SET1-5DAY`, `ZOOM_LEVEL=5`
+
+```
+================================================================================
+---- Global Information --------------------------------------------------------
+> request count                                         54 (OK=54     KO=0     )
+> min response time                                    221 (OK=221    KO=-     )
+> max response time                                   9590 (OK=9590   KO=-     )
+> mean response time                                  2236 (OK=2236   KO=-     )
+> std deviation                                       3061 (OK=3061   KO=-     )
+> response time 50th percentile                        487 (OK=487    KO=-     )
+> response time 75th percentile                       5263 (OK=5263   KO=-     )
+> response time 95th percentile                       7794 (OK=7794   KO=-     )
+> response time 99th percentile                       9160 (OK=9160   KO=-     )
+> mean requests/sec                                  0.439 (OK=0.439  KO=-     )
+---- Response Time Distribution ------------------------------------------------
+> t < 800 ms                                            39 ( 72%)
+> 800 ms < t < 1200 ms                                   1 (  2%)
+> t > 1200 ms                                           14 ( 26%)
+> failed                                                 0 (  0%)
+================================================================================
+```
+
+log: `/Users/eugene/proj/geowave-geomesa-comparative-analysis/benchmarks-client/target/gatling/tracksgrid-1474398538135/index.html`
+
 ### GeoWave
 
-`TRACKS-USA-GRID-SET1-5DAY`
+`TRACKS-USA-GRID-SET1-5DAY`, `ZOOM_LEVEL=4`
 
 ```
 ================================================================================
@@ -92,7 +117,7 @@ log: `/Users/eugene/proj/geowave-geomesa-comparative-analysis/benchmarks-client/
 > mean response time                                  1854 (OK=1854   KO=-     )
 > std deviation                                       1180 (OK=1180   KO=-     )
 > response time 50th percentile                       1755 (OK=1755   KO=-     )
-> response time 75th percentile                       2373 (OK=2373   KO=-     )
+> response time 75th percentile                        2373 (OK=2373   KO=-     )
 > response time 95th percentile                       3786 (OK=3786   KO=-     )
 > response time 99th percentile                       4754 (OK=4754   KO=-     )
 > mean requests/sec                                  0.529 (OK=0.529  KO=-     )
@@ -105,3 +130,28 @@ log: `/Users/eugene/proj/geowave-geomesa-comparative-analysis/benchmarks-client/
 ```
 
 log: `/Users/eugene/proj/geowave-geomesa-comparative-analysis/benchmarks-client/target/gatling/tracksgrid-1474397687722/index.html`
+
+`TRACKS-USA-GRID-SET1-5DAY`, `ZOOM_LEVEL=5`
+
+```
+================================================================================
+---- Global Information --------------------------------------------------------
+> request count                                         73 (OK=73     KO=0     )
+> min response time                                    167 (OK=167    KO=-     )
+> max response time                                   3748 (OK=3748   KO=-     )
+> mean response time                                  1616 (OK=1616   KO=-     )
+> std deviation                                       1027 (OK=1027   KO=-     )
+> response time 50th percentile                       1645 (OK=1645   KO=-     )
+> response time 75th percentile                       2157 (OK=2157   KO=-     )
+> response time 95th percentile                       3388 (OK=3388   KO=-     )
+> response time 99th percentile                       3663 (OK=3663   KO=-     )
+> mean requests/sec                                  0.603 (OK=0.603  KO=-     )
+---- Response Time Distribution ------------------------------------------------
+> t < 800 ms                                            19 ( 26%)
+> 800 ms < t < 1200 ms                                   5 (  7%)
+> t > 1200 ms                                           49 ( 67%)
+> failed                                                 0 (  0%)
+================================================================================
+```
+
+log: `/Users/eugene/proj/geowave-geomesa-comparative-analysis/benchmarks-client/target/gatling/tracksgrid-1474398799139/index.html`
