@@ -157,56 +157,56 @@ class GeoWave_Level7_1Week extends TracksSimulation {
 // 18 days
 class GeoMesa_Level4_18Days extends TracksSimulation {
   setUp(
-    TracksSimulation.gridScenario(GeoMesa, 4, "18-days", 20, 120 seconds)
+    TracksSimulation.gridScenario(GeoMesa, 4, "18-day", 20, 120 seconds)
       .inject(rampUsers(1) over(10 minute))
   ).protocols(httpConf)
 }
 
 class GeoWave_Level4_18Days extends TracksSimulation {
   setUp(
-    TracksSimulation.gridScenario(GeoWave, 4, "18-days", 20, 120 seconds)
+    TracksSimulation.gridScenario(GeoWave, 4, "18-day", 20, 120 seconds)
       .inject(rampUsers(1) over(10 minute))
   ).protocols(httpConf)
 }
 
 class GeoMesa_Level5_18Days extends TracksSimulation {
   setUp(
-    TracksSimulation.gridScenario(GeoMesa, 5, "18-days", 20, 240 seconds)
+    TracksSimulation.gridScenario(GeoMesa, 5, "18-day", 20, 240 seconds)
       .inject(rampUsers(1) over(10 minute))
   ).protocols(httpConf)
 }
 
 class GeoWave_Level5_18Days extends TracksSimulation {
   setUp(
-    TracksSimulation.gridScenario(GeoWave, 5, "18-days", 20, 240 seconds)
+    TracksSimulation.gridScenario(GeoWave, 5, "18-day", 20, 240 seconds)
       .inject(rampUsers(1) over(10 minute))
   ).protocols(httpConf)
 }
 
 class GeoMesa_Level6_18Days extends TracksSimulation {
   setUp(
-    TracksSimulation.gridScenario(GeoMesa, 6, "18-days", 20, 240 * 2 seconds)
+    TracksSimulation.gridScenario(GeoMesa, 6, "18-day", 20, 240 * 2 seconds)
       .inject(rampUsers(1) over(10 minute))
   ).protocols(httpConf)
 }
 
 class GeoWave_Level6_18Days extends TracksSimulation {
   setUp(
-    TracksSimulation.gridScenario(GeoWave, 6, "18-days", 20, 240 * 2 seconds)
+    TracksSimulation.gridScenario(GeoWave, 6, "18-day", 20, 240 * 2 seconds)
       .inject(rampUsers(1) over(10 minute))
   ).protocols(httpConf)
 }
 
 class GeoMesa_Level7_18Days extends TracksSimulation {
   setUp(
-    TracksSimulation.gridScenario(GeoMesa, 7, "18-days", 20, 240 * 3 seconds)
+    TracksSimulation.gridScenario(GeoMesa, 7, "18-day", 20, 240 * 3 seconds)
       .inject(rampUsers(1) over(10 minute))
   ).protocols(httpConf)
 }
 
 class GeoWave_Level7_18Days extends TracksSimulation {
   setUp(
-    TracksSimulation.gridScenario(GeoWave, 7, "18-days", 20, 240 * 3 seconds)
+    TracksSimulation.gridScenario(GeoWave, 7, "18-day", 20, 240 * 3 seconds)
       .inject(rampUsers(1) over(10 minute))
   ).protocols(httpConf)
 }
@@ -214,56 +214,56 @@ class GeoWave_Level7_18Days extends TracksSimulation {
 // 27 days
 class GeoMesa_Level4_27Days extends TracksSimulation {
   setUp(
-    TracksSimulation.gridScenario(GeoMesa, 4, "27-days", 13, 120 seconds)
+    TracksSimulation.gridScenario(GeoMesa, 4, "27-day", 13, 120 seconds)
       .inject(rampUsers(1) over(10 minute))
   ).protocols(httpConf)
 }
 
 class GeoWave_Level4_27Days extends TracksSimulation {
   setUp(
-    TracksSimulation.gridScenario(GeoWave, 4, "27-days", 13, 120 seconds)
+    TracksSimulation.gridScenario(GeoWave, 4, "27-day", 13, 120 seconds)
       .inject(rampUsers(1) over(10 minute))
   ).protocols(httpConf)
 }
 
 class GeoMesa_Level5_27Days extends TracksSimulation {
   setUp(
-    TracksSimulation.gridScenario(GeoMesa, 5, "27-days", 13, 240 seconds)
+    TracksSimulation.gridScenario(GeoMesa, 5, "27-day", 13, 240 seconds)
       .inject(rampUsers(1) over(10 minute))
   ).protocols(httpConf)
 }
 
 class GeoWave_Level5_27Days extends TracksSimulation {
   setUp(
-    TracksSimulation.gridScenario(GeoWave, 5, "27-days", 13, 240 seconds)
+    TracksSimulation.gridScenario(GeoWave, 5, "27-day", 13, 240 seconds)
       .inject(rampUsers(1) over(10 minute))
   ).protocols(httpConf)
 }
 
 class GeoMesa_Level6_27Days extends TracksSimulation {
   setUp(
-    TracksSimulation.gridScenario(GeoMesa, 6, "27-days", 13, 240 * 2 seconds)
+    TracksSimulation.gridScenario(GeoMesa, 6, "27-day", 13, 240 * 2 seconds)
       .inject(rampUsers(1) over(10 minute))
   ).protocols(httpConf)
 }
 
 class GeoWave_Level6_27Days extends TracksSimulation {
   setUp(
-    TracksSimulation.gridScenario(GeoWave, 6, "27-days", 13, 240 * 2 seconds)
+    TracksSimulation.gridScenario(GeoWave, 6, "27-day", 13, 240 * 2 seconds)
       .inject(rampUsers(1) over(10 minute))
   ).protocols(httpConf)
 }
 
 class GeoMesa_Level7_27Days extends TracksSimulation {
   setUp(
-    TracksSimulation.gridScenario(GeoMesa, 7, "27-days", 13, 240 * 3 seconds)
+    TracksSimulation.gridScenario(GeoMesa, 7, "27-day", 13, 240 * 3 seconds)
       .inject(rampUsers(1) over(10 minute))
   ).protocols(httpConf)
 }
 
 class GeoWave_Level7_27Days extends TracksSimulation {
   setUp(
-    TracksSimulation.gridScenario(GeoWave, 7, "27-days", 13, 240 * 3 seconds)
+    TracksSimulation.gridScenario(GeoWave, 7, "27-day", 13, 240 * 3 seconds)
       .inject(rampUsers(1) over(10 minute))
   ).protocols(httpConf)
 }
