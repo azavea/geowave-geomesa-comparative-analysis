@@ -165,7 +165,7 @@ object TracksQueries
           pathPrefix("9-day") {
             queryGridRoute(s"TRACKS-USA-GRID-${testContext.toUpperCase}-9DAY", Period.ofDays(9))
           } ~
-          pathPrefix("17-day") {
+          pathPrefix("18-day") {
             queryGridRoute(s"TRACKS-USA-GRID-${testContext.toUpperCase}-18DAY", Period.ofDays(18))
           } ~
           pathPrefix("27-day") {
