@@ -1,5 +1,5 @@
 # No spaces in STACK_NAME
-export STACK_NAME := ${USER}_GDELT
+export STACK_NAME := ${USER}
 export EC2_KEY := geotrellis-cluster
 export EC2_KEY_FILE := "${HOME}/${EC2_KEY}.pem"
 export AWS_DEFAULT_REGION := us-east-1
