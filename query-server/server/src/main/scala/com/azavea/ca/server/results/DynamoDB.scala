@@ -35,7 +35,7 @@ object DynamoDB {
     a
   }
 
-  def saveResult(runResult: RunResult): Unit = {
+  def saveResult(runResult: RunResult): RunResult = {
     if(runResult.isTest) {
       // Put GM results
       runResult.gmResult.foreach { r =>
@@ -119,5 +119,6 @@ object DynamoDB {
         )
       }
     }
+    runResult
   }
 }

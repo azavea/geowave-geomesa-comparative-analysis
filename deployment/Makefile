@@ -243,9 +243,9 @@ spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.GdeltIngest ${AS
 explore: ../query-server/explore/target/scala-2.11/explore-assembly-0.0.1.jar
 	echo "GM_CLUSTER_ID=${GEOMESA_CLUSTER_ID} GW_CLUSTER_ID=${GEOWAVE_CLUSTER_ID} GM_ZK=${GEOMESA_ZOOKEEPER} GW_ZK=${GEOWAVE_ZOOKEEPER} GM_USER=root GW_USER=root GM_PASS=secret GW_PASS=secret GM_INSTANCE=gis GW_INSTANCE=gis spark-shell --master yarn --deploy-mode client ${SPARK_PARAMS} --jars explore-assembly-0.0.1.jar" > run-explore-shell.sh
 	chmod a+x run-explore-shell.sh
-	scp -i ~/.keys/geotrellis-cluster.pem ../query-server/explore/target/scala-2.11/explore-assembly-0.0.1.jar hadoop@${GEOMESA_ZOOKEEPER}:/home/hadoop
-	scp -i ~/.keys/geotrellis-cluster.pem run-explore-shell.sh hadoop@${GEOMESA_ZOOKEEPER}:/home/hadoop
-	ssh -i ~/.keys/geotrellis-cluster.pem hadoop@${GEOMESA_ZOOKEEPER}
+	scp -i ${EC2_KEY_FILE} ../query-server/explore/target/scala-2.11/explore-assembly-0.0.1.jar hadoop@${GEOMESA_ZOOKEEPER}:/home/hadoop
+	scp -i ${EC2_KEY_FILE} run-explore-shell.sh hadoop@${GEOMESA_ZOOKEEPER}:/home/hadoop
+	ssh -i ${EC2_KEY_FILE} hadoop@${GEOMESA_ZOOKEEPER}
 
 save-metrics:
 	@mkdir -p ../metrics
