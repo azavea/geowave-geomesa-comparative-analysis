@@ -68,6 +68,7 @@ object Ingest {
                      translationOrigin: Option[Point] = None,
                      temporal: Boolean = false,
                      pointOnly: Boolean = false,
+                     calcStats: Boolean = true,
                      numPartitions: Int = 1,
                      partitionStrategy: String = "NONE",
                      numSplits: Option[Int] = None)
@@ -90,9 +91,10 @@ object Ingest {
 
     val options = new AccumuloOptions
 
-    // This was causing problems with GDELT.
+    // This was causing problems with GDELT,
+    // so optionally turn off calculating statistics in GEOMESA_METADATA table.
     // Can run `geowave remote recalcstats` to calculate statistics after ingest.
-    options.setPersistDataStatistics(false)
+    options.setPersistDataStatistics(conf.calcStats)
 
     // options.setUseAltIndex(true)
 

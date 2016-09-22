@@ -16,7 +16,7 @@ export WORKER_INSTANCE := m3.2xlarge
 export CPUS_PER_WORKER := 8
 
 export WORKER_PRICE := 0.5
-export WORKER_COUNT := 5
+export WORKER_COUNT := 3
 
 export DRIVER_MEMORY := 4200M
 export DRIVER_CORES := 2
@@ -25,7 +25,7 @@ export EXECUTOR_CORES := 2
 export YARN_OVERHEAD := 700
 
 # Docker image of benchmarking service
-export SERVICE_TAG := rob27
+export SERVICE_TAG := rob37
 export SERVICE_IMG := quay.io/geotrellis/comparative-analysis-query-server:${SERVICE_TAG}
 
 SPARK_PARAMS := --driver-memory ${DRIVER_MEMORY} \

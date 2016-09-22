@@ -90,6 +90,10 @@ object CommandLine {
       .action( (_, conf) => { conf.copy(pointOnly = true) })
       .text("Index this as a point-only dataset.")
 
+    opt[Unit]("nostats")
+      .action( (_, conf) => { conf.copy(calcStats = false) })
+      .text("Do no calculate the statistics table (get's around a problem ingesting GDELT).")
+
     opt[Int]('r', "numPartitions")
       .action( (v, conf) => { conf.copy(numPartitions = v) })
       .text("Number of partitions for partitioning strategy")
