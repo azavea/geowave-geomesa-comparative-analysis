@@ -16,7 +16,7 @@ export WORKER_INSTANCE := m3.2xlarge
 export CPUS_PER_WORKER := 8
 
 export WORKER_PRICE := 0.5
-export WORKER_COUNT := 3
+export WORKER_COUNT := 5
 
 export DRIVER_MEMORY := 4200M
 export DRIVER_CORES := 2
@@ -25,7 +25,7 @@ export EXECUTOR_CORES := 2
 export YARN_OVERHEAD := 700
 
 # Docker image of benchmarking service
-export SERVICE_TAG := rob37
+export SERVICE_TAG := nathan3
 export SERVICE_IMG := quay.io/geotrellis/comparative-analysis-query-server:${SERVICE_TAG}
 
 SPARK_PARAMS := --driver-memory ${DRIVER_MEMORY} \
@@ -188,7 +188,7 @@ ingest-vienna-translate-gm:
 	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest Vienna Translated" \
 spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geomesa.Main  $${ASSEMBLY_URI} \
 shapefile -i gis -z ${GEOMESA_ZOOKEEPER} -u root \
--p secret -t geomesa.shptest --featurename vienna-buildings \
+-p secret -t geomesa.transvienna --featurename vienna-buildings \
 --translationPoints s3://geotrellis-test/ca/ingest/city-points.json --translationOrigin "16.36,48.21" \
 geotrellis-sample-datasets Vienna/buildings/
 
@@ -199,9 +199,11 @@ ingest-vienna-translate-gw:
 	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest Vienna Translated" \
 spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.Main  $${ASSEMBLY_URI} \
 shapefile -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
--p secret -t geowave.shptest --featurename vienna-buildings \
+-p secret -t geowave.transvienna --featurename vienna-buildings \
 --translationPoints s3://geotrellis-test/ca/ingest/city-points.json --translationOrigin "16.36,48.21" \
 geotrellis-sample-datasets Vienna/buildings/
+
+ingest-vienna-translate: ingest-vienna-translate-gw ingest-vienna-translate-gm
 
 ingest-tracks-translate-gm: export ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
 ingest-tracks-translate-gm:
@@ -211,7 +213,7 @@ spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geomesa.Main  $${ASSEMBL
 avro -i gis -z ${GEOMESA_ZOOKEEPER} -u root \
 -p secret -t geomesa.tracks \
 --featurename generated-tracks \
---translationPoints s3://geotrellis-test/ca/ingest/city-points.json --translationOrigin "16.36,48.21" \
+--translationPoints s3://geotrellis-test/ca/ingest/slight-offsets.json --translationOrigin "0.0,0.0" \
 geotrellis-sample-datasets generated-tracks/
 
 ingest-tracks-translate-gw: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geowave ${S3_URI}/jars)
@@ -222,8 +224,11 @@ spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.Main  ${ASSEMBLY
 avro -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
 -p secret -t geowave.tracks \
 --featurename generated-tracks \
---translationPoints s3://geotrellis-test/ca/ingest/city-points.json --translationOrigin "16.36,48.21" \
+--temporal \
+--translationPoints s3://geotrellis-test/ca/ingest/slight-offsets.json --translationOrigin "0.0,0.0" \
 geotrellis-sample-datasets generated-tracks/
+
+ingest-tracks-translate: ingest-tracks-translate-gw ingest-tracks-translate-gm
 
 ingest-gdelt-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
 ingest-gdelt-gm:
@@ -236,6 +241,8 @@ ingest-gdelt-gw:
 	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
 	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest GDELT GeoWave" \
 spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.GdeltIngest ${ASSEMBLY_URI} ${GEOWAVE_ZOOKEEPER}
+
+ingest-gdelt: ingest-gdelt-gw ingest-gdelt-gm
 
 ../query-server/explore/target/scala-2.11/explore-assembly-0.0.1.jar: $(call rwildcard, $(call rwildcard, server, *.scala) build.sbt, *.scala) ../query-server/explore/build.sbt
 	cd ../query-server/ && ./sbt "project explore" assembly

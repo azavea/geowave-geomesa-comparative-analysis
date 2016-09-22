@@ -9,4 +9,7 @@ object CQLUtils {
 
   def intersects(geomAttrib: String, geom: Geometry): String =
     s"INTERSECTS(${geomAttrib}, ${geom.toWKT})"
+
+  def contains(geomAttrib: String, geom: Geometry): String =
+    s"CONTAINS(${geomAttrib}, ${geom.toWKT})"
 }
