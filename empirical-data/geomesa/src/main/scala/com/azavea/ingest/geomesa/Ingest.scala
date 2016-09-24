@@ -17,6 +17,8 @@ import org.apache.spark.rdd._
 import org.apache.spark._
 
 import org.locationtech.geomesa.jobs.interop.mapreduce.GeoMesaOutputFormat
+import org.locationtech.geomesa.curve.TimePeriod
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
 import geotrellis.vector.Point
 import java.util.HashMap
@@ -46,7 +48,7 @@ object Ingest {
     inputPartitionSize: Int = 10,
     translationPoints: Seq[Point] = Seq.empty,
     translationOrigin: Option[Point] = None,
-    unifySFT: Boolean = true) {
+    period: String = "") {
 
     def convertToJMap(): HashMap[String, String] = {
       val result = new HashMap[String, String]
@@ -110,6 +112,14 @@ object Ingest {
       try {
         featureIter.foreach { feature: SimpleFeature =>
           val sft = feature.getType
+
+          // Set the periodicity if the user supplied it.
+          // http://www.geomesa.org/documentation/user/data_management.html#customizing-the-z-index
+          if(!params.period.isEmpty) {
+            val tp = TimePeriod.withName(params.period.toLowerCase)
+            sft.setZ3Interval(tp) // Use the implicit method provided by RichSimpleFeatureType
+          }
+
           val fw = registered.getOrElseUpdate(sft.getTypeName, {
             ds.createSchema(sft) // register every new schema type
             ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)

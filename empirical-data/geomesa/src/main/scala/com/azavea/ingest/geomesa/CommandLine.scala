@@ -78,6 +78,10 @@ object CommandLine {
                                       }))
       .text("URI of GeoJSON container translation center points")
 
+    opt[String]("period")
+      .action( (s, conf) => conf.copy(period = s) )
+      .text("Period indicator, if not default (default is 'week'). One of: 'day', 'week', 'month', 'year' ")
+
     opt[String]("translationOrigin")
       .action( (s, conf) => conf.copy(translationOrigin = {
                                         val c = s.split(",")

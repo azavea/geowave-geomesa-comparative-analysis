@@ -80,5 +80,6 @@ object Routes {
     GeolifeQueries.routes ~
     GDELTQueries.routes ~
     TranslatedViennaQueries.routes ~
+    TracksQueries.routes ~
     randomExtentQueryRoutes
 }

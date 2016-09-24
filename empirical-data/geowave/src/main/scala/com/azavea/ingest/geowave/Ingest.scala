@@ -71,7 +71,9 @@ object Ingest {
                      calcStats: Boolean = true,
                      numPartitions: Int = 1,
                      partitionStrategy: String = "NONE",
-                     numSplits: Option[Int] = None)
+                     numSplits: Option[Int] = None,
+    period: String = ""
+  )
 
   def registerSFT(params: Params)(sft: SimpleFeatureType): Unit = ???
 
@@ -114,6 +116,9 @@ object Ingest {
         // Create both a spatialtemporal and a spatail-only index
         val b = new SpatialTemporalDimensionalityTypeProvider.SpatialTemporalIndexBuilder
         b.setPointOnly(params.pointOnly)
+        if(!params.period.isEmpty) {
+          b.setPeriodicity(TemporalBinningStrategy.Unit.fromString(params.period))
+        }
         Seq((new SpatialDimensionalityTypeProvider.SpatialIndexBuilder).createIndex, b.createIndex)
       } else {
         Seq((new SpatialDimensionalityTypeProvider.SpatialIndexBuilder).createIndex)
