@@ -6,10 +6,16 @@ TEST = True
 
 LB = 'tf-lb-20160919004959840277920myr-756430227.us-east-1.elb.amazonaws.com'
 
-AH
-# test_region = 'Picardie'
 cities = ["Paris",
-          "Philadelphia"]
+          "Philadelphia",
+          "Istanbul",
+          "Baghdad",
+          "Tehran",
+          "Beijing",
+          "Tokyo",
+          "Oslo",
+          "Khartoum",
+          "Johannesburg"]
 
 # start_year = 1990
 # end_year = 2016
