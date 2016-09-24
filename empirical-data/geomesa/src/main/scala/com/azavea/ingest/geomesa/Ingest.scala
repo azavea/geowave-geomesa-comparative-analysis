@@ -77,7 +77,6 @@ object Ingest {
     else
       ingestRDDWithDataStore(params)(rdd)
 
-  // Not sure why, but we aren't getting good stats results when ingesting like this (getCount)
   def ingestRDDWithOutputFormat(params: Params)(rdd: RDD[SimpleFeature]) = {
     val conf = rdd.sparkContext.hadoopConfiguration
     val job = new Job(conf, "ingest job")
