@@ -4,6 +4,7 @@ import sys, os
 
 LB = 'tf-lb-20160916133649562956791mcd-407657441.us-east-1.elb.amazonaws.com'
 
+
 # Hack to get stdout to flush so `tee` output shows up per line
 sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 
@@ -11,7 +12,7 @@ print "==Running tests against France polygon and BBOX, for six months and one m
 
 connection = httplib.HTTPConnection(LB)
 
-TEST = False
+TEST = True
 
 if TEST:
     TEST_STR = "true"
@@ -50,6 +51,7 @@ gmWins = []
 bad = []
 
 def run(req):
+    print req
     connection.request('GET', req)
 
     response = connection.getresponse()

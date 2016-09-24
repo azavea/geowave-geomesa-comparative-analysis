@@ -2,7 +2,7 @@ import httplib
 import json
 import sys, os
 
-LB = 'tf-lb-20160916133649562956791mcd-407657441.us-east-1.elb.amazonaws.com'
+LB = 'tf-lb-20160919144416835471629f6y-2076752119.us-east-1.elb.amazonaws.com'
 
 # test_country = 'all'
 test_country = 'Peru'
@@ -41,7 +41,7 @@ def run(req):
     try:
         results = json.loads(response.read().decode())
     except:
-        print "http://" + host + "/" + req
+        print "http://" + LB + "/" + req
         print response.read().decode()
         raise
 

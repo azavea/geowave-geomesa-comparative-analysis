@@ -4,9 +4,8 @@ import sys, os
 
 TEST = False
 
-LB = 'tf-lb-20160919004959840277920myr-756430227.us-east-1.elb.amazonaws.com'
+LB = 'tf-lb-20160919144416835471629f6y-2076752119.us-east-1.elb.amazonaws.com'
 
-AH
 # test_region = 'Picardie'
 regions = ["Bourgogne", "Lorraine", "Champagne-Ardenne", "Provence-Alpes-Cote-dAzur", "Ile-de-France", "Picardie", "Auvergne", "Franche-Comte", "Pays-de-la-Loire", "Rhone-Alpes", "Basse-Normandie", "Midi-Pyrenees", "Haute-Normandie", "Languedoc-Roussillon", "Nord-Pas-de-Calais", "Aquitaine", "Alsace", "Bretagne", "Centre", "Poitou-Charentes", "Limousin"]
 
