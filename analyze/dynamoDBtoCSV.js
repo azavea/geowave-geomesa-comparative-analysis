@@ -1,3 +1,5 @@
+// Taken from: https://github.com/edasque/DynamoDBtoCSV
+
 var program = require('commander');
 var AWS = require('aws-sdk');
 AWS.config.loadFromPath('./config.json');
