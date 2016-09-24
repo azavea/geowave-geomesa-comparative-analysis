@@ -1,7 +1,7 @@
 package com.azavea.ca.server
 
 import akka.actor.ActorSystem
-import akka.event.Logging
+import akka.event._
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import akka.http.scaladsl.server.Directives
@@ -14,7 +14,7 @@ object AkkaSystem {
 
   trait LoggerExecutor extends BaseComponent {
     protected implicit val executor = system.dispatcher
-    protected implicit val log = Logging(system, "app")
+    protected implicit val log: LoggingAdapter = Logging(system, "app")
   }
 }
 

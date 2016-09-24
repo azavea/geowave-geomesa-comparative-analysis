@@ -674,58 +674,57 @@ object GDELTQueries
               }
             }
           }
-        }
-        // There is something amiss about the south american query - getting back 0 for both systems
-    //     pathPrefix("in-south-america-countries-three-weeks") {
-    //       val queryName = "GDELT-IN-SOUTH-AMERICA-COUNTRIES-THREE-WEEKS"
+        } ~
+        pathPrefix("in-south-america-countries-three-weeks") {
+          val queryName = "GDELT-IN-SOUTH-AMERICA-COUNTRIES-THREE-WEEKS"
 
-    //       pathEndOrSingleSlash {
-    //         get {
-    //           parameters('year, 'country ? "all", 'test ?) { (year, country, isTestOpt) =>
-    //             val isTest = checkIfIsTest(isTestOpt)
-    //             complete {
-    //               Future {
-    //                 val timeQueries =
-    //                   Seq(
-    //                     (s"${year}-JAN", TimeQuery(s"${year}-01-01T00:00:00", s"${year}-01-22T00:00:00")),
-    //                     (s"${year}-FEB", TimeQuery(s"${year}-02-01T00:00:00", s"${year}-02-22T00:00:00")),
-    //                     (s"${year}-MAR", TimeQuery(s"${year}-03-01T00:00:00", s"${year}-03-22T00:00:00")),
-    //                     (s"${year}-APR", TimeQuery(s"${year}-04-01T00:00:00", s"${year}-04-22T00:00:00")),
-    //                     (s"${year}-MAY", TimeQuery(s"${year}-05-01T00:00:00", s"${year}-05-22T00:00:00")),
-    //                     (s"${year}-JUN", TimeQuery(s"${year}-06-01T00:00:00", s"${year}-06-22T00:00:00")),
-    //                     (s"${year}-JUL", TimeQuery(s"${year}-07-01T00:00:00", s"${year}-07-22T00:00:00")),
-    //                     (s"${year}-AUG", TimeQuery(s"${year}-08-01T00:00:00", s"${year}-08-22T00:00:00")),
-    //                     (s"${year}-SEP", TimeQuery(s"${year}-09-01T00:00:00", s"${year}-09-22T00:00:00")),
-    //                     (s"${year}-OCT", TimeQuery(s"${year}-10-01T00:00:00", s"${year}-10-22T00:00:00")),
-    //                     (s"${year}-NOV", TimeQuery(s"${year}-11-01T00:00:00", s"${year}-11-22T00:00:00")),
-    //                     (s"${year}-DEC", TimeQuery(s"${year}-12-01T00:00:00", s"${year}-12-22T00:00:00"))
-    //                   )
+          pathEndOrSingleSlash {
+            get {
+              parameters('year, 'country ? "all", 'test ?) { (year, country, isTestOpt) =>
+                val isTest = checkIfIsTest(isTestOpt)
+                complete {
+                  Future {
+                     val timeQueries =
+                       Seq(
+                         (s"${year}-JAN", TimeQuery(s"${year}-01-01T00:00:00", s"${year}-01-22T00:00:00")),
+                         (s"${year}-FEB", TimeQuery(s"${year}-02-01T00:00:00", s"${year}-02-22T00:00:00")),
+                         (s"${year}-MAR", TimeQuery(s"${year}-03-01T00:00:00", s"${year}-03-22T00:00:00")),
+                         (s"${year}-APR", TimeQuery(s"${year}-04-01T00:00:00", s"${year}-04-22T00:00:00")),
+                         (s"${year}-MAY", TimeQuery(s"${year}-05-01T00:00:00", s"${year}-05-22T00:00:00")),
+                         (s"${year}-JUN", TimeQuery(s"${year}-06-01T00:00:00", s"${year}-06-22T00:00:00")),
+                         (s"${year}-JUL", TimeQuery(s"${year}-07-01T00:00:00", s"${year}-07-22T00:00:00")),
+                         (s"${year}-AUG", TimeQuery(s"${year}-08-01T00:00:00", s"${year}-08-22T00:00:00")),
+                         (s"${year}-SEP", TimeQuery(s"${year}-09-01T00:00:00", s"${year}-09-22T00:00:00")),
+                         (s"${year}-OCT", TimeQuery(s"${year}-10-01T00:00:00", s"${year}-10-22T00:00:00")),
+                         (s"${year}-NOV", TimeQuery(s"${year}-11-01T00:00:00", s"${year}-11-22T00:00:00")),
+                         (s"${year}-DEC", TimeQuery(s"${year}-12-01T00:00:00", s"${year}-12-22T00:00:00"))
+                       )
 
-    //                 val countries: Seq[(String, MultiPolygon)] =
-    //                   if(country != "all") {
-    //                     Seq((country, SouthAmerica.countriesByName(country)))
-    //                   } else {
-    //                     SouthAmerica.countriesByName.toSeq
-    //                   }
+                     val countries: Seq[(String, MultiPolygon)] =
+                       if(country != "all") {
+                         Seq((country, SouthAmerica.countriesByName(country)))
+                       } else {
+                         SouthAmerica.countriesByName.toSeq
+                       }
 
-    //                 (for((timeSuffix, tq) <- timeQueries;
-    //                      (countryName, geom) <- countries) yield {
-    //                   val suffix = s"$timeSuffix-$countryName"
-    //                   val query = ECQL.toFilter(CQLUtils.intersects("the_geom", geom) + " AND " + tq.toCQL("day"))
+                     (for((timeSuffix, tq) <- timeQueries;
+                          (countryName, geom) <- countries) yield {
+                       val suffix = s"$timeSuffix-$countryName"
+                       val query = ECQL.toFilter(CQLUtils.intersects("the_geom", geom) + " AND " + tq.toCQL("day"))
 
-    //                   val mesa: TestResult = captureGeoMesaQuery(query)
-    //                   val wave: TestResult = captureGeoWaveQuery(query)
+                       val mesa: TestResult = captureGeoMesaQuery(query)
+                       val wave: TestResult = captureGeoWaveQuery(query)
 
-    //                   val result = RunResult(s"${queryName}-${suffix}", mesa, wave, isTest)
-    //                   DynamoDB.saveResult(result)
-    //                   result
-    //                 }).toArray
-    //               }
-    //             }
-    //           }
-    //         }
-          // }
+                       val result = RunResult(s"${queryName}-${suffix}", mesa, wave, isTest)
+                       DynamoDB.saveResult(result)
+                       result
+                     }).toArray
+                   }
+                 }
+               }
+             }
+           }
         }
       }
-
+    }
 }
