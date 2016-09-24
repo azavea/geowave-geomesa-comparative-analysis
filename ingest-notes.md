@@ -132,7 +132,7 @@ Based on ingests into a cluster with 5 m3.2xlarge workers.
 | `geomesa.gdelt_gdelt_2devent_z3 `     |    406.46M        |
 | `geomesa.gdelt_records`               |    406.51M        |
 | `geomesa.gdelt_stats`                 |      5.41K        |
-| `geomesa.gdelt_z2`                    |     24.55M        |
+| `geomesa.gdelt_z2`                    |     24.55M        | <-------------- WRONG
 
 ###### Entries per tablet server
 
