@@ -9,6 +9,7 @@ metrics/
 deployment/run-explore-shell.sh
 curl/*.txt
 curl/run-outputs
+curl/results
 
 analyze/config.json
 analyze/node_modules
