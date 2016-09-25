@@ -25,7 +25,7 @@ export EXECUTOR_CORES := 2
 export YARN_OVERHEAD := 700
 
 # Docker image of benchmarking service
-export SERVICE_TAG := rob2-1
+export SERVICE_TAG := rob40
 export SERVICE_IMG := quay.io/geotrellis/comparative-analysis-query-server:${SERVICE_TAG}
 
 SPARK_PARAMS := --driver-memory ${DRIVER_MEMORY} \

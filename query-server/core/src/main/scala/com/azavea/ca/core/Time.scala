@@ -10,7 +10,13 @@ object Time {
 
 case class TimeQuery(from: Option[Date], to: Option[Date]) {
   val fromStr = from.map(Time.dateFormat.format)
-  val toStr = to.map(Time.dateFormat.format)
+
+  // Subtract a second from the 'to' time;
+  // GeoWave seems to have issues if the date range is right on a periodicity border
+  val toStr =
+    to
+      .map { t => new Date(t.getTime - 1000) }
+      .map(Time.dateFormat.format)
 
   def toCQL(dateField: String): String =
     (fromStr, toStr) match {

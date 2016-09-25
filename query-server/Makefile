@@ -1,5 +1,5 @@
 IMG  := quay.io/geotrellis/comparative-analysis-query-server
-TAG  := "rob2-1"
+TAG  := "rob40"
 
 ASSEMBLY_JAR := server/target/scala-2.11/query-server-assembly-*.jar
 

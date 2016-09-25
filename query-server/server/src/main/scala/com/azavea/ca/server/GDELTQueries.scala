@@ -464,7 +464,7 @@ object GDELTQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year, 'city, 'test ?) { (year, city, isTestOpt) =>
+              parameters('year, 'city, 'size ? "all", 'test ?) { (year, city, size, isTestOpt) =>
                 val isTest = checkIfIsTest(isTestOpt)
                 complete {
                   Future {
@@ -474,7 +474,11 @@ object GDELTQueries
                       )
 
                     val regions: Seq[(String, Polygon)] =
-                      Cities.cityBuffers(city).toSeq
+                      if(size == "all") {
+                        Cities.cityBuffers(city).toSeq
+                      } else {
+                        Seq(Cities.cityBuffer(city, size.toInt))
+                      }
 
                     (for((timeSuffix, tq) <- timeQueries;
                          (regionName, geom) <- regions) yield {
@@ -500,7 +504,7 @@ object GDELTQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year, 'city, 'test ?) { (year, city, isTestOpt) =>
+              parameters('year, 'city, 'size ? "all", 'test ?) { (year, city, size, isTestOpt) =>
                 val isTest = checkIfIsTest(isTestOpt)
                 complete {
                   Future {
@@ -510,7 +514,11 @@ object GDELTQueries
                       )
 
                     val regions: Seq[(String, Polygon)] =
-                      Cities.cityBuffers(city).toSeq
+                      if(size == "all") {
+                        Cities.cityBuffers(city).toSeq
+                      } else {
+                        Seq(Cities.cityBuffer(city, size.toInt))
+                      }
 
                     (for((timeSuffix, tq) <- timeQueries;
                          (regionName, geom) <- regions) yield {
@@ -536,7 +544,7 @@ object GDELTQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year, 'city, 'test ?) { (year, city, isTestOpt) =>
+              parameters('year, 'city, 'size ? "all", 'test ?) { (year, city, size, isTestOpt) =>
                 val isTest = checkIfIsTest(isTestOpt)
                 complete {
                   Future {
@@ -546,7 +554,11 @@ object GDELTQueries
                       )
 
                     val regions: Seq[(String, Polygon)] =
-                      Cities.cityBuffers(city).toSeq
+                      if(size == "all") {
+                        Cities.cityBuffers(city).toSeq
+                      } else {
+                        Seq(Cities.cityBuffer(city, size.toInt))
+                      }
 
                     (for((timeSuffix, tq) <- timeQueries;
                          (regionName, geom) <- regions) yield {
@@ -572,7 +584,7 @@ object GDELTQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year, 'city, 'test ?) { (year, city, isTestOpt) =>
+              parameters('year, 'city, 'size ? "all", 'test ?) { (year, city, size, isTestOpt) =>
                 val isTest = checkIfIsTest(isTestOpt)
                 complete {
                   Future {
@@ -582,7 +594,11 @@ object GDELTQueries
                       )
 
                     val regions: Seq[(String, Polygon)] =
-                      Cities.cityBuffers(city).toSeq
+                      if(size == "all") {
+                        Cities.cityBuffers(city).toSeq
+                      } else {
+                        Seq(Cities.cityBuffer(city, size.toInt))
+                      }
 
                     (for((timeSuffix, tq) <- timeQueries;
                          (regionName, geom) <- regions) yield {
@@ -608,7 +624,7 @@ object GDELTQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year, 'city, 'test ?) { (year, city, isTestOpt) =>
+              parameters('year, 'city, 'size ? "all", 'test ?) { (year, city, size, isTestOpt) =>
                 val isTest = checkIfIsTest(isTestOpt)
                 complete {
                   Future {
@@ -618,7 +634,11 @@ object GDELTQueries
                       )
 
                     val regions: Seq[(String, Polygon)] =
-                      Cities.cityBuffers(city).toSeq
+                      if(size == "all") {
+                        Cities.cityBuffers(city).toSeq
+                      } else {
+                        Seq(Cities.cityBuffer(city, size.toInt))
+                      }
 
                     (for((timeSuffix, tq) <- timeQueries;
                          (regionName, geom) <- regions) yield {
@@ -644,7 +664,7 @@ object GDELTQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year, 'city, 'test ?) { (year, city, isTestOpt) =>
+              parameters('year, 'city, 'size ? "all", 'test ?) { (year, city, size, isTestOpt) =>
                 val isTest = checkIfIsTest(isTestOpt)
                 complete {
                   Future {
@@ -654,7 +674,11 @@ object GDELTQueries
                       )
 
                     val regions: Seq[(String, Polygon)] =
-                      Cities.cityBuffers(city).toSeq
+                      if(size == "all") {
+                        Cities.cityBuffers(city).toSeq
+                      } else {
+                        Seq(Cities.cityBuffer(city, size.toInt))
+                      }
 
                     (for((timeSuffix, tq) <- timeQueries;
                          (regionName, geom) <- regions) yield {
