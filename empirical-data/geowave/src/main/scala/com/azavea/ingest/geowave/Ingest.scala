@@ -131,9 +131,7 @@ object Ingest {
         else if (params.partitionStrategy == "HASH") { PartitionStrategy.HASH }
         else { sys.error(s"Partition strategy was ${params.partitionStrategy}, needs to be either ROUND_ROBIN or HASH") }
 
-      // Can only set spatial via this method,
-      // because of bug found here: https://github.com/ngageoint/geowave/issues/896
-      compoundPartitioningIndex(idxs.head, params.numPartitions, partitionStrategy) +: idxs.tail
+      idxs.map { i => compoundPartitioningIndex(i, params.numPartitions, partitionStrategy) }
     } else {
       idxs
     }

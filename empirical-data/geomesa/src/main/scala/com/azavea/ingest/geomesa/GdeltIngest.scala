@@ -37,7 +37,7 @@ object GdeltIngest {
       s3bucket = "geotrellis-sample-datasets",
       s3prefix = "gdelt/",
       csvExtension = ".gz",
-      period = "month"
+      period = "year"
     )
     println("Params initialized")
     val tybuilder = new SimpleFeatureTypeBuilder

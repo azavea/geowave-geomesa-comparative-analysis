@@ -46,7 +46,9 @@ object GdeltIngest {
       temporal = true,
       pointOnly = true,
       calcStats = false,
-      period = "month"
+      period = "year",
+      numPartitions = 4,
+      partitionStrategy = "HASH"
     )
     println("Params initialized")
     val tybuilder = new SimpleFeatureTypeBuilder
