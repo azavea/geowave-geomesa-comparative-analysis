@@ -51,25 +51,33 @@ object MesaPlan {
     val n = 250
     val rng = new scala.util.Random
 
-    val x1 = (rng.nextDouble * 355) - 180.0
-    val y1 = (rng.nextDouble * 175) - 90.0
-    val x2 = x1 + 180*math.pow(2,-30)
-    val y2 = y1 + 180*math.pow(2,-30)
+    (-30 to -5).foreach({ bits =>
+      val times = (0 to n).map({ _ =>
+        val x1 = (rng.nextDouble * 355) - 180.0
+        val y1 = (rng.nextDouble * 175) - 90.0
+        val x2 = x1 + 180*math.pow(2,bits)
+        val y2 = y1 + 180*math.pow(2,bits)
 
-    val filter = CQL.toFilter(s"BBOX(where, $x1, $y1, $x2, $y2) AND (when DURING 1970-01-03T00:00:00.000Z/1970-01-04T00:00:00.000Z)")
-    val filterQuery = QueryFilter(StrategyType.Z3, Some(filter))
-    val strategy = new Z3IdxStrategy(filterQuery)
+        val filter = CQL.toFilter(s"BBOX(where, $x1, $y1, $x2, $y2) AND (when DURING 1970-01-03T00:00:00.000Z/1970-01-04T00:00:00.000Z)")
+        val filterQuery = QueryFilter(StrategyType.Z3, Some(filter))
+        val strategy = new Z3IdxStrategy(filterQuery)
 
-    val qp = QueryPlanner(sft, ds)
-    val _query = new Query(sftName, filter)
-    QueryPlanner.configureQuery(_query, sft)
-    val query = QueryPlanner.updateFilter(_query, sft)
+        val qp = QueryPlanner(sft, ds)
+        val _query = new Query(sftName, filter)
+        QueryPlanner.configureQuery(_query, sft)
+        val query = QueryPlanner.updateFilter(_query, sft)
 
-    val hints = query.getHints
-    val output = ExplainNull
+        val hints = query.getHints
+        val output = ExplainNull
 
-    val result = strategy.getQueryPlan(qp, hints, output)
+        val before = System.currentTimeMillis
+        val ranges = strategy.getQueryPlan(qp, hints, output)
+        val after = System.currentTimeMillis
 
-    println(result)
+        after - before
+      })
+
+      println(times.sum / n.toDouble)
+    })
   }
 }
