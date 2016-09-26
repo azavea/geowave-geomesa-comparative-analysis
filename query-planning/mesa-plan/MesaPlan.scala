@@ -4,55 +4,49 @@ import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.{ DataStoreFinder, Query }
-import org.geotools.filter.text.ecql.ECQL
+import org.geotools.filter.text.cql2.CQL
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+
+import com.vividsolutions.jts.geom._
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.referencing.CRS
+
 import scala.collection.JavaConverters._
 
 
+// docker run -it --rm -p 50095:50095 --net=geowave --hostname leader --name leader jamesmcclain/geomesa:1.2.6
+// docker run -it --rm --net=geowave -v $SPARK_HOME:/spark:ro -v $(pwd)/mesa-plan/target/scala-2.11:/jars:ro openjdk:8-jdk
 object MesaPlan {
 
   def main(args: Array[String]): Unit = {
 
-    /********************************************************
-     * Begin section copied from QueryPlannerTest.scala and *
-     * TestWithDataStore.scala in the GeoMesa 1.2.6 tree.   *
-     ********************************************************/
+    // Create SimpleFeatureType
+    val authorityFactory = CRS.getAuthorityFactory(true)
+    val epsg4326 = authorityFactory.createCoordinateReferenceSystem("EPSG:4326")
+    val sftb = (new SimpleFeatureTypeBuilder).minOccurs(1).maxOccurs(1).nillable(false)
+    val sftName = "CommonSimpleFeatureType"
+    sftb.setName(sftName)
+    sftb.add("when", classOf[java.util.Date])
+    sftb.setCRS(epsg4326)
+    sftb.add("where", classOf[Point])
+    val sft = sftb.buildFeatureType
+    sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "when")
 
-    val MockUserAuthorizationsString = "A,B,C"
-    val MockUserAuthorizations = new Authorizations(
-      MockUserAuthorizationsString.split(",").map(_.getBytes()).toList.asJava
-    )
-
-    // assign some default authorizations to this mock user
-    val connector = {
-      val mockInstance = new MockInstance("mycloud")
-      val mockConnector = mockInstance.getConnector("user", new PasswordToken("password"))
-      mockConnector.securityOperations().changeUserAuthorizations("user", MockUserAuthorizations)
-      mockConnector
-    }
-
-    val (ds, sft) = {
-      val sftName = "CommonSimpleFeatureType"
-      val sft = SimpleFeatureTypes.createType(sftName, "*where:Point,when:Date,s:String")
-      sft.setTableSharing(true)
-      Some("when").foreach(sft.setDtgField)
-      val ds = DataStoreFinder.getDataStore(Map(
-        "connector" -> connector,
-        "caching"   -> false,
-        // note the table needs to be different to prevent testing errors
-        "tableName" -> sftName).asJava).asInstanceOf[AccumuloDataStore]
-      ds.createSchema(sft)
-      (ds, ds.getSchema(sftName)) // reload the sft from the ds to ensure all user data is set properly
-    }
-
-    /**********************
-     * End copied section *
-     **********************/
+    // Create DataStore
+    val dsConf = new java.util.HashMap[String, String]()
+    dsConf.put("instanceId", args(0))
+    dsConf.put("zookeepers", args(1))
+    dsConf.put("user", args(2))
+    dsConf.put("password", args(3))
+    dsConf.put("tableName", args(4))
+    val ds = DataStoreFinder.getDataStore(dsConf).asInstanceOf[AccumuloDataStore]
+    ds.createSchema(sft)
 
     val n = 250
     val rng = new scala.util.Random
@@ -62,13 +56,15 @@ object MesaPlan {
     val x2 = x1 + 180*math.pow(2,-30)
     val y2 = y1 + 180*math.pow(2,-30)
 
-    val textFilter = s"BBOX(geom, $x1, $y1, $x2, $y2) AND (dtg DURING 1970-01-03T00:00:00.000Z/1970-01-04T00:00:00.000Z)"
-    val query = new Query(textFilter)
-
-    val filter = QueryFilter(StrategyType.Z3, Some(ECQL.toFilter(textFilter)))
-    val strategy = new Z3IdxStrategy(filter)
+    val filter = CQL.toFilter(s"BBOX(where, $x1, $y1, $x2, $y2) AND (when DURING 1970-01-03T00:00:00.000Z/1970-01-04T00:00:00.000Z)")
+    val filterQuery = QueryFilter(StrategyType.Z3, Some(filter))
+    val strategy = new Z3IdxStrategy(filterQuery)
 
     val qp = QueryPlanner(sft, ds)
+    val _query = new Query(sftName, filter)
+    QueryPlanner.configureQuery(_query, sft)
+    val query = QueryPlanner.updateFilter(_query, sft)
+
     val hints = query.getHints
     val output = ExplainNull
 

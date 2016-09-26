@@ -7,6 +7,12 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
+  "com.vividsolutions" % "jts-core" % Version.jts,
+  "org.geotools" % "gt-coverage" % Version.geotools,
+  "org.geotools" % "gt-epsg-hsql" % Version.geotools,
+  "org.geotools" % "gt-geotiff" % Version.geotools,
+  "org.geotools" % "gt-main" % Version.geotools,
+  "org.geotools" % "gt-referencing" % Version.geotools,
   "org.apache.accumulo" % "accumulo-core" % Version.accumulo
     exclude("org.jboss.netty", "netty")
     exclude("org.apache.hadoop", "hadoop-client"),
