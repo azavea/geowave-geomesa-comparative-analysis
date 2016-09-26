@@ -15,14 +15,14 @@ docker run --net=xxx -it --rm \
 
 - GeoMesa
    - For [jamesmcclain/geomesa:0](https://hub.docker.com/r/jamesmcclain/geomesa/)
-      - `/spark/bin/spark-submit '--master=local[*]' --conf 'spark.driver.memory=8G' --class com.azavea.geomesa.MesaPoke /mesa-jars/mesa-poke-assembly-0.jar instance leader root password geomesa.test point,1,uniform:-180:180,uniform:-90:90,fixed:0,1000000`
+      - `/spark/bin/spark-submit '--master=local[*]' --conf 'spark.driver.memory=8G' --class com.azavea.ca.synthetic.MesaPoke /mesa-jars/mesa-poke-assembly-0.jar instance leader root password geomesa.test point,1,uniform:-180:180,uniform:-90:90,fixed:0,1000000`
    - For [geodocker](https://github.com/geodocker/)
-      - `/spark/bin/spark-submit '--master=local[*]' --conf 'spark.driver.memory=8G' --class com.azavea.geomesa.MesaPoke /mesa-jars/mesa-poke-assembly-0.jar geomesa zookeeper root GisPwd geomesa.test point,1,uniform:-180:180,uniform:-90:90,fixed:0,1000000`
+      - `/spark/bin/spark-submit '--master=local[*]' --conf 'spark.driver.memory=8G' --class com.azavea.ca.synthetic.MesaPoke /mesa-jars/mesa-poke-assembly-0.jar geomesa zookeeper root GisPwd geomesa.test point,1,uniform:-180:180,uniform:-90:90,fixed:0,1000000`
 - GeoWave
    - For [jamesmcclain/geowave:8760ce2](https://hub.docker.com/r/jamesmcclain/geowave/)
-      - `/spark/bin/spark-submit '--master=local[*]' --conf 'spark.driver.memory=8G' --class com.azavea.geowave.WavePoke /wave-jars/wave-poke-assembly-0.jar instance leader root password geowave.test space point,1,uniform:-180:180,uniform:-90:90,fixed:0,1000000`
+      - `/spark/bin/spark-submit '--master=local[*]' --conf 'spark.driver.memory=8G' --class com.azavea.ca.synthetic.WavePoke /wave-jars/wave-poke-assembly-0.jar instance leader root password geowave.test space point,1,uniform:-180:180,uniform:-90:90,fixed:0,1000000`
    - For [geodocker](https://github.com/geodocker/)
-      - `/spark/bin/spark-submit '--master=local[*]' --conf 'spark.driver.memory=8G' --class com.azavea.geowave.WavePoke /wave-jars/wave-poke-assembly-0.jar geowave zookeeper root GisPwd geowave.test space point,1,uniform:-180:180,uniform:-90:90,fixed:0,1000000`
+      - `/spark/bin/spark-submit '--master=local[*]' --conf 'spark.driver.memory=8G' --class com.azavea.ca.synthetic.WavePoke /wave-jars/wave-poke-assembly-0.jar geowave zookeeper root GisPwd geowave.test space point,1,uniform:-180:180,uniform:-90:90,fixed:0,1000000`
 
 ### GeoDocker on EMR ###
 
@@ -45,9 +45,9 @@ aws emr create-cluster \
 (In all probability, the `release-label` needs to be `emr-5.0.0` instead of `emr-4.7.2` now that this code is built with Scala 2.11, but that has not been tested.)
 
 - GeoWave
-   - `spark-submit --master yarn --deploy-mode cluster --class com.azavea.geowave.WavePoke wave-poke-assembly-0.jar gis ip-172-31-26-9 root secret geowave.test space point,100,uniform:-180:180,uniform:-90:90,fixed:0,100`
+   - `spark-submit --master yarn --deploy-mode cluster --class com.azavea.ca.synthetic.WavePoke wave-poke-assembly-0.jar gis ip-172-31-26-9 root secret geowave.test space point,100,uniform:-180:180,uniform:-90:90,fixed:0,100`
 - GeoMesa
-   - `spark-submit --master yarn --deploy-mode cluster --class com.azavea.geomesa.MesaPoke mesa-poke-assembly-0.jar gis ip-172-31-26-9 root secret geomesa.test point,100,uniform:-180:180,uniform:-90:90,fixed:0,100`
+   - `spark-submit --master yarn --deploy-mode cluster --class com.azavea.ca.synthetic.MesaPoke mesa-poke-assembly-0.jar gis ip-172-31-26-9 root secret geomesa.test point,100,uniform:-180:180,uniform:-90:90,fixed:0,100`
 
 ## Arguments ##
 
@@ -79,7 +79,7 @@ They are of the form `schema,tasks,lng,lat,time,width`.
       - `normal:μ:σ` causes the variable to be normally distributed with mean μ and standard deviation σ.
       - `fixed:x` causes the varible to have fixed value x.
    - `lat` is also of the form `uniform:a:b`, `normal:μ:σ`, or `fixed:x`.
-   - `time` is also of the form `uniform:a:b`, `normal:μ:σ`, or `fixed:x` where the number produced interpreted as milliseconds since the epoch.
+   - `time` is also of the form `uniform:a:b`, `normal:μ:σ`, or `fixed:x` where the number produced is interpreted as milliseconds since the epoch.
    - `width` is of the form `lo:hi:step:n` or `n`
       - `lo:hi:step:n` causes square extents to be generated with width and height ranging from `lo` to `hi` in increments of `step`, with `n` such extents at every increment.
       - `n` causes that many points to be generated.
