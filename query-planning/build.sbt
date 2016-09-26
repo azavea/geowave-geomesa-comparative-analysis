@@ -39,3 +39,6 @@ lazy val wavePlan = (project in file("wave-plan"))
   .dependsOn(root)
   .settings(commonSettings: _*)
 
+lazy val mesaPlan = (project in file("mesa-plan"))
+  .dependsOn(root)
+  .settings(commonSettings: _*)
