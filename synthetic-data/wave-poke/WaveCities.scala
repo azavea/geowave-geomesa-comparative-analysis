@@ -28,10 +28,9 @@ import org.apache.spark.{SparkConf, SparkContext}
 import org.opengis.feature.simple.SimpleFeature
 
 
-object WavePoke extends CommonPoke {
+object WaveCities extends CommonPoke {
 
   def main(args: Array[String]): Unit = {
-
     val conf = CommandLine.parser.parse(args, CommandLine.DEFAULT_OPTIONS).get
 
     // Spark Context
@@ -39,13 +38,14 @@ object WavePoke extends CommonPoke {
     val sparkContext = new SparkContext(sparkConf)
 
     // Generate List of Geometries
-    val geometries = conf.instructions.flatMap(decode)
+    val geometries = Cities.geometries(conf.instructions)
 
     // Store Geometries in GeoWave
     sparkContext
       .parallelize(geometries, geometries.length)
-      .foreach({ tuple =>
-        val basicOpsInstance = new BasicAccumuloOperations(args(1), args(0), args(2), args(3), args(4))
+      .foreach { tuple =>
+        val basicOpsInstance = new BasicAccumuloOperations(
+          conf.zookeepers, conf.instanceId, conf.user, conf.password, conf.tableName)
         val ds = new AccumuloDataStore(basicOpsInstance)
 
         val index = WavePoke.parseIndex(conf.index)
@@ -67,51 +67,8 @@ object WavePoke extends CommonPoke {
         while (itr.hasNext) { indexWriter.write(itr.next) }
         itr.close
         indexWriter.close
-      })
+      }
 
     sparkContext.stop
-  }
-
-  def parseIndex(index: String): PrimaryIndex =  {
-    index.split(":") match {
-      case Array("spacetime", xbits, ybits, tbits) => {
-        /* Create a single-tier index.  Construction cribbed from
-         * PersistenceEncodingTest.java and HilbertSFCTest.java in
-         * the GeoWave Tree. */
-        val SPATIAL_TEMPORAL_DIMENSIONS = Array[SFCDimensionDefinition](
-          new SFCDimensionDefinition(new LongitudeDefinition, xbits.toInt),
-          new SFCDimensionDefinition(new LatitudeDefinition(true), ybits.toInt),
-          new SFCDimensionDefinition(new TimeDefinition(BinUnit.WEEK), tbits.toInt)
-        )
-        val model = (new SpatialTemporalDimensionalityTypeProvider).createPrimaryIndex.getIndexModel
-        val strategy = TieredSFCIndexFactory.createSingleTierStrategy(
-          SPATIAL_TEMPORAL_DIMENSIONS,
-          SFCType.HILBERT
-        )
-
-        new PrimaryIndex(strategy, model)
-      }
-      case Array("space", xbits, ybits) => {
-        val SPATIAL_DIMENSIONS = Array[SFCDimensionDefinition](
-          new SFCDimensionDefinition(new LongitudeDefinition, xbits.toInt),
-          new SFCDimensionDefinition(new LatitudeDefinition(true), ybits.toInt)
-        )
-        val model = (new SpatialDimensionalityTypeProvider).createPrimaryIndex.getIndexModel
-        val strategy = TieredSFCIndexFactory.createSingleTierStrategy(
-          SPATIAL_DIMENSIONS,
-          SFCType.HILBERT
-        )
-
-        new PrimaryIndex(strategy, model)
-      }
-      case Array("space") =>
-        (new SpatialDimensionalityTypeProvider.SpatialIndexBuilder)
-          .createIndex
-      case Array("spacetime") =>
-        (new SpatialTemporalDimensionalityTypeProvider.SpatialTemporalIndexBuilder)
-          .createIndex
-      case _ =>
-        throw new Exception("Unrecognized index type ${args(5)}")
-    }
   }
 }

@@ -23,3 +23,5 @@ class CommonPoke {
   }
 
 }
+
+object CommonPoke extends CommonPoke

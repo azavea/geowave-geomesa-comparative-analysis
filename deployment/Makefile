@@ -16,7 +16,7 @@ export WORKER_INSTANCE := m3.2xlarge
 export CPUS_PER_WORKER := 8
 
 export WORKER_PRICE := 0.5
-export WORKER_COUNT := 5
+export WORKER_COUNT := 3
 
 export DRIVER_MEMORY := 4200M
 export DRIVER_CORES := 2
@@ -109,16 +109,43 @@ ingest-synthetic-data-gm:
 	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
 	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest Synthetic" \
 spark-submit ${SPARK_OPTIONS} --class com.azavea.geomesa.MesaPoke ${ASSEMBLY_URI} \
-gis ${GEOMESA_ZOOKEEPER} root secret geomesa.test \
+-i=gis -z=${GEOMESA_ZOOKEEPER} -u=root -p=secret -t=geomesa.test \
 point,100,uniform:-180:180,uniform:-90:90,fixed:0,100
+
 
 ingest-synthetic-data-gw: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../synthetic-data wavePoke ${S3_URI}/jars)
 ingest-synthetic-data-gw:
 	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
 	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest Synthetic" \
 spark-submit ${SPARK_OPTIONS} --class com.azavea.geowave.WavePoke ${ASSEMBLY_URI} \
-gis ${GEOWAVE_ZOOKEEPER} root secret geowave.test space \
+-i=gis -z=${GEOWAVE_ZOOKEEPER} -u=root -p=secret -t=geowave.test --index=space \
 point,100,uniform:-180:180,uniform:-90:90,fixed:0,100
+
+SYNTHETIC_TIME_RANGE:= uniform:1420070400000:1451606399000 # 2015
+
+ingest-synthetic-cities-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../synthetic-data mesaPoke ${S3_URI}/jars)
+ingest-synthetic-cities-gm:
+	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
+	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest Synthetic Background" \
+spark-submit ${SPARK_OPTIONS} --class com.azavea.geomesa.MesaPoke ${ASSEMBLY_URI} \
+-i=gis -z=${GEOMESA_ZOOKEEPER} -u=root -p=secret -t=geomesa.test \
+point,10,uniform:-180:180,uniform:-90:90,${SYNTHETIC_TIME_RANGE},1000
+	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest Synthetic Cities" \
+spark-submit ${SPARK_OPTIONS} --class com.azavea.geomesa.MesaCities ${ASSEMBLY_URI} \
+-i=gis -z=${GEOMESA_ZOOKEEPER} -u=root -p=secret -t=geomesa.test \
+point,1,${SYNTHETIC_TIME_RANGE},1000000
+
+ingest-synthetic-cities-gw: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../synthetic-data wavePoke ${S3_URI}/jars)
+ingest-synthetic-cities-gw:
+	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
+	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest Synthetic Background" \
+spark-submit ${SPARK_OPTIONS} --class com.azavea.geowave.WavePoke ${ASSEMBLY_URI} \
+-i=gis -z=${GEOWAVE_ZOOKEEPER} -u=root -p=secret -t=geowave.test --index=space \
+point,10,uniform:-180:180,uniform:-90:90,${SYNTHETIC_TIME_RANGE},1000
+	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest Synthetic Cities" \
+spark-submit ${SPARK_OPTIONS} --class com.azavea.geowave.WaveCities ${ASSEMBLY_URI} \
+-i=gis -z=${GEOWAVE_ZOOKEEPER} -u=root -p=secret -t=geowave.test --index=spacetime \
+point,1,${SYNTHETIC_TIME_RANGE},1000000
 
 ingest-geolife-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
 ingest-geolife-gm:
