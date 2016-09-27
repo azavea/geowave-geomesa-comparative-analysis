@@ -35,6 +35,12 @@ object Cities {
       .toMap
   }
 
+  def cityBuffer(name: String, km: Int): (String, Polygon) = {
+    val p = citiesByName(name)
+    val m = km * 1000
+    (s"${km}-KM", buffer(p, m))
+  }
+
   val cities: Vector[PointFeature[CityName]] =
     Resource("cities.geojson")
       .parseGeoJson[JsonFeatureCollection]

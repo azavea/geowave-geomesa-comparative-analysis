@@ -124,6 +124,10 @@ object CommandLine {
                                       }))
       .text("Center point of the dataset to be used as translation origin: lat,lng")
 
+    opt[String]("period")
+      .action( (s, conf) => conf.copy(period = s) )
+      .text("Period indicator, if not default (default is 'year'). One of: 'day', 'month', 'year' ")
+
 
 
     arg[String]("<s3 bucket>")

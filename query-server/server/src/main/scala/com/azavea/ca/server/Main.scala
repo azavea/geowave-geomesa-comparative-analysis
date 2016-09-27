@@ -1,7 +1,7 @@
 package com.azavea.ca.server
 
 import akka.actor.ActorSystem
-import akka.event._
+import akka.event.{Logging, LoggingAdapter}
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import akka.http.scaladsl.server.Directives
