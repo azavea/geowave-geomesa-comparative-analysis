@@ -60,24 +60,23 @@ object MesaCities extends CommonPoke {
       )
     )
 
-    val geometries = Cities.geometries(conf.instructions)
+    val geometries = scala.util.Random.shuffle(Cities.geometries(conf.instructions))
 
     // Store Geometries in GeoMesa
     sparkContext
       .parallelize(geometries, geometries.length)
-      .foreach({ tuple =>
+      .foreach { tuple =>
         val (name, spec) = sftMap.value.getOrElse(tuple._1, throw new Exception)
         val schema = SimpleFeatureTypes.createType(name, spec)
-        val fc =
+        val iter =
           tuple match {
             case (_, seed: Long, lng: String, lat: String, time: String, width: String) =>
               GeometryGenerator(schema, seed, lng, lat, time, width)
           }
         val ds = DataStoreFinder.getDataStore(conf.dataSourceConf)
-
-        ds.getFeatureSource(schema.getTypeName).asInstanceOf[SimpleFeatureStore].addFeatures(fc)
+        MesaPoke.writeFeatures(schema.getTypeName, ds, iter)
         ds.dispose
-      })
+      }
 
     sparkContext.stop
   }

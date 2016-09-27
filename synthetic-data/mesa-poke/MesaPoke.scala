@@ -10,6 +10,7 @@ import org.geotools.feature._
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 
 object MesaPoke extends CommonPoke {
@@ -22,14 +23,14 @@ object MesaPoke extends CommonPoke {
     conf.instructions
       .map({ inst => inst.split(",").head }).distinct
       .map({ kind =>
-        kind match {
-          case `either` => eitherSft
-          case `extent` => extentSft
-          case `point` => pointSft
-          case str =>
-            throw new Exception(str)
-        }
-      })
+             kind match {
+               case `either` => eitherSft
+               case `extent` => extentSft
+               case `point` => pointSft
+               case str =>
+                 throw new Exception(str)
+             }
+           })
       .foreach({ sft => ds.createSchema(sft) })
 
     // Spark Context
@@ -53,18 +54,17 @@ object MesaPoke extends CommonPoke {
     sparkContext
       .parallelize(geometries, geometries.length)
       .foreach({ tuple =>
-        val (name, spec) = sftMap.value.getOrElse(tuple._1, throw new Exception)
-        val schema = SimpleFeatureTypes.createType(name, spec)
-        val fc =
-          tuple match {
-            case (_, seed: Long, lng: String, lat: String, time: String, width: String) =>
-              GeometryGenerator(schema, seed, lng, lat, time, width)
-          }
-        val ds = DataStoreFinder.getDataStore(conf.dataSourceConf)
-
-        ds.getFeatureSource(schema.getTypeName).asInstanceOf[SimpleFeatureStore].addFeatures(fc)
-        ds.dispose
-      })
+                 val (name, spec) = sftMap.value.getOrElse(tuple._1, throw new Exception)
+                 val schema = SimpleFeatureTypes.createType(name, spec)
+                 val iter =
+                   tuple match {
+                     case (_, seed: Long, lng: String, lat: String, time: String, width: String) =>
+                       GeometryGenerator(schema, seed, lng, lat, time, width)
+                   }
+                 val ds = DataStoreFinder.getDataStore(conf.dataSourceConf)
+                 MesaPoke.writeFeatures(schema.getTypeName, ds, iter)
+                 ds.dispose
+               })
 
     sparkContext.stop
   }
@@ -86,5 +86,17 @@ object MesaPoke extends CommonPoke {
     val sft = CommonSimpleFeatureType("Point")
     sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, CommonSimpleFeatureType.whenField)
     sft
+  }
+
+  def writeFeatures(typeName: String, ds: DataStore, iter: Iterator[SimpleFeature]): Unit = {
+    val fw = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
+
+    for ( feature <- iter ) {
+      val toWrite = fw.next()
+      toWrite.setAttributes(feature.getAttributes)
+      toWrite.getUserData.putAll(feature.getUserData)
+      fw.write()
+    }
+    fw.close()
   }
 }

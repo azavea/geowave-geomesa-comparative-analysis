@@ -93,7 +93,7 @@ object GeometryGenerator {
     seed: Long,
     lng: String, lat: String, time: String,
     width: String
-  ) = {
+  ): Iterator[SimpleFeature] = {
     rng.setSeed(seed)
 
     val fc = new DefaultFeatureCollection
@@ -108,8 +108,10 @@ object GeometryGenerator {
        * increments of "step". "n" is the number of extents of each
        * width that is created. */
       case Array(lo: Double, hi: Double, step: Double, n: Double) =>
-        (lo until hi by step).foreach({ width =>
-          (0 until n.toInt).foreach({ i =>
+        for {
+          i <- Iterator.range(0, n.toInt)
+          width <- (lo until hi by step)
+        } yield {
           val sf = SimpleFeatureBuilder.build(schema, Array.empty[AnyRef], s"i=$i width=$width")
 
           val lng = lngFn()
@@ -127,12 +129,13 @@ object GeometryGenerator {
           val ring = factory.createLinearRing(List(xy1, xy2, xy3, xy4, xy1).toArray)
           val place = factory.createPolygon(ring)
 
-          fc.add(fillIn(sf, time, place))
-          })
-        })
+          fillIn(sf, time, place)
+        }
       /* Points.  The number n is the number of points to generate. */
       case Array(n: Double) =>
-        (0 until n.toInt).foreach({ i =>
+        for {
+          i <- Iterator.range(0, n.toInt)
+        } yield {
           val sf = SimpleFeatureBuilder.build(schema, Array.empty[AnyRef], s"i=$i")
 
           val time = timeFn()
@@ -142,14 +145,12 @@ object GeometryGenerator {
           val xy = new Coordinate(lng, lat)
           val place = factory.createPoint(xy)
 
-          fc.add(fillIn(sf, time, place))
-        })
+          fillIn(sf, time, place)
+        }
       /* Error */
       case arr =>
         val e = s"Expected <lo:hi:step:n> or <n>; found <${arr.toList}>"
         throw new Exception(e)
     }
-    fc
   }
-
 }

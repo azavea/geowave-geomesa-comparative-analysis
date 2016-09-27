@@ -123,15 +123,15 @@ point,100,uniform:-180:180,uniform:-90:90,fixed:0,100
 
 include years.mk
 
-ingest-synthetic-cities-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../synthetic-data mesaPoke ${S3_URI}/jars)
+ingest-synthetic-cities-gm: export ASSEMBLY_URI=$(shell ./stage-assembly.sh ../synthetic-data mesaPoke ${S3_URI}/jars)
 ingest-synthetic-cities-gm:
-	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
+	@if [ -z "$${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
 	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest Synthetic Background" \
-spark-submit ${SPARK_OPTIONS} --class com.azavea.geomesa.MesaPoke ${ASSEMBLY_URI} \
+spark-submit ${SPARK_OPTIONS} --class com.azavea.geomesa.MesaPoke $${ASSEMBLY_URI} \
 -i=gis -z=${GEOMESA_ZOOKEEPER} -u=root -p=secret -t=geomesa.cities \
 point,10,uniform:-180:180,uniform:-90:90,uniform:${Y_1980_START}:${Y_2015_END},100000
 	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest Synthetic Cities" \
-spark-submit ${SPARK_OPTIONS} --class com.azavea.geomesa.MesaCities ${ASSEMBLY_URI} \
+spark-submit ${SPARK_OPTIONS} --class com.azavea.geomesa.MesaCities $${ASSEMBLY_URI} \
 -i=gis -z=${GEOMESA_ZOOKEEPER} -u=root -p=secret -t=geomesa.cities \
 point,1,uniform:${Y_1980_START}:${Y_2015_END},100000 \
 point,1,uniform:${Y_1985_START}:${Y_2015_END},100000 \
