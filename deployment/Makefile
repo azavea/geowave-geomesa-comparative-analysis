@@ -25,7 +25,7 @@ export EXECUTOR_CORES := 2
 export YARN_OVERHEAD := 700
 
 # Docker image of benchmarking service
-export SERVICE_TAG := nathan3
+export SERVICE_TAG := eac24
 export SERVICE_IMG := quay.io/geotrellis/comparative-analysis-query-server:${SERVICE_TAG}
 
 SPARK_PARAMS := --driver-memory ${DRIVER_MEMORY} \
@@ -121,31 +121,43 @@ spark-submit ${SPARK_OPTIONS} --class com.azavea.geowave.WavePoke ${ASSEMBLY_URI
 -i=gis -z=${GEOWAVE_ZOOKEEPER} -u=root -p=secret -t=geowave.test --index=space \
 point,100,uniform:-180:180,uniform:-90:90,fixed:0,100
 
-SYNTHETIC_TIME_RANGE:= uniform:1420070400000:1451606399000 # 2015
+include years.mk
 
 ingest-synthetic-cities-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../synthetic-data mesaPoke ${S3_URI}/jars)
 ingest-synthetic-cities-gm:
 	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
 	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest Synthetic Background" \
 spark-submit ${SPARK_OPTIONS} --class com.azavea.geomesa.MesaPoke ${ASSEMBLY_URI} \
--i=gis -z=${GEOMESA_ZOOKEEPER} -u=root -p=secret -t=geomesa.test \
-point,10,uniform:-180:180,uniform:-90:90,${SYNTHETIC_TIME_RANGE},1000
+-i=gis -z=${GEOMESA_ZOOKEEPER} -u=root -p=secret -t=geomesa.cities \
+point,10,uniform:-180:180,uniform:-90:90,uniform:${Y_1980_START}:${Y_2015_END},100000
 	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest Synthetic Cities" \
 spark-submit ${SPARK_OPTIONS} --class com.azavea.geomesa.MesaCities ${ASSEMBLY_URI} \
--i=gis -z=${GEOMESA_ZOOKEEPER} -u=root -p=secret -t=geomesa.test \
-point,1,${SYNTHETIC_TIME_RANGE},1000000
+-i=gis -z=${GEOMESA_ZOOKEEPER} -u=root -p=secret -t=geomesa.cities \
+point,1,uniform:${Y_1980_START}:${Y_2015_END},100000 \
+point,1,uniform:${Y_1985_START}:${Y_2015_END},100000 \
+point,1,uniform:${Y_1990_START}:${Y_2015_END},100000 \
+point,1,uniform:${Y_1995_START}:${Y_2015_END},100000 \
+point,1,uniform:${Y_2000_START}:${Y_2015_END},100000 \
+point,1,uniform:${Y_2005_START}:${Y_2015_END},100000 \
+point,1,uniform:${Y_2010_START}:${Y_2015_END},100000
 
 ingest-synthetic-cities-gw: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../synthetic-data wavePoke ${S3_URI}/jars)
 ingest-synthetic-cities-gw:
 	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
 	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest Synthetic Background" \
 spark-submit ${SPARK_OPTIONS} --class com.azavea.geowave.WavePoke ${ASSEMBLY_URI} \
--i=gis -z=${GEOWAVE_ZOOKEEPER} -u=root -p=secret -t=geowave.test --index=space \
-point,10,uniform:-180:180,uniform:-90:90,${SYNTHETIC_TIME_RANGE},1000
+-i=gis -z=${GEOWAVE_ZOOKEEPER} -u=root -p=secret -t=geowave.cities --index=space \
+point,10,uniform:-180:180,uniform:-90:90,uniform:${Y_1980_START}:${Y_2015_END},100000
 	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest Synthetic Cities" \
 spark-submit ${SPARK_OPTIONS} --class com.azavea.geowave.WaveCities ${ASSEMBLY_URI} \
--i=gis -z=${GEOWAVE_ZOOKEEPER} -u=root -p=secret -t=geowave.test --index=spacetime \
-point,1,${SYNTHETIC_TIME_RANGE},1000000
+-i=gis -z=${GEOWAVE_ZOOKEEPER} -u=root -p=secret -t=geowave.cities --index=spacetime \
+point,10,uniform:${Y_1980_START}:${Y_2015_END},10000 \
+point,10,uniform:${Y_1985_START}:${Y_2015_END},10000 \
+point,10,uniform:${Y_1990_START}:${Y_2015_END},10000 \
+point,10,uniform:${Y_1995_START}:${Y_2015_END},10000 \
+point,10,uniform:${Y_2000_START}:${Y_2015_END},10000 \
+point,10,uniform:${Y_2005_START}:${Y_2015_END},10000 \
+point,10,uniform:${Y_2010_START}:${Y_2015_END},10000
 
 ingest-geolife-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
 ingest-geolife-gm:
