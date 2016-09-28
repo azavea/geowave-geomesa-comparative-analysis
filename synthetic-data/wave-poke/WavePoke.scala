@@ -44,7 +44,8 @@ object WavePoke extends CommonPoke {
     sparkContext
       .parallelize(geometries, geometries.length)
       .foreach({ tuple =>
-        val basicOpsInstance = new BasicAccumuloOperations(args(1), args(0), args(2), args(3), args(4))
+        val basicOpsInstance = new BasicAccumuloOperations(
+          conf.zookeepers, conf.instanceId, conf.user, conf.password, conf.tableName)
         val ds = new AccumuloDataStore(basicOpsInstance)
 
         val index = WavePoke.parseIndex(conf.index)
