@@ -3,13 +3,14 @@ package com.azavea.ca.server
 import com.azavea.ca.server.geomesa.connection.GeoMesaConnection
 import com.azavea.ca.server.geowave.GeoWaveQuerier
 import com.azavea.ca.server.geowave.connection.GeoWaveConnection
-import com.azavea.ca.server.results.{RunResult, TestResult}
+import com.azavea.ca.server.results._
 
 import org.geotools.data.Query
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.index.QueryPlanner
 import org.opengis.filter.Filter
 
-trait CAQueryUtils {
+trait CAQueryUtils { self: BaseService =>
   def gmTableName: String
   def gmFeatureTypeName: String
 
@@ -82,5 +83,30 @@ trait CAQueryUtils {
     TestResult.capture(GeoMesaConnection.clusterId) { _ =>
       geomesaFeatureSource().getCount(q)
     }
+  }
+
+
+  def capture(isLooseOpt: Option[String], waveOrMesa: String, cql: String): (Option[TestResult], Option[TestResult]) =
+    capture(isLooseOpt, waveOrMesa, cql)
+
+  def capture(isLooseOpt: Option[String], waveOrMesa: String, query: Filter): (Option[TestResult], Option[TestResult]) = {
+    if(waveOrMesa == "wm") {
+      val mesa: TestResult = captureGeoMesaQuery(query, checkIfIsLoose(isLooseOpt))
+      val wave: TestResult = captureGeoWaveQuery(query)
+      (Some(mesa), Some(wave))
+    } else if (waveOrMesa == "w") {
+      val wave: TestResult = captureGeoWaveQuery(query)
+      (None, Some(wave))
+    } else {
+      val mesa: TestResult = captureGeoMesaQuery(query, checkIfIsLoose(isLooseOpt))
+      (Some(mesa), None)
+    }
+  }
+
+  def captureAndSave(name: String, isTestOpt: Option[String], isLooseOpt: Option[String], waveOrMesa: String, query: Filter): RunResult = {
+    val (mesa, wave) = capture(isLooseOpt, waveOrMesa, query)
+    val isTest = checkIfIsTest(isTestOpt)
+    val result = RunResult(s"${name}${looseSuffix(isLooseOpt)}", mesa, wave, isTest)
+    DynamoDB.saveResult(result)
   }
 }

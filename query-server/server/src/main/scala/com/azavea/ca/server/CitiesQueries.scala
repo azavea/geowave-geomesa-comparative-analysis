@@ -48,30 +48,12 @@ object CitiesQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('test ?, 'loose ?, 'wOrm ? "both") { (isTestOpt, isLooseOpt, waveOrMesa) =>
-                val isTest = checkIfIsTest(isTestOpt)
+              parameters('test ?, 'loose ?, 'wOrm ? "wm") { (isTestOpt, isLooseOpt, waveOrMesa) =>
                 complete {
                   Future {
                     val tq = TimeQuery("2001-01-01T00:00:00", "2001-01-07T00:00:00")
-
                     val query = ECQL.toFilter(CQLUtils.toBBOXquery("where", France.regions.head.envelope) + " AND " + tq.toCQL("when"))
-
-                    val (mesa, wave) =
-                      if(waveOrMesa == "wm") {
-                        val mesa: TestResult = captureGeoMesaQuery(query, checkIfIsLoose(isLooseOpt))
-                        val wave: TestResult = captureGeoWaveQuery(query)
-                        (Some(mesa), Some(wave))
-                      } else if (waveOrMesa == "w") {
-                        val wave: TestResult = captureGeoWaveQuery(query)
-                        (None, Some(wave))
-                      } else {
-                        val mesa: TestResult = captureGeoMesaQuery(query, checkIfIsLoose(isLooseOpt))
-                        (Some(mesa), None)
-                      }
-
-                    val result = RunResult(s"${queryName}${looseSuffix(isLooseOpt)}", mesa, wave, isTest)
-                    DynamoDB.saveResult(result)
-                    result
+                    captureAndSave(queryName, isTestOpt, isLooseOpt, waveOrMesa, query)
                   }
                 }
               }
@@ -83,8 +65,7 @@ object CitiesQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year ? "all", 'test ?, 'loose ?) { (year, isTestOpt, isLooseOpt) =>
-                val isTest = checkIfIsTest(isTestOpt)
+              parameters('year ? "all", 'test ?, 'loose ?, 'wOrm ? "wm") { (year, isTestOpt, isLooseOpt, waveOrMesa) =>
                 complete {
                   Future {
                     val timeQueries = {
@@ -104,13 +85,7 @@ object CitiesQueries
 
                     (for((suffix, tq) <- timeQueries) yield {
                       val query = ECQL.toFilter(France.CQL.inBoundingBox + " AND " + tq.toCQL("when"))
-
-                      val mesa: TestResult = captureGeoMesaQuery(query, checkIfIsLoose(isLooseOpt))
-                      val wave: TestResult = captureGeoWaveQuery(query)
-
-                      val result = RunResult(s"${queryName}-${suffix}${looseSuffix(isLooseOpt)}", mesa, wave, isTest)
-                      DynamoDB.saveResult(result)
-                      result
+                      captureAndSave(s"${queryName}-${suffix}", isTestOpt, isLooseOpt, waveOrMesa, query)
                     }).toArray
                   }
                 }
@@ -123,8 +98,7 @@ object CitiesQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year ? "all", 'test ?) { (year, isTestOpt) =>
-                val isTest = checkIfIsTest(isTestOpt)
+              parameters('year ? "all", 'test ?, 'loose ?, 'wOrm ? "wm") { (year, isTestOpt, isLooseOpt, waveOrMesa) =>
                 complete {
                   Future {
                     val timeQueries = {
@@ -144,13 +118,7 @@ object CitiesQueries
 
                     (for((suffix, tq) <- timeQueries) yield {
                       val query = ECQL.toFilter(France.CQL.inFrance + " AND " + tq.toCQL("when"))
-
-                      val mesa: TestResult = captureGeoMesaQuery(query)
-                      val wave: TestResult = captureGeoWaveQuery(query)
-
-                      val result = RunResult(s"${queryName}-${suffix}", mesa, wave, isTest)
-                      DynamoDB.saveResult(result)
-                      result
+                      captureAndSave(s"${queryName}-${suffix}", isTestOpt, isLooseOpt, waveOrMesa, query)
                     }).toArray
                   }
                 }
@@ -163,8 +131,7 @@ object CitiesQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year ? "all", 'test ?, 'loose ?) { (year, isTestOpt, isLooseOpt) =>
-                val isTest = checkIfIsTest(isTestOpt)
+              parameters('year ? "all", 'test ?, 'loose ?, 'wOrm ? "wm") { (year, isTestOpt, isLooseOpt, waveOrMesa) =>
                 complete {
                   Future {
                     val timeQueries = {
@@ -194,13 +161,7 @@ object CitiesQueries
 
                     (for((suffix, tq) <- timeQueries) yield {
                       val query = ECQL.toFilter(France.CQL.inBoundingBox + " AND " + tq.toCQL("when"))
-
-                      val mesa: TestResult = captureGeoMesaQuery(query, checkIfIsLoose(isLooseOpt))
-                      val wave: TestResult = captureGeoWaveQuery(query)
-
-                      val result = RunResult(s"${queryName}-${suffix}${looseSuffix(isLooseOpt)}", mesa, wave, isTest)
-                      DynamoDB.saveResult(result)
-                      result
+                      captureAndSave(s"${queryName}-${suffix}", isTestOpt, isLooseOpt, waveOrMesa, query)
                     }).toArray
                   }
                 }
@@ -213,7 +174,7 @@ object CitiesQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year ? "all", 'test ?) { (year, isTestOpt) =>
+              parameters('year ? "all", 'test ?, 'loose ?, 'wOrm ? "wm") { (year, isTestOpt, isLooseOpt, waveOrMesa) =>
                 val isTest = checkIfIsTest(isTestOpt)
                 complete {
                   Future {
@@ -244,13 +205,7 @@ object CitiesQueries
 
                     (for((suffix, tq) <- timeQueries) yield {
                       val query = ECQL.toFilter(France.CQL.inFrance + " AND " + tq.toCQL("when"))
-
-                      val mesa: TestResult = captureGeoMesaQuery(query)
-                      val wave: TestResult = captureGeoWaveQuery(query)
-
-                      val result = RunResult(s"${queryName}-${suffix}", mesa, wave, isTest)
-                      DynamoDB.saveResult(result)
-                      result
+                      captureAndSave(s"${queryName}-${suffix}", isTestOpt, isLooseOpt, waveOrMesa, query)
                     }).toArray
                   }
                 }
@@ -263,8 +218,7 @@ object CitiesQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year, 'region ? "all", 'test ?) { (year, region, isTestOpt) =>
-                val isTest = checkIfIsTest(isTestOpt)
+              parameters('year, 'region ? "all", 'test ?, 'loose ?, 'wOrm ? "wm") { (year, region, isTestOpt, isLooseOpt, waveOrMesa) =>
                 complete {
                   Future {
                     val timeQueries = {
@@ -284,13 +238,7 @@ object CitiesQueries
                          (regionName, geom) <- regions) yield {
                       val suffix = s"$timeSuffix-$regionName"
                       val query = ECQL.toFilter(CQLUtils.intersects("where", geom) + " AND " + tq.toCQL("when"))
-
-                      val mesa: TestResult = captureGeoMesaQuery(query)
-                      val wave: TestResult = captureGeoWaveQuery(query)
-
-                      val result = RunResult(s"${queryName}-${suffix}", mesa, wave, isTest)
-                      DynamoDB.saveResult(result)
-                      result
+                      captureAndSave(s"${queryName}-${suffix}", isTestOpt, isLooseOpt, waveOrMesa, query)
                     }).toArray
                   }
                 }
@@ -303,8 +251,7 @@ object CitiesQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year, 'region ? "all", 'test ?) { (year, region, isTestOpt) =>
-                val isTest = checkIfIsTest(isTestOpt)
+              parameters('year, 'region ? "all", 'test ?, 'loose ?, 'wOrm ? "wm") { (year, region, isTestOpt, isLooseOpt, waveOrMesa) =>
                 complete {
                   Future {
                     val timeQueries =
@@ -323,13 +270,7 @@ object CitiesQueries
                          (regionName, geom) <- regions) yield {
                       val suffix = s"$timeSuffix-$regionName"
                       val query = ECQL.toFilter(CQLUtils.intersects("where", geom) + " AND " + tq.toCQL("when"))
-
-                      val mesa: TestResult = captureGeoMesaQuery(query)
-                      val wave: TestResult = captureGeoWaveQuery(query)
-
-                      val result = RunResult(s"${queryName}-${suffix}", mesa, wave, isTest)
-                      DynamoDB.saveResult(result)
-                      result
+                      captureAndSave(s"${queryName}-${suffix}", isTestOpt, isLooseOpt, waveOrMesa, query)
                     }).toArray
                   }
                 }
@@ -342,8 +283,7 @@ object CitiesQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year, 'region ? "all", 'test ?) { (year, region, isTestOpt) =>
-                val isTest = checkIfIsTest(isTestOpt)
+              parameters('year, 'region ? "all", 'test ?, 'loose ?, 'wOrm ? "wm") { (year, region, isTestOpt, isLooseOpt, waveOrMesa) =>
                 complete {
                   Future {
                     val timeQueries =
@@ -362,13 +302,7 @@ object CitiesQueries
                          (regionName, geom) <- regions) yield {
                       val suffix = s"$timeSuffix-$regionName"
                       val query = ECQL.toFilter(CQLUtils.intersects("where", geom) + " AND " + tq.toCQL("when"))
-
-                      val mesa: TestResult = captureGeoMesaQuery(query)
-                      val wave: TestResult = captureGeoWaveQuery(query)
-
-                      val result = RunResult(s"${queryName}-${suffix}", mesa, wave, isTest)
-                      DynamoDB.saveResult(result)
-                      result
+                      captureAndSave(s"${queryName}-${suffix}", isTestOpt, isLooseOpt, waveOrMesa, query)
                     }).toArray
 
                   }
@@ -382,8 +316,7 @@ object CitiesQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year, 'region ? "all", 'test ?) { (year, region, isTestOpt) =>
-                val isTest = checkIfIsTest(isTestOpt)
+              parameters('year, 'region ? "all", 'test ?, 'loose ?, 'wOrm ? "wm") { (year, region, isTestOpt, isLooseOpt, waveOrMesa) =>
                 complete {
                   Future {
                     val timeQueries =
@@ -403,13 +336,7 @@ object CitiesQueries
                          (regionName, geom) <- regions) yield {
                       val suffix = s"$timeSuffix-$regionName"
                       val query = ECQL.toFilter(CQLUtils.intersects("where", geom) + " AND " + tq.toCQL("when"))
-
-                      val mesa: TestResult = captureGeoMesaQuery(query)
-                      val wave: TestResult = captureGeoWaveQuery(query)
-
-                      val result = RunResult(s"${queryName}-${suffix}", mesa, wave, isTest)
-                      DynamoDB.saveResult(result)
-                      result
+                      captureAndSave(s"${queryName}-${suffix}", isTestOpt, isLooseOpt, waveOrMesa, query)
                     }).toArray
                   }
                 }
@@ -422,8 +349,7 @@ object CitiesQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year, 'region ? "all", 'test ?) { (year, region, isTestOpt) =>
-                val isTest = checkIfIsTest(isTestOpt)
+              parameters('year, 'region ? "all", 'test ?, 'loose ?, 'wOrm ? "wm") { (year, region, isTestOpt, isLooseOpt, waveOrMesa) =>
                 complete {
                   Future {
                     val timeQueries =
@@ -445,13 +371,7 @@ object CitiesQueries
                          (regionName, geom) <- regions) yield {
                       val suffix = s"$timeSuffix-$regionName"
                       val query = ECQL.toFilter(CQLUtils.intersects("where", geom) + " AND " + tq.toCQL("when"))
-
-                      val mesa: TestResult = captureGeoMesaQuery(query)
-                      val wave: TestResult = captureGeoWaveQuery(query)
-
-                      val result = RunResult(s"${queryName}-${suffix}", mesa, wave, isTest)
-                      DynamoDB.saveResult(result)
-                      result
+                      captureAndSave(s"${queryName}-${suffix}", isTestOpt, isLooseOpt, waveOrMesa, query)
                     }).toArray
                   }
                 }
@@ -464,8 +384,7 @@ object CitiesQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year, 'city, 'test ?) { (year, city, isTestOpt) =>
-                val isTest = checkIfIsTest(isTestOpt)
+              parameters('year, 'city, 'test ?, 'loose ?, 'wOrm ? "wm") { (year, city, isTestOpt, isLooseOpt, waveOrMesa) =>
                 complete {
                   Future {
                     val timeQueries =
@@ -480,13 +399,7 @@ object CitiesQueries
                          (regionName, geom) <- regions) yield {
                       val suffix = s"$timeSuffix-$city-$regionName"
                       val query = ECQL.toFilter(CQLUtils.intersects("where", geom) + " AND " + tq.toCQL("when"))
-
-                      val mesa: TestResult = captureGeoMesaQuery(query)
-                      val wave: TestResult = captureGeoWaveQuery(query)
-
-                      val result = RunResult(s"${queryName}-${suffix}", mesa, wave, isTest)
-                      DynamoDB.saveResult(result)
-                      result
+                      captureAndSave(s"${queryName}-${suffix}", isTestOpt, isLooseOpt, waveOrMesa, query)
                     }).toArray
 
                   }
@@ -500,8 +413,7 @@ object CitiesQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year, 'city, 'test ?) { (year, city, isTestOpt) =>
-                val isTest = checkIfIsTest(isTestOpt)
+              parameters('year, 'city, 'test ?, 'loose ?, 'wOrm ? "wm") { (year, city, isTestOpt, isLooseOpt, waveOrMesa) =>
                 complete {
                   Future {
                     val timeQueries =
@@ -516,15 +428,8 @@ object CitiesQueries
                          (regionName, geom) <- regions) yield {
                       val suffix = s"$timeSuffix-$city-$regionName"
                       val query = ECQL.toFilter(CQLUtils.intersects("where", geom) + " AND " + tq.toCQL("when"))
-
-                      val mesa: TestResult = captureGeoMesaQuery(query)
-                      val wave: TestResult = captureGeoWaveQuery(query)
-
-                      val result = RunResult(s"${queryName}-${suffix}", mesa, wave, isTest)
-                      DynamoDB.saveResult(result)
-                      result
+                      captureAndSave(s"${queryName}-${suffix}", isTestOpt, isLooseOpt, waveOrMesa, query)
                     }).toArray
-
                   }
                 }
               }
@@ -536,8 +441,7 @@ object CitiesQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year, 'city, 'test ?) { (year, city, isTestOpt) =>
-                val isTest = checkIfIsTest(isTestOpt)
+              parameters('year, 'city, 'test ?, 'loose ?, 'wOrm ? "wm") { (year, city, isTestOpt, isLooseOpt, waveOrMesa) =>
                 complete {
                   Future {
                     val timeQueries =
@@ -552,13 +456,7 @@ object CitiesQueries
                          (regionName, geom) <- regions) yield {
                       val suffix = s"$timeSuffix-$city-$regionName"
                       val query = ECQL.toFilter(CQLUtils.intersects("where", geom) + " AND " + tq.toCQL("when"))
-
-                      val mesa: TestResult = captureGeoMesaQuery(query)
-                      val wave: TestResult = captureGeoWaveQuery(query)
-
-                      val result = RunResult(s"${queryName}-${suffix}", mesa, wave, isTest)
-                      DynamoDB.saveResult(result)
-                      result
+                      captureAndSave(s"${queryName}-${suffix}", isTestOpt, isLooseOpt, waveOrMesa, query)
                     }).toArray
 
                   }
@@ -572,8 +470,7 @@ object CitiesQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year, 'city, 'test ?) { (year, city, isTestOpt) =>
-                val isTest = checkIfIsTest(isTestOpt)
+              parameters('year, 'city, 'test ?, 'loose ?, 'wOrm ? "wm") { (year, city, isTestOpt, isLooseOpt, waveOrMesa) =>
                 complete {
                   Future {
                     val timeQueries =
@@ -588,13 +485,7 @@ object CitiesQueries
                          (regionName, geom) <- regions) yield {
                       val suffix = s"$timeSuffix-$city-$regionName"
                       val query = ECQL.toFilter(CQLUtils.intersects("where", geom) + " AND " + tq.toCQL("when"))
-
-                      val mesa: TestResult = captureGeoMesaQuery(query)
-                      val wave: TestResult = captureGeoWaveQuery(query)
-
-                      val result = RunResult(s"${queryName}-${suffix}", mesa, wave, isTest)
-                      DynamoDB.saveResult(result)
-                      result
+                      captureAndSave(s"${queryName}-${suffix}", isTestOpt, isLooseOpt, waveOrMesa, query)
                     }).toArray
 
                   }
@@ -608,7 +499,7 @@ object CitiesQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year, 'city, 'test ?) { (year, city, isTestOpt) =>
+              parameters('year, 'city, 'test ?, 'loose ?, 'wOrm ? "wm") { (year, city, isTestOpt, isLooseOpt, waveOrMesa) =>
                 val isTest = checkIfIsTest(isTestOpt)
                 complete {
                   Future {
@@ -624,13 +515,7 @@ object CitiesQueries
                          (regionName, geom) <- regions) yield {
                       val suffix = s"$timeSuffix-$city-$regionName"
                       val query = ECQL.toFilter(CQLUtils.intersects("where", geom) + " AND " + tq.toCQL("when"))
-
-                      val mesa: TestResult = captureGeoMesaQuery(query)
-                      val wave: TestResult = captureGeoWaveQuery(query)
-
-                      val result = RunResult(s"${queryName}-${suffix}", mesa, wave, isTest)
-                      DynamoDB.saveResult(result)
-                      result
+                      captureAndSave(s"${queryName}-${suffix}", isTestOpt, isLooseOpt, waveOrMesa, query)
                     }).toArray
 
                   }
@@ -644,8 +529,7 @@ object CitiesQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year, 'city, 'test ?) { (year, city, isTestOpt) =>
-                val isTest = checkIfIsTest(isTestOpt)
+              parameters('year, 'city, 'test ?, 'loose ?, 'wOrm ? "wm") { (year, city, isTestOpt, isLooseOpt, waveOrMesa) =>
                 complete {
                   Future {
                     val timeQueries =
@@ -660,15 +544,8 @@ object CitiesQueries
                          (regionName, geom) <- regions) yield {
                       val suffix = s"$timeSuffix-$city-$regionName"
                       val query = ECQL.toFilter(CQLUtils.intersects("where", geom) + " AND " + tq.toCQL("when"))
-
-                      val mesa: TestResult = captureGeoMesaQuery(query)
-                      val wave: TestResult = captureGeoWaveQuery(query)
-
-                      val result = RunResult(s"${queryName}-${suffix}", mesa, wave, isTest)
-                      DynamoDB.saveResult(result)
-                      result
+                      captureAndSave(s"${queryName}-${suffix}", isTestOpt, isLooseOpt, waveOrMesa, query)
                     }).toArray
-
                   }
                 }
               }
@@ -680,8 +557,7 @@ object CitiesQueries
 
           pathEndOrSingleSlash {
             get {
-              parameters('year, 'country ? "all", 'test ?) { (year, country, isTestOpt) =>
-                val isTest = checkIfIsTest(isTestOpt)
+              parameters('year, 'country ? "all", 'test ?, 'loose ?, 'wOrm ? "wm") { (year, country, isTestOpt, isLooseOpt, waveOrMesa) =>
                 complete {
                   Future {
                      val timeQueries =
@@ -711,13 +587,7 @@ object CitiesQueries
                           (countryName, geom) <- countries) yield {
                        val suffix = s"$timeSuffix-$countryName"
                        val query = ECQL.toFilter(CQLUtils.intersects("where", geom) + " AND " + tq.toCQL("when"))
-
-                       val mesa: TestResult = captureGeoMesaQuery(query)
-                       val wave: TestResult = captureGeoWaveQuery(query)
-
-                       val result = RunResult(s"${queryName}-${suffix}", mesa, wave, isTest)
-                       DynamoDB.saveResult(result)
-                       result
+                       captureAndSave(s"${queryName}-${suffix}", isTestOpt, isLooseOpt, waveOrMesa, query)
                      }).toArray
                    }
                  }
