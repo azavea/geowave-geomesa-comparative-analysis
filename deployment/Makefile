@@ -1,5 +1,5 @@
 # No spaces in STACK_NAME
-export STACK_NAME := ${USER}_GDELT
+export STACK_NAME := ${USER}
 export EC2_KEY := geotrellis-cluster
 export EC2_KEY_FILE := "${HOME}/${EC2_KEY}.pem"
 export AWS_DEFAULT_REGION := us-east-1
@@ -25,7 +25,7 @@ export EXECUTOR_CORES := 2
 export YARN_OVERHEAD := 700
 
 # Docker image of benchmarking service
-export SERVICE_TAG := eac24
+export SERVICE_TAG := eac25
 export SERVICE_IMG := quay.io/geotrellis/comparative-analysis-query-server:${SERVICE_TAG}
 
 SPARK_PARAMS := --driver-memory ${DRIVER_MEMORY} \
@@ -141,23 +141,23 @@ point,1,uniform:${Y_2000_START}:${Y_2015_END},100000 \
 point,1,uniform:${Y_2005_START}:${Y_2015_END},100000 \
 point,1,uniform:${Y_2010_START}:${Y_2015_END},100000
 
-ingest-synthetic-cities-gw: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../synthetic-data wavePoke ${S3_URI}/jars)
+ingest-synthetic-cities-gw: export ASSEMBLY_URI=$(shell ./stage-assembly.sh ../synthetic-data wavePoke ${S3_URI}/jars)
 ingest-synthetic-cities-gw:
-	@if [ -z "${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
+	@if [ -z "$${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
 	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest Synthetic Background" \
-spark-submit ${SPARK_OPTIONS} --class com.azavea.geowave.WavePoke ${ASSEMBLY_URI} \
--i=gis -z=${GEOWAVE_ZOOKEEPER} -u=root -p=secret -t=geowave.cities --index=space \
+spark-submit ${SPARK_OPTIONS} --class com.azavea.geowave.WavePoke $${ASSEMBLY_URI} \
+-i=gis -z=${GEOWAVE_ZOOKEEPER} -u=root -p=secret -t=geowave.cities --index=spacetime \
 point,10,uniform:-180:180,uniform:-90:90,uniform:${Y_1980_START}:${Y_2015_END},100000
 	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest Synthetic Cities" \
-spark-submit ${SPARK_OPTIONS} --class com.azavea.geowave.WaveCities ${ASSEMBLY_URI} \
+spark-submit ${SPARK_OPTIONS} --class com.azavea.geowave.WaveCities $${ASSEMBLY_URI} \
 -i=gis -z=${GEOWAVE_ZOOKEEPER} -u=root -p=secret -t=geowave.cities --index=spacetime \
-point,10,uniform:${Y_1980_START}:${Y_2015_END},10000 \
-point,10,uniform:${Y_1985_START}:${Y_2015_END},10000 \
-point,10,uniform:${Y_1990_START}:${Y_2015_END},10000 \
-point,10,uniform:${Y_1995_START}:${Y_2015_END},10000 \
-point,10,uniform:${Y_2000_START}:${Y_2015_END},10000 \
-point,10,uniform:${Y_2005_START}:${Y_2015_END},10000 \
-point,10,uniform:${Y_2010_START}:${Y_2015_END},10000
+point,1,uniform:${Y_1980_START}:${Y_2015_END},100000 \
+point,1,uniform:${Y_1985_START}:${Y_2015_END},100000 \
+point,1,uniform:${Y_1990_START}:${Y_2015_END},100000 \
+point,1,uniform:${Y_1995_START}:${Y_2015_END},100000 \
+point,1,uniform:${Y_2000_START}:${Y_2015_END},100000 \
+point,1,uniform:${Y_2005_START}:${Y_2015_END},100000 \
+point,1,uniform:${Y_2010_START}:${Y_2015_END},100000
 
 ingest-geolife-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
 ingest-geolife-gm:

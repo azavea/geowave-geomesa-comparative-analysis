@@ -11,16 +11,15 @@ import mil.nga.giat.geowave.core.index.sfc.SFCFactory.SFCType
 import mil.nga.giat.geowave.core.index.sfc.tiered.TieredSFCIndexFactory
 import mil.nga.giat.geowave.core.store.DataStore
 import mil.nga.giat.geowave.core.store.index.PrimaryIndex
-import mil.nga.giat.geowave.core.store.index.writer.IndexWriter
+import mil.nga.giat.geowave.core.store.IndexWriter
 import mil.nga.giat.geowave.adapter.vector._
 import mil.nga.giat.geowave.core.store.index._
 import mil.nga.giat.geowave.datastore.accumulo._
 import mil.nga.giat.geowave.datastore.accumulo.index.secondary._
 import mil.nga.giat.geowave.datastore.accumulo.metadata._
 import mil.nga.giat.geowave.datastore.accumulo.operations.config.AccumuloOptions
-import mil.nga.giat.geowave.core.store.index.writer.IndexWriter
 import org.apache.spark.{SparkConf, SparkContext}
-import org.geotools.data.{DataStoreFinder, FeatureSource}
+import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.feature.FeatureCollection
 import mil.nga.giat.geowave.datastore.accumulo._
@@ -58,14 +57,11 @@ object WavePoke extends CommonPoke {
         val adapter = new FeatureDataAdapter(schema)
         val indexWriter = ds.createWriter(adapter, index).asInstanceOf[IndexWriter[SimpleFeature]]
 
-        val fc = tuple match {
+        val iter = tuple match {
           case (_, seed: Long, lng: String, lat: String, time: String, width: String) =>
             GeometryGenerator(schema, seed, lng, lat, time, width)
         }
-        val itr = fc.features
-
-        while (itr.hasNext) { indexWriter.write(itr.next) }
-        itr.close
+        iter.foreach(indexWriter.write)
         indexWriter.close
       })
 
