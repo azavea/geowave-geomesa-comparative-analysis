@@ -1,4 +1,4 @@
-package com.azavea.common
+package com.azavea.ca.synthetic
 
 import com.vividsolutions.jts.geom._
 import org.geotools.factory.Hints

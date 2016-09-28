@@ -5,7 +5,7 @@ M=${2:-1000000}
 
 /spark/bin/spark-submit '--master=local[1]' \
    --conf 'spark.driver.memory=8G' \
-   --class com.azavea.geomesa.MesaPoke /mesa-jars/mesa-poke-assembly-0.jar \
+   --class com.azavea.ca.synthetic.MesaPoke /mesa-jars/mesa-poke-assembly-0.jar \
    geomesa zookeeper root GisPwd geomesa.space_ensemble \
    extent,${N},uniform:-180:180,uniform:-90:90,uniform:0:604800000,0.000000168:1:1:${M} \
    extent,${N},uniform:-180:180,uniform:-90:90,uniform:0:604800000,0.000000335:1:1:${M} \
@@ -22,7 +22,7 @@ M=${2:-1000000}
 
 /spark/bin/spark-submit '--master=local[1]' \
    --conf 'spark.driver.memory=8G' \
-   --class com.azavea.geowave.WavePoke /wave-jars/wave-poke-assembly-0.jar \
+   --class com.azavea.ca.synthetic.WavePoke /wave-jars/wave-poke-assembly-0.jar \
    geowave zookeeper root GisPwd geowave.space_ensemble spacetime \
    extent,${N},uniform:-180:180,uniform:-90:90,uniform:0:604800000,0.000000168:1:1:${M} \
    extent,${N},uniform:-180:180,uniform:-90:90,uniform:0:604800000,0.000000335:1:1:${M} \
