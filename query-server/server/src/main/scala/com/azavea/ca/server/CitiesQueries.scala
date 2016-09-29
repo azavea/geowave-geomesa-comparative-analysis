@@ -42,9 +42,10 @@ object CitiesQueries
             complete { Future { resetDataStores() ; "done" } } }
         }
       } ~
-      pathPrefix("spatiotemporal") {
+      pathPrefix("spatiotemporal" / Segment) { testContext =>
+        val context = testContext.toUpperCase
         pathPrefix("in-france-region-bbox-7-days") {
-          val queryName = "SYNTH-CITIES-IN-FRANCE-REGION-BBOX-7-DAYS"
+          val queryName = s"CITIES-$context-IN-FRANCE-REGION-BBOX-7-DAYS"
 
           pathEndOrSingleSlash {
             get {
@@ -61,7 +62,7 @@ object CitiesQueries
           }
         } ~
         pathPrefix("in-france-bbox-six-months") {
-          val queryName = "SYNTH-CITIES-IN-FRANCE-BBOX-SIX-MONTHS"
+          val queryName = s"CITIES-$context-IN-FRANCE-BBOX-SIX-MONTHS"
 
           pathEndOrSingleSlash {
             get {
@@ -94,7 +95,7 @@ object CitiesQueries
           }
         } ~
         pathPrefix("in-france-six-months") {
-          val queryName = "SYNTH-CITIES-IN-FRANCE-SIX-MONTHS"
+          val queryName = s"CITIES-$context-IN-FRANCE-SIX-MONTHS"
 
           pathEndOrSingleSlash {
             get {
@@ -127,7 +128,7 @@ object CitiesQueries
           }
         } ~
         pathPrefix("in-france-bbox-one-month") {
-          val queryName = "SYNTH-CITIES-IN-FRANCE-BBOX-ONE-MONTH"
+          val queryName = s"CITIES-$context-IN-FRANCE-BBOX-ONE-MONTH"
 
           pathEndOrSingleSlash {
             get {
@@ -170,7 +171,7 @@ object CitiesQueries
           }
         } ~
         pathPrefix("in-france-one-month") {
-          val queryName = "SYNTH-CITIES-IN-FRANCE-ONE-MONTH"
+          val queryName = s"CITIES-$context-IN-FRANCE-ONE-MONTH"
 
           pathEndOrSingleSlash {
             get {
@@ -214,7 +215,7 @@ object CitiesQueries
           }
         } ~
         pathPrefix("in-france-regions-two-years") {
-          val queryName = "SYNTH-CITIES-IN-FRANCE-REGIONS-TWO-YEARS"
+          val queryName = s"CITIES-$context-IN-FRANCE-REGIONS-TWO-YEARS"
 
           pathEndOrSingleSlash {
             get {
@@ -247,7 +248,7 @@ object CitiesQueries
           }
         } ~
         pathPrefix("in-france-regions-one-year") {
-          val queryName = "SYNTH-CITIES-IN-FRANCE-REGIONS-ONE-YEAR"
+          val queryName = s"CITIES-$context-IN-FRANCE-REGIONS-ONE-YEAR"
 
           pathEndOrSingleSlash {
             get {
@@ -279,7 +280,7 @@ object CitiesQueries
           }
         } ~
         pathPrefix("in-france-regions-ten-months") {
-          val queryName = "SYNTH-CITIES-IN-FRANCE-REGIONS-TEN-MONTHS"
+          val queryName = s"CITIES-$context-IN-FRANCE-REGIONS-TEN-MONTHS"
 
           pathEndOrSingleSlash {
             get {
@@ -312,7 +313,7 @@ object CitiesQueries
           }
         } ~
         pathPrefix("in-france-regions-six-months") {
-          val queryName = "SYNTH-CITIES-IN-FRANCE-REGIONS-SIX-MONTHS"
+          val queryName = s"CITIES-$context-IN-FRANCE-REGIONS-SIX-MONTHS"
 
           pathEndOrSingleSlash {
             get {
@@ -345,7 +346,7 @@ object CitiesQueries
           }
         } ~
         pathPrefix("in-france-regions-three-months") {
-          val queryName = "SYNTH-CITIES-IN-FRANCE-REGIONS-THREE-MONTHS"
+          val queryName = s"CITIES-$context-IN-FRANCE-REGIONS-THREE-MONTHS"
 
           pathEndOrSingleSlash {
             get {
@@ -380,7 +381,7 @@ object CitiesQueries
           }
         } ~
         pathPrefix("in-city-buffers-fourteen-months") {
-          val queryName = "SYNTH-CITIES-IN-CITY-BUFFERS-FOURTEEN-MONTHS"
+          val queryName = s"CITIES-$context-IN-CITY-BUFFERS-FOURTEEN-MONTHS"
 
           pathEndOrSingleSlash {
             get {
@@ -409,7 +410,7 @@ object CitiesQueries
           }
         } ~
         pathPrefix("in-city-buffers-ten-months") {
-          val queryName = "SYNTH-CITIES-IN-CITY-BUFFERS-TEN-MONTHS"
+          val queryName = s"CITIES-$context-IN-CITY-BUFFERS-TEN-MONTHS"
 
           pathEndOrSingleSlash {
             get {
@@ -437,7 +438,7 @@ object CitiesQueries
           }
         } ~
         pathPrefix("in-city-buffers-six-months") {
-          val queryName = "SYNTH-CITIES-IN-CITY-BUFFERS-six-MONTHS"
+          val queryName = s"CITIES-$context-IN-CITY-BUFFERS-six-MONTHS"
 
           pathEndOrSingleSlash {
             get {
@@ -466,7 +467,7 @@ object CitiesQueries
           }
         } ~
         pathPrefix("in-city-buffers-two-months") {
-          val queryName = "SYNTH-CITIES-IN-CITY-BUFFERS-TWO-MONTHS"
+          val queryName = s"CITIES-$context-IN-CITY-BUFFERS-TWO-MONTHS"
 
           pathEndOrSingleSlash {
             get {
@@ -495,7 +496,7 @@ object CitiesQueries
           }
         } ~
         pathPrefix("in-city-buffers-two-weeks") {
-          val queryName = "SYNTH-CITIES-IN-CITY-BUFFERS-TWO-WEEKS"
+          val queryName = s"CITIES-$context-IN-CITY-BUFFERS-TWO-WEEKS"
 
           pathEndOrSingleSlash {
             get {
@@ -525,7 +526,7 @@ object CitiesQueries
           }
         } ~
         pathPrefix("in-city-buffers-six-days") {
-          val queryName = "SYNTH-CITIES-IN-CITY-BUFFERS-SIX-DAYS"
+          val queryName = s"CITIES-$context-IN-CITY-BUFFERS-SIX-DAYS"
 
           pathEndOrSingleSlash {
             get {
@@ -553,7 +554,7 @@ object CitiesQueries
           }
         } ~
         pathPrefix("in-south-america-countries-three-weeks") {
-          val queryName = "SYNTH-CITIES-IN-SOUTH-AMERICA-COUNTRIES-THREE-WEEKS"
+          val queryName = s"CITIES-$context-IN-SOUTH-AMERICA-COUNTRIES-THREE-WEEKS"
 
           pathEndOrSingleSlash {
             get {
