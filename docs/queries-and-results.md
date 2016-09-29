@@ -44,7 +44,7 @@ __QUERIES__
 
 This query cuts the bounding box of beijing into `N` equal sized bounding boxes, represented by the tile coordinate `COL` and `ROW`. For instance, running `N=32` would create bounding boxes that look like this:
 
-![Bounding Boxes](img/BEIJING-BBOX-32.png)
+![Bounding Boxes](img/beijing-bbox-32.png)
 
 __QUERIES__
 - GEOLIFE-BEIJING-BBOXES-ITERATE-${tileWidth}-${col}-${row}
