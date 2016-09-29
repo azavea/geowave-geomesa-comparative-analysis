@@ -10,7 +10,8 @@ import org.geotools.feature._
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.apache.spark.rdd._
 import spray.json._
 import spray.json.DefaultJsonProtocol._
 import geotrellis.vector._
@@ -36,14 +37,14 @@ object MesaCities extends CommonPoke {
     conf.instructions
       .map({ inst => inst.split(",").head }).distinct
       .map({ kind =>
-        kind match {
-          case `either` => eitherSft
-          case `extent` => extentSft
-          case `point` => pointSft
-          case str =>
-            throw new Exception(str)
-        }
-      })
+             kind match {
+               case `either` => eitherSft
+               case `extent` => extentSft
+               case `point` => pointSft
+               case str =>
+                 throw new Exception(str)
+             }
+           })
       .foreach({ sft => ds.createSchema(sft) })
 
     // Spark Context
@@ -63,21 +64,18 @@ object MesaCities extends CommonPoke {
     val geometries = scala.util.Random.shuffle(Cities.geometries(conf.instructions))
 
     // Store Geometries in GeoMesa
-    sparkContext
-      .parallelize(geometries, geometries.length)
-      .foreach { tuple =>
-        val (name, spec) = sftMap.value.getOrElse(tuple._1, throw new Exception)
-        val schema = SimpleFeatureTypes.createType(name, spec)
-        val iter =
+    val rdd: RDD[SimpleFeature] =
+      sparkContext.parallelize(geometries, geometries.length)
+        .flatMap { tuple =>
+          val (name, spec) = sftMap.value.getOrElse(tuple._1, throw new Exception)
+          val schema = SimpleFeatureTypes.createType(name, spec)
           tuple match {
             case (_, seed: Long, lng: String, lat: String, time: String, width: String) =>
               GeometryGenerator(schema, seed, lng, lat, time, width)
           }
-        val ds = DataStoreFinder.getDataStore(conf.dataSourceConf)
-        MesaPoke.writeFeatures(schema.getTypeName, ds, iter)
-        ds.dispose
-      }
+        }
 
+    MesaPoke.ingestRDDWithOutputFormat(conf.dataSourceConf, rdd)
     sparkContext.stop
   }
 }

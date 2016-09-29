@@ -8,10 +8,12 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.factory.Hints
 import org.geotools.feature._
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.jobs.interop.mapreduce.GeoMesaOutputFormat
 import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-
+import org.apache.spark.rdd._
+import org.apache.hadoop.mapreduce.Job;
 
 object MesaPoke extends CommonPoke {
 
@@ -98,5 +100,22 @@ object MesaPoke extends CommonPoke {
       fw.write()
     }
     fw.close()
+  }
+
+  def ingestRDDWithOutputFormat(params: java.util.HashMap[String,String], rdd: RDD[SimpleFeature]) = {
+    val conf = rdd.sparkContext.hadoopConfiguration
+    val job = new Job(conf, "ingest job")
+
+    job.setOutputFormatClass(classOf[GeoMesaOutputFormat]);
+    job.setMapOutputKeyClass(classOf[org.apache.hadoop.io.Text]);
+    job.setMapOutputValueClass(classOf[SimpleFeature]);
+    job.setNumReduceTasks(0)
+
+
+    GeoMesaOutputFormat.configureDataStore(job, params)
+
+    rdd
+      .map { z => (new org.apache.hadoop.io.Text, z) }
+      .saveAsNewAPIHadoopDataset(job.getConfiguration)
   }
 }
