@@ -5,14 +5,16 @@ metrics/
 *~
 \#*#
 .#*
+.~
 
 deployment/run-explore-shell.sh
-curl/*.txt
-curl/run-outputs
-curl/results
+client/*.txt
+client/run-outputs
+client/results
 
 analyze/config.json
 analyze/node_modules
 analyze/results
 *.pyc
 analyze/*.csv
+analyze/pngset*

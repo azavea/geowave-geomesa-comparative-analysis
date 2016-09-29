@@ -2,22 +2,6 @@
 
 This document will hold notes about ingesting the various datasets for the performance tests.
 
-## Ingesting to GeoWave
-
-We need to look into how to use these options, and whether or not we should use them
-
-```
--np, numPartitions
-The number of partitions. Default partitions will be 1. Default: 1
-
--ps, --partitionStrategy
-The partition strategy to use. Default will be none. Default: NONE Possible Values: [NONE, HASH, ROUND ROBIN]
-```
-
-## Ingesting into GeoMesa
-
-GeoMesa creates z2 and z3 tables by default. Should we restrict the indexes created?
-
 ## Geolife
 
 Based on ingests into a cluster with 5 m3.2xlarge workers.
@@ -45,42 +29,7 @@ Based on ingests into a cluster with 5 m3.2xlarge workers.
 
 DFS Used: 34.85 GB (4.84%)
 
-#### GeoWave - 2D index only
-
-- Disk used: 649.73M
-- Total entries: 23.80M
-
-###### Tables
-
-| Tables                                | Number of Entries |
-| ------------------------------------- |:-----------------:|
-| `geowave.geolife_GEOWAVE_METADATA`    |        190        |
-| `geowave.geolife_SPATIAL_IDX`         |    23.80 M        |
-
-###### Entries per tablet server
-
-`257, 23.80M, 0, 0, 0`
-_(See corrective action below)_
-
-###### HDFS usage report
-
-- DFS Used: 4.51 GB (0.63%)
-
-###### Action taken: descrease split size to distribute data across tablet servers
-
-The entires per tablet server server show that all entires are on one of the 5 workers,
-which will dramatically affect performance. In order to correct that,
-we change the split size and compact the table. After ingest, the `table.split.threshold=1G` on `geowave.geolife_SPATIAL_IDX`
-
-To get more splits, we execute the following command:
-- `config -t geowave.geolife_SPATIAL_IDX -s table.split.threshold=128M`
-- `compact -t geowave.geolife_SPATIAL_IDX`
-
-This gave the following entries per table:
-
-`5.83M, 5.85M, 2.91M, 2.87M, 5.88M`
-
-#### GeoWave - 2D and 3D
+#### GeoWave
 
 - Disk Used: 1.45G
 - Total Entries: 47.24M
@@ -95,6 +44,10 @@ This gave the following entries per table:
 
 ###### Entries per tablet server
 
+The entires per tablet server server show that all entires are on one of the 5 workers,
+which will dramatically affect performance. In order to correct that,
+we change the split size and compact the table.
+
 To get more splits, we execute the following command:
 
 ```
@@ -103,7 +56,6 @@ compact -t geowave.geolife_SPATIAL_IDX
 config -t geowave.geolife_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR_POINTONLY -s table.split.threshold=100M
 compact -t geowave.geolife_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR_POINTONLY
 ```
-
 
 This gave the following entries per table:
 
@@ -118,52 +70,67 @@ This gave the following entries per table:
 ## GDELT
 
 Based on ingests into a cluster with 5 m3.2xlarge workers.
+These stats were taken after ingest completed and compaction was done to all tables containing many entries.
 
 #### GeoMesa
 
-- Disk Used:      56.76G
-- Total Entries:   1.22B
+- Disk Used:       98.75G
+- Total Entries:    1.22B
 
 ###### Tables
 
 | Tables                                | Number of Entries |
 | ------------------------------------- |:-----------------:|
-| `geomesa.geodelt`                     |        10         |
-| `geomesa.gdelt_gdelt_2devent_z3 `     |    406.46M        |
+| `geomesa.gdelt`                       |        10         |
+| `geomesa.gdelt_gdelt_2devent_z3 `     |    406.51M        |
 | `geomesa.gdelt_records`               |    406.51M        |
-| `geomesa.gdelt_stats`                 |      5.41K        |
-| `geomesa.gdelt_z2`                    |    406.52M        |
+| `geomesa.gdelt_stats`                 |      7.88K        |
+| `geomesa.gdelt_z2`                    |    406.51M        |
 
-###### Entries per tablet server
+###### Tablet servers
 
-`253.47M, 216.26M, 253.87M, 229.07M, 266.79M`
+| Tablet Count  | Number of Entries |
+| ------------- |:-----------------:|
+|      47       |    242.86M        |
+|      44       |    234.28M        |
+|      48       |    237.68M        |
+|      46       |    241.10M        |
+|      46       |    263.62M        |
+
 
 ###### HDFS usage report
 
-DFS Used: 118.46 GB (16.46%)
+DFS Used: 202.61 GB (28.16%)
 
 #### GeoWave
 
 We had problems ingesting GDELT, where the `geowave.gdelt_GEOWAVE_METADATA` table had way too many entries, all stored to memory,
 and never flushing to disk although there was one minor compaction running the whole time. Any query or compact command
 to that table would hang and timeout. We got around this issue by not saving any statistics to the table, by using the
-`AccumuloOptions.setPersistDataStatistics(false)` method for our datastore options.
+`AccumuloOptions.setPersistDataStatistics(false)` method for our datastore options. An attempt was made to use the
+`recalcstats` command in the geowave geotools, however we were unable to get this to work.
 
-- Disk Used: 90.67G
-- Total Entries: 47.24M
+- Disk Used: 73.81
+- Total Entries: 813.19
 
 ###### Tables
 
-| Tables                                                       | Number of Entries |
-| -------------------------------------                        |:-----------------:|
-| `geowave.gdelt_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR_POINTONLY` |      406.51M      |
-| `geowave.gdelt_GEOWAVE_METADATA`                             |      165.08K      |
-| `geowave.gdelt_SPATIAL_IDX`                                  |      406.50M      |
+| Tables                                                              | Number of Entries |
+| -------------------------------------                               |:-----------------:|
+| `geowave.gdelt_SPATIAL_TEMPORAL_IDX_BALANCED_WEEK_HASH_4_POINTONLY` |      406.60M      |
+| `geowave.gdelt_GEOWAVE_METADATA`                                    |           4       |
+| `geowave.gdelt_SPATIAL_IDX_HASH_4`                                  |      406.60M      |
 
 ###### Entries per tablet server
 
-`176.59M,139.30M,165.28M,179.07M,152.93M`
+| Tablet Count  | Number of Entries |
+| ------------- |:-----------------:|
+|      28       |    166.40M        |
+|      26       |    151.95M        |
+|      27       |    158.78M        |
+|      29       |    170.14M        |
+|      29       |    165.92M        |
 
 ###### HDFS usage report
 
-- 187.7 GB (26.09%)
+- 156.6 GB (21.76%)
