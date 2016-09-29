@@ -76,17 +76,26 @@ Queries are taken from center points corresponding to the following cities: Pari
 
 ![City Buffers](img/gdelt/paris-city-buffers.png)
 
+![City Buffers 50 KM over times](img/gdelt/city-all-two-months_duration_not_0_results_city_without_outliers.png)
+
+Not very clear about how this varies over the dimension, but if we change our view of this, we get something else
 
 __GeoMesa's problem with longer times__
 
-
+_Needs Regen, "Matching" version_
 ![City Buffers 50 KM over times](img/gdelt/50-KM_duration_not_0_results_city_without_outliers.png)
+_Needs Regen, "Matching" version_
 ![City Buffers 550 KM over times](img/gdelt/550-KM_duration_not_0_results_city_without_outliers.png)
+
+This graph shows the mean duration of queries over all cities and all buffer sizes, for 14 day and 168 queries,
+based on the result count of the queries.
 
 ![Durations over result counts, default indexes, all queries of 14 days](img/gdelt/014-days-default.png)
 ![Durations over result counts, default indexes, all queries of 168 days](img/gdelt/168-days-default.png)
 
+_Needs Regen, "Matching" version_
 ![City Buffers GeoMesa durations over time](img/gdelt/GM_durations_over_time.png)
+_Needs Regen, "Matching" version_
 ![City Buffers GeoWave durations over time](img/gdelt/GW_durations_over_time.png)
 
 
@@ -105,6 +114,7 @@ We moved GeoMesa temporal binning up to one year, and also introduced a hash par
 
 ##### Combined results
 
+_Needs Regen, "Default" version_
 ![GDELT over queries result count vs duration matching](img/gdelt/GDELT-over-queries-result-count-vs-duration-matching.png)
 
 ### Tracks
