@@ -9,8 +9,8 @@ import scala.util.Random
 
 
 object CitiesSimulation {
-  val testContext = "MT1"
-  val isTest = "false"
+  val testContext = "MT2"
+  val isTest = "flase"
 
   def cityTests = Vector(
     "in-city-buffers-six-days",
@@ -79,10 +79,10 @@ trait CitiesSimulation extends Simulation {
 
 class GdeltStress extends CitiesSimulation {
   import CitiesSimulation._
-  val duration  = 10.minutes
+  val duration  = 20.minutes
   val users = 8
   setUp(
-    scenario("City Buffers").during(duration) {
+    scenario(s"City Buffers: ${testContext} ${target.name}").during(duration) {
       feed(citiesFeeder).exec {
         http("${name}")
           .get(s"/cities/spatiotemporal/${testContext}/" + "${name}")
@@ -93,7 +93,7 @@ class GdeltStress extends CitiesSimulation {
           .queryParam("wOrm", target.tag)
         }
       }.inject(atOnceUsers(users)),
-     scenario("Countries").during(duration) {
+    scenario("Countries ${testContext} ${target.name}").during(duration) {
        feed(countriesFeeder).exec {
          http("${country}")
            .get(s"/cities/spatiotemporal/${testContext}/in-south-america-countries-three-weeks")
