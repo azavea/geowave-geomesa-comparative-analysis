@@ -75,6 +75,9 @@ ${STACK_NAME}-geowave-cluster-id.txt:
 
 rwildcard=$(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
 
+deploy-clusters: ${STACK_NAME}-geomesa-cluster-id.txt ${STACK_NAME}-geowave-cluster-id.txt
+	@echo Clusters Created
+
 deploy: ${STACK_NAME}-geomesa-cluster-id.txt ${STACK_NAME}-geowave-cluster-id.txt
 	terraform apply \
 -state="${STACK_NAME}.tfstate" \
@@ -126,28 +129,33 @@ include years.mk
 ingest-synthetic-cities-gm: export ASSEMBLY_URI=$(shell ./stage-assembly.sh ../synthetic-data mesaPoke ${S3_URI}/jars)
 ingest-synthetic-cities-gm:
 	@if [ -z "$${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
+
 	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest Synthetic Background" \
 spark-submit ${SPARK_OPTIONS} --class com.azavea.geomesa.MesaPoke $${ASSEMBLY_URI} \
 -i=gis -z=${GEOMESA_ZOOKEEPER} -u=root -p=secret -t=geomesa.cities \
-point,10,uniform:-180:180,uniform:-90:90,uniform:${Y_1980_START}:${Y_2015_END},100000
+point,90,uniform:-180:180,uniform:-90:90,uniform:${Y_1980_START}:${Y_2015_END},100000
+
 	./add-steps.sh ${GEOMESA_CLUSTER_ID} "Ingest Synthetic Cities" \
 spark-submit ${SPARK_OPTIONS} --class com.azavea.geomesa.MesaCities $${ASSEMBLY_URI} \
 -i=gis -z=${GEOMESA_ZOOKEEPER} -u=root -p=secret -t=geomesa.cities \
-point,1,uniform:${Y_1980_START}:${Y_2015_END},100000 \
-point,1,uniform:${Y_1985_START}:${Y_2015_END},100000 \
-point,1,uniform:${Y_1990_START}:${Y_2015_END},100000 \
-point,1,uniform:${Y_1995_START}:${Y_2015_END},100000 \
-point,1,uniform:${Y_2000_START}:${Y_2015_END},100000 \
-point,1,uniform:${Y_2005_START}:${Y_2015_END},100000 \
-point,1,uniform:${Y_2010_START}:${Y_2015_END},100000
+point,9,uniform:${Y_1980_START}:${Y_2015_END},100000 \
+point,9,uniform:${Y_1985_START}:${Y_2015_END},100000 \
+point,9,uniform:${Y_1990_START}:${Y_2015_END},100000 \
+point,9,uniform:${Y_1995_START}:${Y_2015_END},100000 \
+point,9,uniform:${Y_2000_START}:${Y_2015_END},100000 \
+point,9,uniform:${Y_2005_START}:${Y_2015_END},100000 \
+point,9,uniform:${Y_2010_START}:${Y_2015_END},100000
+
 
 ingest-synthetic-cities-gw: export ASSEMBLY_URI=$(shell ./stage-assembly.sh ../synthetic-data wavePoke ${S3_URI}/jars)
 ingest-synthetic-cities-gw:
 	@if [ -z "$${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
+
 	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest Synthetic Background" \
 spark-submit ${SPARK_OPTIONS} --class com.azavea.geowave.WavePoke $${ASSEMBLY_URI} \
 -i=gis -z=${GEOWAVE_ZOOKEEPER} -u=root -p=secret -t=geowave.cities --index=spacetime \
 point,10,uniform:-180:180,uniform:-90:90,uniform:${Y_1980_START}:${Y_2015_END},100000
+
 	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest Synthetic Cities" \
 spark-submit ${SPARK_OPTIONS} --class com.azavea.geowave.WaveCities $${ASSEMBLY_URI} \
 -i=gis -z=${GEOWAVE_ZOOKEEPER} -u=root -p=secret -t=geowave.cities --index=spacetime \
@@ -158,6 +166,7 @@ point,1,uniform:${Y_1995_START}:${Y_2015_END},100000 \
 point,1,uniform:${Y_2000_START}:${Y_2015_END},100000 \
 point,1,uniform:${Y_2005_START}:${Y_2015_END},100000 \
 point,1,uniform:${Y_2010_START}:${Y_2015_END},100000
+
 
 ingest-geolife-gm: ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
 ingest-geolife-gm:
@@ -192,6 +201,7 @@ ingest-generated-tracks-gm:
 spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geomesa.Main  $${ASSEMBLY_URI} \
 avro -i gis -z ${GEOMESA_ZOOKEEPER} -u root \
 -p secret -t geomesa.tracks --inputPartitionSize 1 \
+--period year \
 --featurename generated-tracks \
 geotrellis-sample-datasets generated-tracks/
 
@@ -200,9 +210,9 @@ ingest-generated-tracks-gw:
 	@if [ -z "$${ASSEMBLY_URI}" ]; then echo "Assembly failed" && exit 1; fi
 	./add-steps.sh ${GEOWAVE_CLUSTER_ID} "Ingest Generated Tracks" \
 spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.Main  $${ASSEMBLY_URI} \
-avro -i gis -z ${GEOWAVE_ZOOKEEPER} -u root \
--p secret -t geowave.tracks \
---featurename generated-tracks --temporal --inputPartitionSize 1 \
+avro -i gis -z ${GEOWAVE_ZOOKEEPER} -u root -p secret -t geowave.tracks \
+--featurename generated-tracks --inputPartitionSize 1 \
+--temporal --period year --numPartitions 4 \
 geotrellis-sample-datasets generated-tracks/
 
 ingest-vienna-gm: export ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
