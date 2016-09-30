@@ -9,40 +9,43 @@ import scala.util.Random
 
 
 object CitiesSimulation {
+  val testContext = "SET1"
   val isTest = "true"
 
   def cityTests = Vector(
-    "in-city-buffers-six-days"
+    "in-city-buffers-six-days",
     "in-city-buffers-two-weeks",
     "in-city-buffers-two-months",
     "in-city-buffers-ten-months",
     "in-city-buffers-fourteen-months")
 
-  val cities = Array(
+  val cities = Vector(
     "Paris", "Philadelphia", "Istanbul", "Baghdad", "Tehran", "Beijing",
-    "Tokyo", "Oslo", "Khartoum", "Johannesburg" )
+    "Tokyo", "Oslo", "Khartoum", "Johannesburg")
 
-  val southAmericanCountries = Array(
+  val southAmericanCountries = Vector(
     "Bolivia", "Falkland-Islands", "Guyana", "Suriname", "Venezuela", "Peru",
     "Ecuador", "Paraguay", "Uruguay", "Chile", "Colombia", "Brazil", "Argentina" )
 
-  val sizes = Array( 10, 50, 150, 250, 350, 450, 550, 650 )
+  val sizes = Vector( 10, 50, 150, 250, 350, 450, 550, 650 )
 
   val years = (2000 to 2016)
 
   def citiesParams = Random.shuffle(
-    {for {
+    for {
       size <- sizes
       city <- cities
       year <- years
+      name <- cityTests
     } yield Map[String, String](
       "city" -> city,
       "size" -> size.toString,
-      "year" -> year.toString
-    )}.toVector
+      "year" -> year.toString,
+      "name" -> name
+    )
   )
 
-  def countriesFeeder = RecordSeqFeederBuilder(
+  def countriesParams = Random.shuffle(
     for {
       size <- sizes
       country <- southAmericanCountries
@@ -52,34 +55,50 @@ object CitiesSimulation {
       "size" -> size,
       "year" -> year
     )
-  ).random
+  )
 
-
-  def cityScenario(target: GeoTarget) =
-    scenario("City Buffers Mixed Time")
-      .foreach(cityTests,"name") {
-        foreach(citiesParams, "params") {
-          exec {
-            http("${name}").get("/cities/spatiotemporal/${name}")
-              .queryParamMap("${params}")
-              .queryParam("test", isTest)
-              .queryParam("wOrm", target.tag)
-          }
-        }
-      }
+  def citiesFeeder = RecordSeqFeederBuilder(citiesParams)
+  def countriesFeeder = RecordSeqFeederBuilder(countriesParams)
 }
 
 trait CitiesSimulation extends Simulation {
-  val host = "http://tf-lb-20160927191945717026634sk6-1641270464.us-east-1.elb.amazonaws.com"
+  val host = "http://tf-lb-201609292204292847903892ty-1166708383.us-east-1.elb.amazonaws.com"
   val httpConf = http.baseURL(host)
   val target = GeoMesa
 }
 
-/** Execute the city buffer tests sequentially, randomly selecting test and size */
-class CityBuffers extends CitiesSimulation {
-  val users = 1
-  val duration = 10.minutes
+class GdeltStress extends CitiesSimulation {
+  import CitiesSimulation._
+  val duration  = 1.minutes
+
   setUp(
-    CitiesSimulation.cityScenario(target).inject(rampUsers(users) over (duration))
+    scenario("City Buffers")
+      .feed(citiesFeeder.random)
+      .during(duration) {
+        exec {
+          http("${name}")
+            .get(s"/cities/gdelt/gdelt-feature/spatiotemporal/${testContext}/" + "${name}")
+            .queryParam("city", "${city}")
+            .queryParam("size", "${size}")
+            .queryParam("year", "${year}")
+            .queryParam("test", isTest)
+            .queryParam("wOrm", target.tag)
+        }
+      }
+      .inject(atOnceUsers(1)),
+    scenario("Countries")
+      .feed(countriesFeeder.random)
+      .during(duration) {
+        exec {
+          http("${country}")
+            .get(s"/cities/gdelt/gdelt-feature/spatiotemporal/${testContext}/in-south-america-countries-three-weeks")
+            .queryParam("country", "${country}")
+            .queryParam("size", "${size}")
+            .queryParam("year", "${year}")
+            .queryParam("test", isTest)
+            .queryParam("wOrm", target.tag)
+        }
+      }
+      .inject(atOnceUsers(1))
   ).protocols(httpConf)
 }

@@ -5,9 +5,10 @@ import com.azavea.ca.server.geowave.connection._
 import com.azavea.ca.server.status._
 
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 
 import scala.concurrent.duration._
-
+import scala.collection.concurrent.TrieMap
 
 object Routes {
 
@@ -75,12 +76,12 @@ object Routes {
 
   def apply() =
     systemRoutes ~
-    geomesaRoutes ~
-    geowaveRoutes ~
-    GeolifeQueries.routes ~
-    GDELTQueries.routes ~
-    TranslatedViennaQueries.routes ~
-    CitiesQueries.routes ~
-    TracksQueries.routes ~
-    randomExtentQueryRoutes
+      geomesaRoutes ~
+      geowaveRoutes ~
+      GeolifeQueries.routes ~
+      GDELTQueries.routes ~
+      TranslatedViennaQueries.routes ~
+      TracksQueries.routes ~
+      CitiesQueries.routes ~
+      randomExtentQueryRoutes
 }

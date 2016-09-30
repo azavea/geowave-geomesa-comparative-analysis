@@ -10,7 +10,8 @@ libraryDependencies ++= Seq(
   "org.apache.hadoop" % "hadoop-client" % Version.hadoop % "provided",
   "org.apache.spark" %% "spark-core" % Version.spark % "provided",
   "org.locationtech.geomesa" % "geomesa-accumulo-datastore" % Version.geomesa,
-  "org.locationtech.geomesa" % "geomesa-utils" % Version.geomesa
+  "org.locationtech.geomesa" % "geomesa-utils" % Version.geomesa,
+  "org.locationtech.geomesa" % "geomesa-jobs" % Version.geomesa
 )
 
 fork in Test := false
