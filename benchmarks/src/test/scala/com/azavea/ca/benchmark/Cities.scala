@@ -9,8 +9,8 @@ import scala.util.Random
 
 
 object CitiesSimulation {
-  val testContext = "SET1"
-  val isTest = "true"
+  val testContext = "MT1"
+  val isTest = "false"
 
   def cityTests = Vector(
     "in-city-buffers-six-days",
@@ -31,7 +31,7 @@ object CitiesSimulation {
 
   val years = (2000 to 2016)
 
-  def citiesParams = Random.shuffle(
+  def citiesParams =
     for {
       size <- sizes
       city <- cities
@@ -43,9 +43,8 @@ object CitiesSimulation {
       "year" -> year.toString,
       "name" -> name
     )
-  )
 
-  def countriesParams = Random.shuffle(
+  def countriesParams =
     for {
       size <- sizes
       country <- southAmericanCountries
@@ -55,10 +54,21 @@ object CitiesSimulation {
       "size" -> size,
       "year" -> year
     )
-  )
 
-  def citiesFeeder = RecordSeqFeederBuilder(citiesParams)
-  def countriesFeeder = RecordSeqFeederBuilder(countriesParams)
+
+  def citiesFeeder = {
+    val rnd = new scala.util.Random
+    Iterator.continually{
+      citiesParams(rnd.nextInt(citiesParams.length))
+    }
+  }
+
+  def countriesFeeder = {
+    val rnd = new scala.util.Random
+    Iterator.continually {
+      countriesParams(rnd.nextInt(countriesParams.length))
+    }
+  }
 }
 
 trait CitiesSimulation extends Simulation {
@@ -69,36 +79,31 @@ trait CitiesSimulation extends Simulation {
 
 class GdeltStress extends CitiesSimulation {
   import CitiesSimulation._
-  val duration  = 1.minutes
-
+  val duration  = 10.minutes
+  val users = 8
   setUp(
-    scenario("City Buffers")
-      .feed(citiesFeeder.random)
-      .during(duration) {
-        exec {
-          http("${name}")
-            .get(s"/cities/gdelt/gdelt-feature/spatiotemporal/${testContext}/" + "${name}")
-            .queryParam("city", "${city}")
-            .queryParam("size", "${size}")
-            .queryParam("year", "${year}")
-            .queryParam("test", isTest)
-            .queryParam("wOrm", target.tag)
+    scenario("City Buffers").during(duration) {
+      feed(citiesFeeder).exec {
+        http("${name}")
+          .get(s"/cities/spatiotemporal/${testContext}/" + "${name}")
+          .queryParam("city", "${city}")
+          .queryParam("size", "${size}")
+          .queryParam("year", "${year}")
+          .queryParam("test", isTest)
+          .queryParam("wOrm", target.tag)
         }
-      }
-      .inject(atOnceUsers(1)),
-    scenario("Countries")
-      .feed(countriesFeeder.random)
-      .during(duration) {
-        exec {
-          http("${country}")
-            .get(s"/cities/gdelt/gdelt-feature/spatiotemporal/${testContext}/in-south-america-countries-three-weeks")
-            .queryParam("country", "${country}")
-            .queryParam("size", "${size}")
-            .queryParam("year", "${year}")
-            .queryParam("test", isTest)
-            .queryParam("wOrm", target.tag)
-        }
-      }
-      .inject(atOnceUsers(1))
+      }.inject(atOnceUsers(users)),
+     scenario("Countries").during(duration) {
+       feed(countriesFeeder).exec {
+         http("${country}")
+           .get(s"/cities/spatiotemporal/${testContext}/in-south-america-countries-three-weeks")
+           .queryParam("country", "${country}")
+           .queryParam("size", "${size}")
+           .queryParam("year", "${year}")
+           .queryParam("test", isTest)
+           .queryParam("wOrm", target.tag)
+         }
+       }
+       .inject(atOnceUsers(users))
   ).protocols(httpConf)
 }
