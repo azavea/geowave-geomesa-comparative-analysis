@@ -87,7 +87,7 @@ trait CAQueryUtils { self: BaseService =>
 
 
   def capture(isLooseOpt: Option[String], waveOrMesa: String, cql: String): (Option[TestResult], Option[TestResult]) =
-    capture(isLooseOpt, waveOrMesa, cql)
+    capture(isLooseOpt, waveOrMesa, ECQL.toFilter(cql))
 
   def capture(isLooseOpt: Option[String], waveOrMesa: String, query: Filter): (Option[TestResult], Option[TestResult]) = {
     if(waveOrMesa == "wm") {

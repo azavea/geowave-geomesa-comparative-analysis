@@ -67,7 +67,7 @@ object TracksQueries
       pathPrefix("ping") {
         pathEndOrSingleSlash {
           get {
-            complete { Future { "pong?" } } }
+            complete { Future { "pong42" } } }
         }
       } ~
       pathPrefix("reset") {
@@ -145,7 +145,7 @@ object TracksQueries
             queryGridRoute(s"TRACKS-USA-GRID-${testContext.toUpperCase}-5DAY", Period.ofDays(5))
           } ~
           pathPrefix("1-week") {
-            queryGridRoute(s"TRACKS-USA-GRID--${testContext.toUpperCase}-1WEEK", Period.ofWeeks(1))
+            queryGridRoute(s"TRACKS-USA-GRID-${testContext.toUpperCase}-1WEEK", Period.ofWeeks(1))
           } ~
           pathPrefix("9-day") {
             queryGridRoute(s"TRACKS-USA-GRID-${testContext.toUpperCase}-9DAY", Period.ofDays(9))

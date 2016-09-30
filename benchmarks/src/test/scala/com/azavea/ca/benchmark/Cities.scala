@@ -9,8 +9,8 @@ import scala.util.Random
 
 
 object CitiesSimulation {
-  val testContext = "MT2"
-  val isTest = "flase"
+  val IS_TEST = "true"
+  val TEST_CONTEXT = "MT6"
 
   def cityTests = Vector(
     "in-city-buffers-six-days",
@@ -71,39 +71,46 @@ object CitiesSimulation {
   }
 }
 
-trait CitiesSimulation extends Simulation {
-  val host = "http://tf-lb-201609292204292847903892ty-1166708383.us-east-1.elb.amazonaws.com"
-  val httpConf = http.baseURL(host)
-  val target = GeoMesa
-}
-
-class GdeltStress extends CitiesSimulation {
+class GdeltStress(target: GeoTarget, host: String) extends Simulation {
   import CitiesSimulation._
-  val duration  = 20.minutes
+
+  val httpConf = http.baseURL(host)
+  val duration  = 30.minutes
   val users = 8
+
   setUp(
-    scenario(s"City Buffers: ${testContext} ${target.name}").during(duration) {
+    scenario(s"City Buffers: ${TEST_CONTEXT} ${target.name}").during(duration) {
       feed(citiesFeeder).exec {
         http("${name}")
-          .get(s"/cities/spatiotemporal/${testContext}/" + "${name}")
+          .get(s"/cities/spatiotemporal/${TEST_CONTEXT}/" + "${name}")
           .queryParam("city", "${city}")
           .queryParam("size", "${size}")
           .queryParam("year", "${year}")
-          .queryParam("test", isTest)
+          .queryParam("test", IS_TEST)
           .queryParam("wOrm", target.tag)
         }
       }.inject(atOnceUsers(users)),
-    scenario("Countries ${testContext} ${target.name}").during(duration) {
+    scenario(s"Countries ${TEST_CONTEXT} ${target.name}").during(duration) {
        feed(countriesFeeder).exec {
          http("${country}")
-           .get(s"/cities/spatiotemporal/${testContext}/in-south-america-countries-three-weeks")
+           .get(s"/cities/spatiotemporal/${TEST_CONTEXT}/in-south-america-countries-three-weeks")
            .queryParam("country", "${country}")
            .queryParam("size", "${size}")
            .queryParam("year", "${year}")
-           .queryParam("test", isTest)
+           .queryParam("test", IS_TEST)
            .queryParam("wOrm", target.tag)
          }
        }
        .inject(atOnceUsers(users))
   ).protocols(httpConf)
 }
+
+class WaveGdeltStress extends GdeltStress(
+  target = GeoWave,
+  host = "http://tf-lb-20160930144456278182977zdu-1322523926.us-east-1.elb.amazonaws.com"
+)
+
+class MesaGdeltStress extends GdeltStress (
+  target = GeoMesa,
+  host = "http://tf-lb-20160930183807514178781pyf-2143835887.us-east-1.elb.amazonaws.com"
+)
