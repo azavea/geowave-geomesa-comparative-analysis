@@ -24,7 +24,7 @@ fi
 S3_ASSEMBLY_URI=$S3_URI/$(basename $ASSEMBLY_JAR)
 
 # if aws s3 ls $S3_ASSEMBLY_URI > /dev/null; then
-#     (>&2 echo "Found $S3_ASSEMBLY_URI, skipping upload")
+# (>&2 echo "Found $S3_ASSEMBLY_URI, skipping upload")
 # else
 (>&2 aws s3 cp $ASSEMBLY_JAR $S3_ASSEMBLY_URI)
 # fi

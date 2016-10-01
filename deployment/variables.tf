@@ -37,7 +37,7 @@ variable "geowave_cluster_id"{
 }
 
 variable "desired_benchmark_instance_count" {
-  default = 2
+  default = 6
   description = "Number benchmark instances to provision"
 }
 

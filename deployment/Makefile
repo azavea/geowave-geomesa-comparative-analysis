@@ -3,7 +3,7 @@ export STACK_NAME := ${USER}
 export EC2_KEY := geotrellis-cluster
 export EC2_KEY_FILE := "${HOME}/${EC2_KEY}.pem"
 export AWS_DEFAULT_REGION := us-east-1
-export S3_URI := s3://geotrellis-test/ca/${STACK_NAME}
+export S3_URI := s3://geotrellis-test/ca/${USER}
 export SUBNET_ID := subnet-c5fefdb1
 
 export MASTER_INSTANCE := m3.xlarge
@@ -16,7 +16,7 @@ export WORKER_INSTANCE := m3.2xlarge
 export CPUS_PER_WORKER := 8
 
 export WORKER_PRICE := 0.5
-export WORKER_COUNT := 3
+export WORKER_COUNT := 5
 
 export DRIVER_MEMORY := 4200M
 export DRIVER_CORES := 2
@@ -25,7 +25,7 @@ export EXECUTOR_CORES := 2
 export YARN_OVERHEAD := 700
 
 # Docker image of benchmarking service
-export SERVICE_TAG := eac25
+export SERVICE_TAG := eac42
 export SERVICE_IMG := quay.io/geotrellis/comparative-analysis-query-server:${SERVICE_TAG}
 
 SPARK_PARAMS := --driver-memory ${DRIVER_MEMORY} \
@@ -55,8 +55,8 @@ define EMR_CREATE_CLUSTER
 --ec2-attributes KeyName=${EC2_KEY},SubnetId=${SUBNET_ID} \
 --applications Name=Hadoop Name=Zookeeper Name=Spark Name=Zeppelin Name=Ganglia \
 --instance-groups \
-Name=Master,BidPrice=${MASTER_PRICE},InstanceCount=1,InstanceGroupType=MASTER,InstanceType=${MASTER_INSTANCE} \
-Name=Workers,BidPrice=${WORKER_PRICE},InstanceCount=${WORKER_COUNT},InstanceGroupType=CORE,InstanceType=${WORKER_INSTANCE} \
+Name=Master,InstanceCount=1,InstanceGroupType=MASTER,InstanceType=${MASTER_INSTANCE} \
+Name=Workers,InstanceCount=${WORKER_COUNT},InstanceGroupType=CORE,InstanceType=${WORKER_INSTANCE} \
 --bootstrap-actions Name=bootstrap-${1},Path=${GEODOCKER_BOOTSTRAP},Args=[-i=${2},-n=gis,-p=secret] \
 | tee ${STACK_NAME}-${1}-cluster-id.txt
 endef
@@ -78,10 +78,12 @@ rwildcard=$(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst 
 deploy-clusters: ${STACK_NAME}-geomesa-cluster-id.txt ${STACK_NAME}-geowave-cluster-id.txt
 	@echo Clusters Created
 
+APP_NAME:=${STACK_NAME}
+
 deploy: ${STACK_NAME}-geomesa-cluster-id.txt ${STACK_NAME}-geowave-cluster-id.txt
 	terraform apply \
--state="${STACK_NAME}.tfstate" \
--var 'stack_name=${STACK_NAME}' \
+-state="${APP_NAME}.tfstate" \
+-var 'stack_name=${APP_NAME}' \
 -var 'ec2_key=${EC2_KEY}' \
 -var 'subnet_id=${SUBNET_ID}' \
 -var 'service_image=${SERVICE_IMG}' \
@@ -92,8 +94,8 @@ deploy: ${STACK_NAME}-geomesa-cluster-id.txt ${STACK_NAME}-geowave-cluster-id.tx
 
 destroy-service:
 	terraform destroy -force \
--state="${STACK_NAME}.tfstate" \
--var 'stack_name=${STACK_NAME}' \
+-state="${APP_NAME}.tfstate" \
+-var 'stack_name=${APP_NAME}' \
 -var 'ec2_key=${EC2_KEY}' \
 -var 'subnet_id=${SUBNET_ID}' \
 -var 'service_image=NA' \
@@ -212,7 +214,7 @@ ingest-generated-tracks-gw:
 spark-submit ${SPARK_OPTIONS} --class com.azavea.ingest.geowave.Main  $${ASSEMBLY_URI} \
 avro -i gis -z ${GEOWAVE_ZOOKEEPER} -u root -p secret -t geowave.tracks \
 --featurename generated-tracks --inputPartitionSize 1 \
---temporal --period year --numPartitions 4 \
+--temporal --period year --numPartitions 4 --partitionStrategy ROUND_ROBIN \
 geotrellis-sample-datasets generated-tracks/
 
 ingest-vienna-gm: export ASSEMBLY_URI=$(shell ./stage-assembly.sh ../empirical-data geomesa ${S3_URI}/jars)
