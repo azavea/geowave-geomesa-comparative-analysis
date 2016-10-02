@@ -18,23 +18,27 @@
 
 ## Introduction
 
-The GeoMesa and GeoWave open source projects have been in development for several years in support of various “Big Data Analytics” programs. Each project provides the ability to query vector features in Accumulo. New software projects that want to utilize this functionality are faced with the decision to choose one project over the other. It is the aim of this paper to help determine the use cases where one project might be superior to the other.
+GeoMesa and GeoWave are two open source projects that deal with large geospatial data.
+These projects at a high level have solutiongs to  many of the same types of problems.
+Because of this overlap, it has been difficult for new users approaching the big geospatial data community to understand what
+the differences are between these projects and what project should be used in what circumstances.
+For some of their most overlapping functionality, for example indexing spatial and spatiotemporal data in Accumulo, the differences
+between the two projects can be unclear to even veterans of big geospatial data processing.
+This lack of clarity is a problem that this document aims to address.
 
-In Summer of 2016, Azavea, the developer of the GeoTrellis project, conducted a comparative analysis of the features, abilities, and limitations of each of these projects. Because the GeoTrellis team already had some familiarity with both projects and Accumulo, the GeoTrellis team was in a unique position to lead such an analysis. The team has worked to perform the analysis with an unbiased, independent perspective.
+In Summer of 2016, Azavea conducted a comparative analysis of GeoWave and GeoMesa in order to gain a deeper understanding of the GeoWave and GeoMesa projects as compared to each other,
+and in order to share that understanding with the big geospatial data community.
+This document contains the results of our efforts and aims to provide a more clear picture of how the projects are different from each other and what use cases fit better to either project,
+so that the big geospatial data community can a deeper understanding of these two outstanding projects and better utilize their functionality.
 
-Each project has unique features that provide functionality that can not be compared meaningfully. However, a core functionality of both projects is their ability to query vector features from Accumulo. We will discuss these unique features, but the focus of this paper will be the apples-to-apples comparison of the performance tests, to the extent that this is possible, of vector features provided in the context of use on top of Accumulo.
+Along with an understanding how the projects are different from each other, this comparative anaysis aims to provide information
+and guidance to potential future collaboration efforts between the GeoWave and GeoMesa projects.
 
-## Project Backgrounds
+This document assumes prior knowledge about what the GeoMesa and GeoWave project are, and is not intended to be an introduction to those projects. For background information, please see the project websites:
+- GeoWave: http://ngageoint.github.io/geowave/
+- GeoMesa: http://www.geomesa.org/
 
-GeoWave and GeoMesa are part of the LocationTech Working Group under the Eclipse Foundation. This collaboration improves accessibility and outreach to software and application developers. Both projects are open sourced under the Apache version 2.0 license.
-
-## Architectural overview
-
-GeoWave and GeoMesa are designed to enable large-scale geospatial processing on cloud and distributed computing systems. Space Filling Curve (SFC) is the underlying method that describes the transformation of multidimensional data to a 1 dimensional number line.
-
-Each project is under heavy development and consists of many subfeatures. The structure of how these features are assembled affects performance and extensibility. GeoWave’s design is more modular which facilitates customization. GeoMesa’s design makes it simpler and easier to get started with ...
-
-### GeoWave
+## Feature Comparision
 
 One of Geowave’s defining distinctions is the ability to index in N dimensions and ability to work with any index and storage configuration. This is achieved through an elaborate set of abstractions that provides a lot of utility via its generalizability, it can make the API cumbersome. While a primary way to access GeoWave is through geotools, this generalizability enables access through other means, for instance, Mapnik.
 
@@ -44,7 +48,6 @@ GeoWave has been in the open source ecosystem for less time than GeoMesa, and is
 
 One of GeoMesa’s defining features is…. Geomesa is focused on providing big data storage, query, and analytics for geotools. While they do aim to support a variety of backends, it is built around Accumulo and other backends are not as well developed. See Appendix for complete list of features
 
-## Feature Comparision
 
 ![Venn Diagram of features](img/venn-diagram.png)
 
@@ -55,11 +58,17 @@ __subsetting__
 __index__
 __index configuration, periodicity, sharding__
 
+## Overview of Accumulo Indexing
+
+GeoWave and GeoMesa are designed to enable large-scale geospatial processing on cloud and distributed computing systems. Space Filling Curve (SFC) is the underlying method that describes the transformation of multidimensional data to a 1 dimensional number line.
+
+Each project is under heavy development and consists of many subfeatures. The structure of how these features are assembled affects performance and extensibility. GeoWave’s design is more modular which facilitates customization. GeoMesa’s design makes it simpler and easier to get started with ...
+
 ## Performance Tests
 
 ### Methods
 
-In this section, we briefly describe the technical means by which we were able to test the relative performance of GeoWave and GeoMesa.
+In this section, we briefly describe the technical means by which we were able to test the relative performance of GeoWave and GeoMesa for indexing SimpleFeatures in Accumulo.
 
 #### Environment
 
@@ -98,7 +107,7 @@ A survey of the ingest tooling produced is useful for a detailed comparison of t
 
 Queries are generated and submitted by the Query Servers in response to requests from clients. This arrangement was chosen because it allows for quick experimentation and prototyping of different parameters simply by tweaking requests while also ensuring that results are as reproducible as possible (the query server endpoints are written so as to ensure endpoint immutability). The upshot of this is that results generated for this report should be conveniently reproducible and that decisions about which results should be generated, in what order, and how many times are largely in the client’s hands.
 
-For the "Serial Queries", the specific queries were run on at a time, so that the only load on the GeoWave or GeoMesa system was a single query. For the "Multitenancy Stress Tests", a framework was used to produce a number of concurrent connections, so that we could test the multitenancy use case by querying the systems in parallel.
+For the "Serial Queries" tests, the specific queries were run on at a time, so that the only load on the GeoWave or GeoMesa system was a single query. For the "Multitenancy Stress" tests, a framework was used to produce a number of concurrent connections, so that we could test the multitenancy use case by querying the systems in parallel.
 
 ### Datasets
 
@@ -141,7 +150,14 @@ Here is a view of the data for a specific time slice of the data, as shown in Ge
 
 ## Performance Test Conclusions
 
-After performing a wide variety of tests against
+A complete analysis of the performance test can be found in the following appendices:
+- Appendix E: Details of Serial Queries and Results
+- Appendix F: Details of Multitenancy Stress Tests
+- Appendix G: Details of Performance Test Conclusions
+
+This section will summarize our findings from analyzing data from the "Serial Queries" and "Multitenancy Stress" tests.
+
+
 
 ## Conclusions
 
