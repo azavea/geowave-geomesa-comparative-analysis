@@ -6,6 +6,8 @@ This document will hold notes about ingesting the various datasets for the perfo
 
 Based on ingests into a cluster with 5 m3.2xlarge workers.
 
+_Note: The performance test were performed against a 3 node cluster with a similar setup._
+
 #### GeoMesa
 
 - Disk Used:      1.68G
@@ -134,3 +136,67 @@ to that table would hang and timeout. We got around this issue by not saving any
 ###### HDFS usage report
 
 - 156.6 GB (21.76%)
+
+## Tracks
+
+Based on ingests into a cluster with 5 m3.2xlarge workers.
+These stats were pulled from a cluster that had undergone extensive performance testing.
+
+#### GeoMesa
+
+- Disk Used:       58.12G
+- Total Entries:   19.59M
+
+###### Tables
+
+| Tables                                | Number of Entries |
+|-------------------------------------- |:-----------------:|
+| `geomesa.tracks`                      |        10         |
+| `geomesa.tracks_records`              |      6.41M        |
+| `geomesa.tracks_stats`                |        68         |
+| `geomesa.tracks_xz2`                  |      6.33M        |
+| `geomesa.tracks_xz3 `                 |      6.57M        |
+
+###### Tablet servers
+
+| Tablet Count  | Number of Entries |
+| ------------- |:-----------------:|
+|      45       |      4.22M        |
+|      43       |      3.79M        |
+|      45       |      3.66M        |
+|      47       |      3.80M        |
+|      44       |      4.13M        |
+
+
+###### HDFS usage report
+
+DFS Used: 120.6 GB (16.76%)
+
+#### GeoWave
+
+There is more entries here, which can be explained by the fact that GeoWave can store up to 3 duplicates per entry based on their indexing scheme.
+
+- Disk Used: 106.24G
+- Total Entries: 35.83M
+
+###### Tables
+
+| Tables                                                              | Number of Entries |
+| ------------------------------------------------------------------  |:-----------------:|
+| `geowave.tracks_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR`                 |      18.04M       |
+| `geowave.tracks_GEOWAVE_METADATA`                                   |          38       |
+| `geowave.gdelt_SPATIAL_IDX_HASH_4`                                  |      17.78M       |
+
+###### Entries per tablet server
+
+| Tablet Count  | Number of Entries |
+| ------------- |:-----------------:|
+|      37       |      7.37M        |
+|      41       |      6.59M        |
+|      39       |      5.75M        |
+|      37       |      6.26M        |
+|      37       |      9.85M        |
+
+###### HDFS usage report
+
+- 218.93 GB (30.43%)

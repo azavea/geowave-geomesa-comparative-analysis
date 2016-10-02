@@ -13,6 +13,7 @@ We use Terraform to simplify the deployment of somewhat large number of componen
 
 Inputs to ECS service are listed in `variables.tf`.
 
+You can quickly update the container used by ECS for a given set of GeoWave and GeoMesa clusters by altering the tag (or, indeed, the image name) of the query server’s container in the deployment Makefile, modified query server code is pulled down and run by the machines on Amazon ECS.
 
 ## Accumulo Clusters
 Both the GeoWave and GeoMesa clusters are started on EMR, using GeoDocker images.
