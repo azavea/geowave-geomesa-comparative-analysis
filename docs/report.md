@@ -74,10 +74,16 @@ By default, GeoMesa uses "sharding", which is the technique of prefixing indexes
 To get around the problem of unbounded dimensions, such as time, the concept of "periodicity" is used in both GeoMesa and GeoWave.
 This feature is similar to a shard, in that it prefixes an index. A simple way to think of periodicity is that you are binning each
 space filling curve into one period, for example, for each week.
-In GeoWave, you can configure any dimension to
+In GeoWave, you can configure any dimension to have a periodicity, and a configurable length.
+You can also configure the periodicity of the time dimension to day, week, month, or year.
 
-- Periodicity
-- Teired vs XZ
+#### Tiered indexing vs XZ index
+
+GeoMesa uses an XZ index to handle non-point data, which allows the data to be stored at specific space filling curve resolutions
+based on the the size of the geometry. GeoWave uses a technique called tiered indexing to handle this issue. The technical differences
+between the two approaches are beyond the scope of this document; however it's important to note the difference in approach
+because of the performance implications. One major difference between the two approaches is that the XZ approach does not store
+any duplicates of data, while the Tiered strategy can store up to four copies of an entry.
 
 ### Other features
 
