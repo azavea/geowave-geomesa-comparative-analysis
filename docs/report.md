@@ -40,31 +40,85 @@ This document assumes prior knowledge about what the GeoMesa and GeoWave project
 
 ## Feature Comparision
 
-One of Geowave’s defining distinctions is the ability to index in N dimensions and ability to work with any index and storage configuration. This is achieved through an elaborate set of abstractions that provides a lot of utility via its generalizability, it can make the API cumbersome. While a primary way to access GeoWave is through geotools, this generalizability enables access through other means, for instance, Mapnik.
-
-GeoWave has been in the open source ecosystem for less time than GeoMesa, and is a less mature open source project. Examples are a smaller user base and documentation that is not modular. Although thorough in some regards, the components of the documentation build on precedings ones which make it difficult to start in the middle and discover new features.
-
-### GeoMesa
-
-One of GeoMesa’s defining features is…. Geomesa is focused on providing big data storage, query, and analytics for geotools. While they do aim to support a variety of backends, it is built around Accumulo and other backends are not as well developed. See Appendix for complete list of features
-
+GeoMesa and GeoWave are projects that contain many features, and not all of them overlap.
+The Venn Diagram below is not a complete list of features, but indicates the significant overlap of the core features of GeoWave and GeoMesa and some of the distinguishing features.
 
 ![Venn Diagram of features](img/venn-diagram.png)
 
-The Venn Diagram above indicates the significant overlap of the core features of GeoWave and GeoMesa and some of the distinguishing features.
+As is illistrated in the diagram, there is a major overlap when it comes to a core feature of the two projects, namely using space filling curves to index geospatial data in Accumulo. However, there are many features that differentiate the projects from one another. Below we describe some major differences. A more detailed list of features can be found in _Appendix A: Details of GeoMesa and GeoWave features_.
 
-https://github.com/PDAL/PDAL/tree/master/plugins/geowave
+### Generality of the Architecture
 
-__secondary indexing__
-__subsetting__
-__index__
-__index configuration, periodicity, sharding__
+A major difference between the projects is the generality of the architectures when it comes to supporting various backends and indexing strategies. GeoWave has a focus on being an N-Dimensional indexing mechanism for arbitrary backends; the fact that we are focusing on it's ability to handle geospatial data is only based on the current use cases that we know GeoWave is used for. However, the project aims at supporting data with arbitrary dimensionality. GeoMesa focuses specifically on 2-Dimensional spatial and 3-Dimensional spatiotemporal data.
 
-## Overview of Accumulo Indexing
+GeoWave specifically is designed around abstractions that remain agnostic about the storage and access implementations. This could provide more flexibility for developing backend support, which might explain that their HBase support is more mature than GeoMesa's. GeoMesa focuses on using GeoTool's abstractions, and so is more dependant on GeoTools as a base library. It also focuses less on dealing with abstractions; this may have an effect that features written for one backend might be difficult to translate to another backend. However, dealing with less abstraction can be more straightforward, and some developers may find dealing with the less-abstracted GeoMesa API to be easier to understand and work with.
 
-GeoWave and GeoMesa are designed to enable large-scale geospatial processing on cloud and distributed computing systems. Space Filling Curve (SFC) is the underlying method that describes the transformation of multidimensional data to a 1 dimensional number line.
+### Language
 
-Each project is under heavy development and consists of many subfeatures. The structure of how these features are assembled affects performance and extensibility. GeoWave’s design is more modular which facilitates customization. GeoMesa’s design makes it simpler and easier to get started with ...
+GeoMesa is developed using Scala, and GeoWave is developed using Java. Both Scala and Java are languages where the source compile down to Java Virtual Machine (JVM) byte code, and execute on top of the same JVM. This means that both projects can use the same dependencies, as can be observed by both project's reliance on GeoTools for some of it's features, including a core data type: the GeoTools SimpleFeature. However, the differences between the Scala and Java languages are many, and it remains one of the biggest differences between the project. Scala developers (such as the team conducting this comparative analysis) may find the GeoMesa API easier to work with, since it is written in a language they are familiar with. Java programmers, on the other hand, might feel more at home with GeoWave. GeoMesa, though written in Scala, implements a GeoTools interface that should allow Java developers to easily use GeoMesa functionality without having to write Scala; however if a developer wants to read the codebase or use the GeoMesa types directly, they might have trouble if they are not familiar with the Scala language.
+
+### Accumulo Indexing
+
+The two projects approach indexing in Accumulo in a similar way, but there are some key differences.
+
+#### Choice of Space Filling Curve
+
+GeoMesa supports space filling curve indexes named Z-order and XZ indexes, while GeoWave supports Hilbert curves. These different space filling curve implementations have different properties that affect performance, such as the number of false-positives returned and number of duplicate entries to be indexed. You can read more about these differences in performance characteristics in _Appendix F: Details of Performance Test Conclusions_.
+
+#### Sharding
+
+By default, GeoMesa uses "sharding", which is the technique of prefixing indexes with a discrete number of shard IDs in order to better distribute the data across nodes of a cluster. There is a tradeoff between increasing distribution while decreasing locality, which has an affect on performance. GeoWave has the ability to shard, although in GeoWave it's called partitioning the data. You can create a compound index with any of the GeoWave indexing strategies in order to partition. Unlike GeoMesa, GeoWave partitioning is not on by default. It is also configurable: you can decide on the number of partitions (i.e. shards) that you want, and determine whether or not it's a round robin or hashing strategy that determines the partition ID. GeoMesa's sharding seems to only use a hashing algorithm and a non-configurable number of shards.
+
+#### Periodicity
+
+To get around the problem of unbounded dimensions, such as time, the concept of "periodicity" is used in both GeoMesa and GeoWave.
+This feature is similar to a shard, in that it prefixes an index. A simple way to think of periodicity is that you are binning each
+space filling curve into one period, for example, for each week.
+In GeoWave, you can configure any dimension to
+
+- Periodicity
+- Teired vs XZ
+
+### Other features
+
+This section gives a summary of features that are either found in one project and not the other, or are found in both projects with considerable differences.
+
+#### Features Found in GeoWave and not in GeoMesa
+
+- Integration with Mapnik
+- Integration with PDAL for reading and writing point cloud data from/to GeoWave
+- Time interval queries: The ability to index data that exists within an interval of time, and query for intersecting intervals
+- Pixel-level subsampling: A visualization performance optimization that only returns data based on pixel width
+- DBScan clustering
+
+#### Features Found in GeoMesa and not in GeoWave
+
+- Tube selection analysis: given a collection of points (with associated times), you should be able to return similar collections of points (in terms of where the lines connecting said points exist).
+- Loose bounding box queries
+- JSON configurable ingest tooling
+- Cassandra backend (alpha support)
+- Google BigTable support (marked experimental)
+- Kafka GeoTools DataStore
+- Cost-based query optimization
+- Querying for a subset of SimpleFeature attributes, and only returning the necessary data
+
+##### Raster support
+
+Both projects have some level of raster support; however, GeoWave's raster support appears to be more mature than GeoMesa's.
+According to GeoMesa's documentation, rasters must be pre-tiled to a a specific size, projection,
+and have non-overlapping extents, and only single band rasters are supported.
+GeoWave supports multiband rasters, and includes tiling and merging strategies that allow you to ingest
+rasters that are not pre-tiled. While GeoWave's raster support is more mature than GeoMesa's,
+both project's support of raster data is not entirely mature; for instance, there is no support for anything but
+spatial rasters (i.e. you cannot ingest spatiotemporal raster data such as timestamped imagery).
+
+##### HBase backend
+
+Both projects have support for an HBase backend; however, GeoWave's support for HBase is more mature.
+The GeoWave development team has expressed the amount of work that has gone into trying to match
+the performance of the HBase backend to that of their Accumulo backend. The GeoMesa team expressed
+that there has not yet been an equal level of effort to achieve relative parity between their
+Accumulo and HBase backends.
 
 ## Performance Tests
 
@@ -85,6 +139,16 @@ For all deployments, the following versions were used:
 | Version   | 2.7.2  | 2.0.0  |   3.4.8   |  1.7.2   |  1.2.6  | 0.9.3-SNAPSHOT  |
 
 For GeoWave, we used a snapshot version based on the code that can be found at commit sha `8760ce2cbc5c8a65c4415de62210303c3c1a9710`
+
+Across all tests, Amazon Web Service (AWS) Elastic Cloud Compute (EC2) instances were used.
+Although the machine counts differed (cluster-size is mentioned where appropriate), the types of machines used were constant and role dependent:
+
+|                | Instance Type | vCPU | Mem (GB) | Storage (Drives x GB) |
+|----------------|---------------|------|----------|-----------------------|
+| Query Server   | m3.large      | 2    | 7.5      | 1x32                  |
+| Cluster Master | m3.xlarge     | 4    | 15       | 2x40                  |
+| Cluster Worker | m3.2xlarge    | 8    | 30       | 2x80                  |
+
 
 ##### Deployment
 
@@ -112,13 +176,18 @@ ingest timing results cannot be considered in the comparative analysis; however 
 the best path forward to provide consistent and successful ingests of our test datasets into both systems with
 exactly the same data was our Spark-based tooling.
 
-See _Appendix C: Details of Ingest Tooling_ for a more complete description of the ingest tooling.
+See _Appendix B: Details of Ingest Tooling_ for a more complete description of the ingest tooling.
+
+We recorded the size on disk, number of entries, tablet server information and other details for each dataset ingested. These can be found in _Appendix C: Details of Ingested Data_
 
 #### Querying
 
 Queries are generated and submitted by the Query Servers in response to requests from clients. This arrangement was chosen because it allows for quick experimentation and prototyping of different parameters simply by tweaking requests while also ensuring that results are as reproducible as possible (the query server endpoints are written so as to ensure endpoint immutability). The upshot of this is that results generated for this report should be conveniently reproducible and that decisions about which results should be generated, in what order, and how many times are largely in the client’s hands.
 
 For the "Serial Queries" tests, the specific queries were run one at a time, so that the only load on the GeoWave or GeoMesa system was a single query. For the "Multitenancy Stress" tests, a framework was used to produce a number of concurrent connections, so that we could test the multitenancy use case by querying the systems in parallel.
+
+One feature we did not compare in our performance tests is the use of secondary indexing.
+A comparison of that feature for both GeoMesa and GeoWave can be found in _Appendix A: Details of GeoMesa and GeoWave features_
 
 ### Datasets
 
@@ -162,9 +231,9 @@ Here is a view of the data for a specific time slice of the data, as shown in Ge
 ## Performance Test Conclusions
 
 A complete analysis of the performance test can be found in the following appendices:
-- _Appendix E: Details of Serial Queries and Results_
-- _Appendix F: Details of Multitenancy Stress Tests_
-- _Appendix G: Details of Performance Test Conclusions_
+- _Appendix D: Details of Serial Queries and Results_
+- _Appendix E: Details of Multitenancy Stress Tests_
+- _Appendix F: Details of Performance Test Conclusions_
 
 This section will summarize our findings from analyzing data from the "Serial Queries" and "Multitenancy Stress" tests.
 
@@ -177,7 +246,7 @@ There are three major results that we believe can be explained by this differenc
 - GeoMesa tends to perform worse as the temporal winow of queries increases. This result can be mitigated by the configuration of the periodicity of the GeoMesa index.
 - GeoWave tends to perform much better in multitenancy situations.
 
-Details on how the query planning causes these results can be found in _Appendix G: Details of Performance Test Conclusions_.
+Details on how the query planning causes these results can be found in _Appendix F: Details of Performance Test Conclusions_.
 
 One final major conclusion that we found is that GeoWave performs better on the GDELT dataset if a hashing partition
 strategy is used with four partitions. For analogous use cases, we recommend using the partitioning feature for GeoWave.
@@ -218,18 +287,251 @@ an "either/or" decision, and instead to look into what useful portions each proj
 of the two projects collaborating, as the more collaboration exists between the two projects, the easier it will be for users to
 pick out the features and technologies from either projects that help solve their big geospatial data problems.
 
-## Recommendations
+Our recommendation for how the two projects can collaborate in the future is to create external, collaboratively developed projects.
+One or more separate projects could be created that would contain common code, so that GeoWave and GeoMesa could depend
+on these extenral  projects and collaboratively develop the common functionality together. This would be ideal in
+that, for functionality that is common between the projects, the developers of the GeoMesa and GeoWave projects could
+code those features once and reuse each other's code.
 
-- Create a third project that has a collaboration point
-- Other end of the spectrum...gm kafka…
-- Ingest tooling around. Gw interested in gm’s.
-- Common simplefeature avro schema
-- Sf curve.
-- Projects are umbrellas…
+However, the ideal of having common external libraries, collaboratively developed, would be difficult
+to turn into a reality. Developing these external projects from existing overlapping functionality would be difficult,
+as existing functionality would have to be extracted and generalized in order to put into the common project. In some cases, this would be
+untenable; for instance, though both project develop Accumulo Iterators, there exists a number of optimizations
+that are specific to each framework, and generalization would actually decrease peformance of the frameworks.
 
-# Appendix A: Details of GeoMesa and GeoWave feautres
+There are existing features which would require much less effort to place into a common project, however.
+For instance, the GeoMesa Kafka DataStore has minimal requirements on GeoMesa-specific code, and transferring
+that feature from the GeoMesa codebase into a common codebase would be much less difficult.
 
-## Comparision of Attribute/Secondary Indices
+Another difficulty to creating a common codebase lies in the fact that you would have two separate teams
+of developers, who are used to programming in different languages under different architectures, now working
+on the same codebase. Which language does that codebase choose, Java or Scala? What architecture and design
+principals does it inheret?
+
+These difficulties are not insurmountable. For instance, the GeoTrellis, GeoMesa and GeoWave projects
+collaborated on the initial development of the LocationTech project SFCurve, for dealing with space filling curve
+indexing. GeoMesa currently depends on that project, and it is on GeoTrellis's roadmap to depend on the project.
+This will mark an example of two projects in the big geospatial data community relying on a collaboratively developed
+external project. The fact that GeoTrellis, GeoMesa and SFCurve are all developed in Scala, however, makes that
+situation not completely analogous to a collaborative external project between GeoMesa and GeoWave.
+
+There are two key areas where we would suggest collaboration:
+
+##### Ingest tooling
+
+GeoMesa's ingest tooling includes several converters that go from formats such as CSV, JSON and XML to GeoTools SimpleFeatures.
+These converters are configurable through a JSON-like configuration file. Because the tooling converts from a file format to a GeoTools SimpleFeature,
+which both projects work with, either project could benefit from this feature. The GeoWave developers have expressed interest
+in an external project that would support this type of ingest tooling for ingesting into both GeoMesa and GeoWave,
+and it seems like a good point of collaboration.
+
+Also, as part of this comparative analysis's performance testing, the Azavea team created
+ingest tools that are Spark based, which use common code between the GeoMesa and GeoWave ingests.
+This already exists as an external codebase which is demonstratively useful for ingesting
+large datasets in both GeoMesa and GeoWave. This codebase is available for use and could
+serve as a starting point for collaborative ingest tooling.
+
+##### Common SimpleFeature serialization
+
+Another common aspect of the GeoMesa and GeoWave is the use of the Apache Avro
+and Kryo serialization libraries to serialize SimpleFeatures. If both
+projects were to rely on an external project to serialize and deserialize
+SimpleFeatures, data would much more simply be exchanged through the different systems.
+
+For instance, if GeoWave were to export data to set of avro files, those avro
+files would be able to be read into SimpleFeatures and ingested into GeoWave.
+In fact, because the serialization logic would be the same between projects,
+taking an Accumulo table that is indexed by GeoMesa and moving it to
+a table that is indexed by GeoWave would be a matter of simply changing
+the Accumulo entry Keys, leaving the Values (the serialized SimpleFeatures)
+the same.
+
+Serialization of SimpleFeatures is most likely of interest to the community
+even outside of these two projects. If we were to standardize on specific
+ways to serialize and deserialize SimpleFeatures, interopability in general would
+benefit. Also any performance improvements to serialization within the external
+project would benefit any project that used it.
+
+
+# Appendix A: Details of GeoMesa and GeoWave features
+
+__Note: This appendix refers to features in GeoMesa 1.2.6 and GeoWave 0.9.2__
+
+## GeoMesa Feature List
+
+### Data Ingest/Input
+
+- command line tools for interacting with geomesa, which provides the ability to
+  - Creating a geomesa datastore for accumulo
+  - Ingest SimpleFeature data
+    - Predefined, common `SimpleFeatureType`s are provided - gdelt,
+      geolife, geonames, gtd, nyctaxi, osm-gpx, tdrive, twitter
+  - Ingest rasters
+    - Supported file formats: "tif", "tiff", "geotiff", "dt0", "dt1", "dt2"
+    - Note: Raster support is limited; e.g. you are required to have the rasters pre-tiled, and they must be in the EPSG:4326 projection.
+- tools for converting various serialization formats to `SimpleFeature`s for ingest
+  - conversion mechanisms are specified by way of configuration files
+  - formats supported:
+    - delimited text (usually CSV/TSV)
+      - Currently supported formats: "CSV" | "DEFAULT", "EXCEL", "MYSQL", "TDF" | "TSV" | "TAB", "RFC4180", "QUOTED", "QUOTE_ESCAPE", "QUOTED_WITH_QUOTE_ESCAPE".
+    - fixed width
+    - avro
+    - json
+    - xml
+- support for streaming input
+  - A datastore which listens for updates from a supported streaming source
+    - A generic apache-camel based implementation of a streaming source
+  - Hooks for updating GeoServer on stream update
+- Storm/Kafka ingest (mentioned in "Other Features" below)
+
+
+### Data Processing
+
+- Spark integration
+  - Generating `RDD`s of `SimpleFeature`s
+  - Initial support for carrying out spark SQL queries to process geomesa data
+- Hadoop integration
+  - Reading data for use in a custom MapReduce job
+- Processing on Accumulo backed GeoMesa instances
+  - computing a heatmap from a provided CQL query
+  - computing statustics from a CQL query
+    - Currently supported statistics: count, enumeration, frequency
+      (countMinSketch), histogram, top-k, and min/max (bounds).
+    - Command line tools expose the following statistics:
+      count, histogram, min/max (bounds), and top-k
+  - 'Tube selection' (space/time correlated queries): This is a pretty sophisticated query mechanism. The basic idea is that, given a collection of points (with associated times), you should be able to return similar collections of points (in terms of where the lines connecting said points exist). Constraints on the query include the size of the spatial and temporal buffers (this is the sense in which we're dealing with 'tubes') and maximum speed attained by the entity whose points make up a given trajectory. Read more here: http://www.geomesa.org/documentation/tutorials/geomesa-tubeselect.html
+  - Proximity Search: Given a set of vectors to search through and a set of vectors to establish proximity, return the members of the former set which lie within the (specified) proximity of members of the latter set
+  - Query
+    - Takes advantage of accumulo optimization to carry out geomesa queries
+  - Find the K nearest neighbors to a given point
+  - Identify unique values for an attribute in results of a CQL query
+  - Convert points to lines: Convert a collection of points into a collection of line segments given a middle term parameter. Optionally break on the day of occurrence. This feature isn't really advertised.
+
+### Indices
+
+- Default Indices
+   - XZ3
+      - Notes: Default for objects with extent in GeoMesa 1.2.5.  Objects are indexed with a maximum resolution of 36 bits (12 divisions) into eighths.
+   - XZ2
+      - Notes: Default for objects with extent in GeoMesa 1.2.5.  Objects are indexed with a maximum resolution of 24 bits (12 divisions) into quarters.
+   - Z3
+      - Notes: For points, X, Y, and Time have resolutions of 21, 21, and 20 bits, respectively.
+   - Z2
+      - Notes: For points, X and Y both have resolutions of 31 bits.
+   - Record
+      - Notes: This is an index over object UUIDs.
+- Optional Indices
+   - Attribute
+      - Notes: This is an index over SimpleFeature attributes.  One can create a join index over the UUID, date, and geometry.
+   - ST
+      - Notes: Spatio-Temporal Index, Deprecated
+- Cost-Based Optimization (CBO): used to select which index to use for data ingested with multiple indexes.
+
+### Output
+- Accumulo output
+  - A reader for directly querying a datastore in java/scala
+  - Direct map/reduce exports
+- command line tools for interacting with geomesa
+  - Serialize and export stored features (vectors)
+    - Supported export formats: CSV, shapefile, geojson, GML, BIN, Avro
+- The ability to return only a subset of SimpleFeature attributes, reducing the size of return values.
+
+### Other Features
+
+- GeoMesa Native API
+  - An alternative to the geotools interface for interaction with
+    GeoMesa stores
+- HBase backend
+- Google BigTable backend
+- BLOB backend
+- Sampling of data for custom statistics
+- Cassandra backend (alpha quality)
+- A Kafka geotools datastore to pipe simplefeature types from producers, through kafka, to consumers
+- Metrics reporting
+  - Real time reporting of performance for GeoMesa instances. Supports multiple reporting backends - Ganglia, Graphite, and CSV/TSV
+
+## GeoWave Feature List
+
+### Input
+
+- Ingest from the CLI
+   - Ingest from filesystem -> GeoWave
+   - Ingest from filesystem -> HDFS -> GeoWave
+   - Stage from filesystem -> HDFS
+   - Stage from filesystem -> Kafka
+   - Ingest from Kafka -> GeoWave
+   - Ingest from HDFS -> GeoWave
+   - Notes: Requires plugins for each input file format, which are listed below in "File Formats Supported"
+- Ingest Using the API
+   - Bulk ingest via Hadoop
+   - Piecemeal via a writer object
+- File Formats Supported
+   - avro
+   - gdelt
+   - geolife
+   - geotools-raster (GeoTools-supported raster data)
+   - geotools-vector (GeoTools-supported vector data)
+   - gpx
+   - stanag4676
+   - tdrive
+   - Via Extensions existing outside the GeoWave repository:
+      - Landsat 8
+      - OpenStreetMap
+
+### Backends
+
+- Accumulo
+- HBase
+
+### Integrations
+
+- MrGeo (reading)
+- GeoTrellis - (raster and vector, reading and writing)
+- Via C++ bindings
+   - PDAL (reading and writing)
+   - mapnik (reading)
+
+### Secondary Indices
+
+- Numerical
+- Temporal
+- Textual
+- User Defined
+- See section on comparision of secondary indexing below for more details
+
+### Processing
+
+- k-means
+   - via CLI or  Map-Reduce
+- Jump Method (k-discovery)
+   - via CLI and Map-Reduce
+- Sampling
+   - via Map-Reduce
+- Kernel Density Estimation
+   - via CLI or MapReduce
+- Nearest Neighbors
+   - via CLI or MapReduce
+- Clustering
+   - via Map-Reduce
+- Convex Hulls of Clusters
+   - via Map-Reduce
+- DBSCAN
+   - via Map-Reduce
+- Spark Support
+   - Ability to load and RDD of SimpleFeatures
+
+### Output
+
+- GeoServer Plugin
+   - Includes the "decimation" feature, which allows large datasets to be shown interactively by subsampling at the pixel level.
+- Hadoop integration
+- Query
+   - GeoWave DataStore: directly construct queries via the GeoWave API
+   - GeoTools DataStore: construct queries via CQL
+   - Ability to query data that has start and end times to find intersecting time intervals.
+
+
+## Comparision of Attribute/Secondary Indices Feature
 
 Often, spatial coordinates aren't the only important condition used in searching for and filtering through a dataset. Paramedics might want to find only accidents within their geographic region but they also might only want those accidents whose 'severity' attribute is 'fatal'. For certain applications it is a matter of practical necessity that such fields are indexed for quick lookup later and both GeoMesa and GeoWave provide some tools for these purposes. It is worth mentioning that the documentation provided by both projects suggests that secondary/attribute indices are an area that will receive future focus by their respective teams. In what follows, we briefly compare the features provided by each.
 
@@ -241,7 +543,6 @@ sft.getDescriptor("severity").getUserData().put("index", "join");
 sft.getDescriptor("severity").getUserData().put("cardinality", "high");
 ```
 As seen above, two properties on this attribute index are exposed through the `UserData`: 'index' (the type of index operation) and 'cardinality' (the number of distinct values).
-
 
 #### Full/Join Indices
 The type of index - 'full' or 'join' - determines just how much data is replicated in the lookup table of the attribute index. Full indices store the entire `SimpleFeature` of a record, allowing for quick replies to indexed-attribute queries without joining against the records table. This is preferable under circumstances in which the attribute in question is regularly queried against and especially if the expected queries don't necessarily rely upon other fields for filtration. The 'join' index stores only the data necessary for identifying the values in the records table which satisfy the provided predicate and is therefore useful for preserving storage resources.
@@ -277,16 +578,7 @@ Another Point of divergence between these projects in terms of extra index suppo
 Documentation for GeoWave mentions the possibility of adding n-gram based fuzzy indexing of text fields (so that searches based on a subset of the data in a field can be used). It appears as though this feature is already in the works, as an n-gram table is currently generated on ingest in the development branch of GeoWave.
 
 
-# Appendix B: Machine Specs
-Across all tests, though the machine counts differed (cluster-size is mentioned where appropriate), the types of machines used were constant and role dependent:
-
-|                | Instance Type | vCPU | Mem (GB) | Storage (Drives x GB) |
-|----------------|---------------|------|----------|-----------------------|
-| Query Server   | m3.large      | 2    | 7.5      | 1x32                  |
-| Cluster Master | m3.xlarge     | 4    | 15       | 2x40                  |
-| Cluster Worker | m3.2xlarge    | 8    | 30       | 2x80                  |
-
-# Appendix C: Details of Ingest Tooling
+# Appendix B: Details of Ingest Tooling
 
 The datasets that were tested as part of the performance testing were ingested into GeoWave and GeoMesa through the development of a Spark based ingest tool.
 This ingest tool has a common codebase for creating an `RDD[SimpleFeature]` out of the varios raw data formats; it also includes Spark-based writers
@@ -305,7 +597,7 @@ platform for performing ingests into big geospatial data systems.
 
 
 
-# Appendix D: Ingest notes
+# Appendix C: Details of Ingested Data
 
 ## Geolife
 
@@ -506,7 +798,7 @@ There is more entries here, which can be explained by the fact that GeoWave can 
 
 - 218.93 GB (30.43%)
 
-# Appendix E: Details of Serial Queries and Results
+# Appendix D: Details of Serial Queries and Results
 
 The following queries and results were executed serially, so that only one query was ever executing at a time on either the GeoWave or GeoMesa system.
 
@@ -793,7 +1085,7 @@ But for GeoWave, the performance seems to be correlated with the size of the tem
 
 ![Durations by result, by level](img/tracks/geowave-duration-by-result-count-and-days.png)
 
-# Appendix F: Details of Multitenancy Stress Tests
+# Appendix E: Details of Multitenancy Stress Tests
 
 In multitenancy tests we are interested in examining the behavior of the systems under heavy and dynamic query load.
 This simulates a common deployment in which the Accumulo cluster is a shared resource backing a group of application servers.
@@ -908,7 +1200,7 @@ GeoWave index trades minimum response time for more consistent and on average fa
 ![gm-32-response](img/multitenancy/gm-32-responses.png)
 
 
-# Appendix G: Details of Performance Test Conclusions
+# Appendix F: Details of Performance Test Conclusions
 
 In the course of our performance comparisons, we were able to characterize some scenarios in which the two systems displayed definably different behavior.
 In this appendix, we define those scenarios, and we discuss some possible causes for those differences.
