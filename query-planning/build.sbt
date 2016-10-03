@@ -35,10 +35,16 @@ lazy val commonSettings = Seq(
 lazy val root = (project in file("."))
   .settings(commonSettings: _*)
 
+lazy val common = (project in file("common"))
+  .dependsOn(root)
+  .settings(commonSettings: _*)
+
 lazy val wavePlan = (project in file("wave-plan"))
   .dependsOn(root)
+  .dependsOn(common)
   .settings(commonSettings: _*)
 
 lazy val mesaPlan = (project in file("mesa-plan"))
   .dependsOn(root)
+  .dependsOn(common)
   .settings(commonSettings: _*)
