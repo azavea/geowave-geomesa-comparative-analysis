@@ -6,12 +6,13 @@
 > A feature comparison and a set of performance tests with analysis are presented.
 > We have concluded that despite a large set of overlapping features, most specifically around indexing
 > and querying spatial and spatiotemporal data in Accumulo, the projects differ from each other in a variety of ways.
-> Through analyzing performance test data, we make three conclusions about the performance characteristics
+> Through analyzing performance test data, we make four conclusions about the performance characteristics
 > of the current versions of the systems (GeoMesa 1.2.6 and GeoWave 0.9.3) for the use case of indexing spatial and spatiotemporal data in Accumulo:
 > 1. GeoMesa performed better against queries with large result counts while GeoWave performed better
 > on smaller result sets; 2. GeoWave performed better against queries with larger temporal bounds, while
 > GeoMesa performed better when the temporal bounds were smaller (around a couple of weeks or less);
-> and 3. GeoWave outperformed GeoMesa in multitenancy use cases, where there are 16 to 32 queries being
+> 3. GeoMesa performed better in the non-point dataset use case, and
+> 4. GeoWave outperformed GeoMesa in multitenancy use cases, where there are 16 to 32 queries being
 > executed against the system in parallel. We also find the two systems perform reasonably well
 > in all cases, and that neither system was dominant in performance characteristics. We provide recommendations
 > for way the two projects can collaborate moving forward in light of this analysis.
@@ -280,12 +281,13 @@ A general conclusion that we reached was that differences in the query planning 
 GeoWave uses a sophisticated algorithm to compute its query plans, and GeoMesa uses a faster (but less thorough) algorithm.
 The net effect is that GeoWave tends to spend more time on query planning, but with greater selectivity (fewer false positives in the ranges which must later be filtered out).
 
-There are three major results that we believe can be explained by this difference in query planning algorithms:
+There are four major results that we believe can be explained by this difference in query planning algorithms:
 - GeoMesa tends to perform better as the result set size of queries increases.
 - GeoMesa tends to perform worse as the temporal window of queries increases. This result can be mitigated by the configuration of the periodicity of the GeoMesa index.
-- GeoWave tends to perform much better in multitenancy situations.
+- GeoMesa consistently outperformed GeoMesa in the non-point use case.
+- GeoWave consistently performed much better in multitenancy situations.
 
-Details on how the query planning causes these results can be found in _Appendix F: Details of Performance Test Conclusions_.
+Details on how the query planning effects these results can be found in _Appendix F: Details of Performance Test Conclusions_.
 
 One notable result found is that GeoWave performs better on the GDELT dataset if a hashing partition
 strategy is used with four partitions. For analogous use cases, we recommend using the partitioning feature of GeoWave.
@@ -587,17 +589,23 @@ sft.getDescriptor("severity").getUserData().put("cardinality", "high");
 As seen above, two properties on this attribute index are exposed through the `UserData`: 'index' (the type of index operation) and 'cardinality' (the number of distinct values).
 
 #### Full/Join Indices
-The type of index - 'full' or 'join' - determines just how much data is replicated in the lookup table of the attribute index. Full indices store the entire `SimpleFeature` of a record, allowing for quick replies to indexed-attribute queries without joining against the records table. This is preferable under circumstances in which the attribute in question is regularly queried against and especially if the expected queries don't necessarily rely upon other fields for filtration. The 'join' index stores only the data necessary for identifying the values in the records table which satisfy the provided predicate and is therefore useful for preserving storage resources.
+This type of index - 'full' or 'join' - determines how much data is replicated in the lookup table of the attribute index.
+Full indices store the entire `SimpleFeature` of a record, allowing for quick replies to indexed-attribute queries without joining against the records table.
+This is preferable under circumstances in which the attribute in question is regularly queried against and especially if the expected queries don't necessarily rely upon other fields for filtration.
+The 'join' index stores only the data necessary for identifying the values in the records table which satisfy the provided predicate and is therefore useful for preserving storage resources.
 
 #### Low/High Index Cardinality
-The utility of this distinction is somewhat unclear. A high cardinality index has enough values that we can expect any filtering it does to significantly slim down the number of returned records (thus, a query against a high cardinality index is given priority) while a low cardinality index seems to be ignored. The user documentation under ['Data Management'](http://www.geomesa.org/documentation/user/data_management.html) notes (as of 10/01/2016) that "technically you may also specify attributes as low-cardinality - but in that case it is better to just not index the attribute at all."
+The utility of this distinction is somewhat unclear. A high cardinality index has enough values that we can expect any filtering it does to significantly slim down the number of returned records
+(thus, a query against a high cardinality index is given priority) while a low cardinality index seems to be ignored.
+The user documentation under ['Data Management'](http://www.geomesa.org/documentation/user/data_management.html) notes (as of 10/01/2016) that "technically you may also specify attributes as low-cardinality - but in that case it is better to just not index the attribute at all."
 
 ### Client Code Difficulties
-As of 1.2.6, it appears as though a library which is shaded in GeoMesa client code needs to be appropriately shaded in any ingest client code which intends to take advantage of attribute indices. The fix for this issue can be found in [a commit](https://github.com/locationtech/geomesa/commit/2335a8856cc9b2388532209b4a6e61f925f2dd20) which made its way into 1.2.6.
-
+As of 1.2.6, it appears as though a library which is shaded in GeoMesa client code needs to be appropriately shaded in any ingest client code which intends to take advantage of attribute indices.
+The fix for this issue can be found in [a commit](https://github.com/locationtech/geomesa/commit/2335a8856cc9b2388532209b4a6e61f925f2dd20) which made its way into 1.2.6.
 
 ### GeoWave Secondary Indices
-Unlike GeoMesa, each secondary index gets its own table. Again, unlike GeoMesa, setting these secondary indices up is *not* a simple, two-line affair. Figuring out how to actually use these secondary indexes was not obvious or straightforward from the documentation.
+Unlike GeoMesa, each secondary index gets its own table. Unlike GeoMesa, setting these secondary indices up is *not* a simple, two-line affair.
+Figuring out how to actually use these secondary indexes was not obvious or straightforward from the documentation.
 
 Here we modify the same `SimpleFeatureType` for extra indexing on ingest as above:
 ```scala
@@ -611,33 +619,38 @@ config.updateType(sft)
 ```
 
 #### Index Cardinality
-Unlike GeoMesa, cardinality of indices isn't a static feature configured by the user. GeoWave's query planning and optimization attempts to determine the usefulness of an index for a given query based on the statistics it gathers on ingest.
+Unlike GeoMesa, cardinality of indices isn't a static feature configured by the user.
+GeoWave's query planning and optimization attempts to determine the usefulness of an index for a given query based on the statistics it gathers on ingest.
 
 #### Specialized Index Types
-Another Point of divergence between these projects in terms of extra index support is GeoWave's intent to support specialized indices which can take advantage of various assumptions which are domain specific. Exact-match (as opposed to fuzzy) indices for text are not the same as exact indices for numbers or dates or even fuzzy indexing (through n-grams) of that same text. The specialization here makes it possible for GeoWave to index in ways that are sensitive to the types of data in question and even to the expectations of use (i.e. fuzzy vs exact and range-based vs exact queries).
+Another point of divergence between these projects in terms of extra index support is GeoWave's intent to support specialized indices
+which can take advantage of various assumptions which are domain specific. Exact-match (as opposed to fuzzy) indices for text are not the
+same as exact indices for numbers or dates or even fuzzy indexing (through n-grams) of that same text. The specialization here makes it possible
+for GeoWave to index in ways that are sensitive to the types of data in question and even to the expectations of use (i.e. fuzzy vs exact and range-based vs exact queries).
 
 #### Future Development
-Documentation for GeoWave mentions the possibility of adding n-gram based fuzzy indexing of text fields (so that searches based on a subset of the data in a field can be used). It appears as though this feature is already in the works, as an n-gram table is currently generated on ingest in the development branch of GeoWave.
+Documentation for GeoWave mentions the possibility of adding n-gram based fuzzy indexing of text fields (so that searches based on a subset of the data in a field can be used).
+It appears as though this feature is already in the works, as an n-gram table is currently generated on ingest in the development branch of GeoWave.
 
 
 # Appendix B: Details of Ingest Tooling
 
 The datasets that were tested as part of the performance testing were ingested into GeoWave and GeoMesa through the development of a Spark based ingest tool.
-This ingest tool has a common codebase for creating an `RDD[SimpleFeature]` out of the varios raw data formats; it also includes Spark-based writers
-for writing those `RDD[SimpleFeature]`'s into GoeMesa and GeoWave. While the tooling uses GeoWave and GeoMesa functionality for actually writing the data
-to Accumulo, and has been reviewed by the GeoWave and GeoMesa core development teams, we felt it necessary to explain our reasons for not using
-the project's own ingest tooling for this effort. This can be explained in the following reasons:
-- Though both tools are relatively well documented, the large number of arguments necessary for even the simplest interaction can be intimidating for new users. The unwieldy nature of both tools is likely fallout from the high degree of complexity in the underlying systems rather than any obvious inadequacy in the design of either project.
-- We were not able to complete early experiments with GeoWave’s command line tooling for the out-of-the-box Map-Reduce ingest support was because of Hadoop classpath issues. Due to the size and scope of the data being used, local ingests were deemed insufficiently performant.
-- Because the systems we’re comparing for usability and performance are so complex, equivalent (to the extent that this is possible) schemas (which are encoded GeoTools SimpleFeatureTypes for our purposes) are desirable. Building simple features and their types explicitly within the body of a program proved to be relatively simple to reason about, and there were concerns about the ingesting data exactly matching, and by using our own tooling we had better control
+This ingest tool has a common codebase for creating an `RDD[SimpleFeature]` out of the various raw data formats; it also includes Spark-based writers
+for writing those `RDD[SimpleFeature]`'s into GoeMesa and GeoWave.
+While the tooling uses GeoWave and GeoMesa functionality for writing the data
+to Accumulo, and has been reviewed by the GeoWave and GeoMesa core development teams,
+we felt it necessary to explain our reasons for not using the project's own ingest tooling for this effort.
+This can be explained in the following reasons:
+- Though both tools are relatively well documented, the large number of arguments necessary for even the simplest interaction can make it difficult for users who are unfamiliar with the tooling to not fall into traps and get stuck on errors. The unwieldy nature of both tools is likely fallout from the high degree of complexity in the underlying systems rather than any obvious inadequacy in the design of either project.
+- We were not able to complete early experiments with GeoWave’s command line tooling for the out-of-the-box Map-Reduce ingest support. This was likely because of Hadoop classpath issues. Due to the size and scope of the data being used, local ingests were deemed insufficiently performant.
+- Because the systems we were comparing for usability and performance are so complex, equivalent (to the extent that this is possible) schemas, which are encoded GeoTools SimpleFeatureTypes for our purposes, were desirable. Building simple features and their types explicitly within the body of a program proved to be relatively simple to reason about, and there were concerns about the ingesting data exactly matching. By using our own tooling we had better control over this aspect of the ingest process.
 
 For these reason, we chose to develop our own ingest tooling.
 A negative impact that this has is that we were unable to compare the performance of the ingest process between the tools.
-A positive that can be gained from this effort is if the ingest tooling codebase can be merged with GeoMesa and GeoWave ingest
+A potential positive result that can be gained from this effort would be for ingest tooling codebase to be merged with GeoMesa and GeoWave ingest
 tooling and concepts, as well as similar ingest tooling for projects such as GeoTrellis, to provide a common
 platform for performing ingests into big geospatial data systems.
-
-
 
 # Appendix C: Details of Ingested Data
 
@@ -685,17 +698,15 @@ DFS Used: 34.85 GB (4.84%)
 
 ###### Entries per tablet server
 
-The entires per tablet server server show that all entires are on one of the 5 workers,
-which will dramatically affect performance. In order to correct that,
-we change the split size and compact the table.
+The entires per tablet server server showed that all entires were on one of the 5 workers,
+which would have dramatically affected performance. In order to correct that,
+we changed the split size and compact the table.
 
-To get more splits, we execute the following command:
+To get more splits, we executed the following command in the accumulo shell, and then compacted the tables:
 
 ```
 config -t geowave.geolife_SPATIAL_IDX -s table.split.threshold=100M
-compact -t geowave.geolife_SPATIAL_IDX
 config -t geowave.geolife_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR_POINTONLY -s table.split.threshold=100M
-compact -t geowave.geolife_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR_POINTONLY
 ```
 
 This gave the following entries per table:
@@ -706,7 +717,6 @@ This gave the following entries per table:
 ###### HDFS usage report
 
 - DFS Used: 12.5 GB (1.74%)
-
 
 ## GDELT
 
@@ -844,8 +854,8 @@ There is more entries here, which can be explained by the fact that GeoWave can 
 
 The following queries and results were executed serially, so that only one query was ever executing at a time on either the GeoWave or GeoMesa system.
 
-This is not a complete list of the queries; that can be found in the source code for the service endpoints.
-We will consider and analyze only a subset that we found interesting.
+This is not a complete list of the queries, which can be found in the source code for the service endpoints.
+We considered and analyzed only a subset that we found interesting.
 
 > Disclaimer
 >
@@ -863,13 +873,15 @@ We will consider and analyze only a subset that we found interesting.
 - In the following results, if we specify that outliers were removed, they were removed via the interquartile range rule.
 - All maps were generated with `geojson.io`, basemaps © OpenStreetMap contributors
 
-Throughout all results, unless otherwise noted, we will be following this general color scheme:
+Throughout all results, unless otherwise noted, we follow this general color scheme:
 
 ![Legend SIZE::20](img/legend.png)
 
 ### GeoLife
 
-Test for GeoLife were performed on EMR 5.0.0 clusters of one m3.2xlarge master and three m3.2xlarge workers. The GeoLife dataset was ingested with default 2D and 3D indexes for both systems. See the appendix for details about machine specs and ingest results.
+Test for GeoLife were performed on EMR 5.0.0 clusters of one m3.2xlarge master and three m3.2xlarge workers.
+The GeoLife dataset was ingested with default 2D and 3D indexes for both systems.
+See the appendix for details about machine specs and ingest results.
 
 ###### Spatial queries of Beijing
 
@@ -877,7 +889,8 @@ We used the Beijing geojson from Mapzen's borders dataset, which can be found in
 
 ![Beijing polygon SIZE::60](img/beijing-poly.png)
 
-We then queried the city of Beijing over the whole time of the dataset. We tracked results for both iterating over the resulting SimpleFeatures.
+We then queried the city of Beijing over the whole time of the dataset.
+We tracked results for both iterating over the resulting SimpleFeatures.
 Here are the timing results for that test, with outliers removed:
 
 ![GEOLIFE-IN-BEIJING-ITERATE](img/geolife-beijing-iterate.png)
@@ -886,7 +899,8 @@ These queries take a long time; this makes sense, as they are iterating over __1
 
 ###### Spatial queries of central Beijing
 
-To test on queries with smaller result set, we using `geojson.io` to draw a rough polygon around the center of Beijing, we then performed spatial-only queries using this polygon:
+To test on queries with smaller result set, we using `geojson.io` to draw a rough polygon around the center of Beijing.
+We then performed spatial-only queries using this polygon:
 
 ![Beijing Center SIZE::60](img/beijing-center.png)
 
@@ -1012,7 +1026,10 @@ to having the following configuration:
 - Both systems configured to have a periodicity of one year, with default sharding
 - Both systems configured to have a periodicity of one year, with 4 shards being generated by a hashing algorithm
 
-The last configuration produced improvements in timing results for the City Buffer queries, which we will explore below,
+We attempted to test a configuration where both systems had a periodicity of one week, but this configuration
+produces GeoWave results that were incorrect.
+
+The last configuration in the list above produced improvements in timing results for the City Buffer queries, which we will explore below,
 and be referred to as the "matched" index configuration.
 
 This graph shows the durations of 14 day queries averages broken into the same result count quartiles.
