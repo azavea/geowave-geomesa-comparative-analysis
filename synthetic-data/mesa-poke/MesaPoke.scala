@@ -1,6 +1,4 @@
-package com.azavea.geomesa
-
-import com.azavea.common._
+package com.azavea.ca.synthetic
 
 import org.apache.spark.{SparkConf, SparkContext}
 import org.geotools.data._

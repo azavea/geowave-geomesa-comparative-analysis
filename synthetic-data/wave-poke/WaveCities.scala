@@ -1,6 +1,6 @@
-package com.azavea.geowave
+package com.azavea.ca.synthetic
 
-import com.azavea.common._
+import com.azavea.ca.synthetic._
 
 import mil.nga.giat.geowave.core.geotime.index.dimension._
 import mil.nga.giat.geowave.core.geotime.index.dimension.TemporalBinningStrategy.{ Unit => BinUnit }

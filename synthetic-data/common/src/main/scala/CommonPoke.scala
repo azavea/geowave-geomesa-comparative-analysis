@@ -1,4 +1,4 @@
-package com.azavea.common
+package com.azavea.ca.synthetic
 
 
 class CommonPoke {

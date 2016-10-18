@@ -1,4 +1,4 @@
-package com.azavea.common
+package com.azavea.ca.synthetic
 
 import spray.json._
 import spray.json.DefaultJsonProtocol._

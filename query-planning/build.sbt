@@ -1,25 +1,8 @@
 import sbtassembly.PathList
 
-val generalDependencies = Seq(
-  "org.geotools" % "gt-coverage" % Version.geotools,
-  "org.geotools" % "gt-epsg-hsql" % Version.geotools,
-  "org.geotools" % "gt-geotiff" % Version.geotools,
-  "org.geotools" % "gt-main" % Version.geotools,
-  "org.geotools" % "gt-referencing" % Version.geotools,
-  "com.vividsolutions" % "jts-core" % Version.jts,
-  "org.apache.accumulo" % "accumulo-core" % Version.accumulo
-    exclude("org.jboss.netty", "netty")
-    exclude("org.apache.hadoop", "hadoop-client"),
-  "org.apache.hadoop" % "hadoop-client" % Version.hadoop
-)
-
-val extraResolvers = Seq(
-  "geotools 1" at "http://download.osgeo.org/webdav/geotools/",
-  "geotools 2" at "https://repo.boundlessgeo.com/release/"
-)
 
 lazy val commonSettings = Seq(
-  organization := "com.azavea",
+  organization := "com.azavea.ca",
   version := "0",
   scalaVersion := "2.11.8",
   test in assembly := {},
@@ -51,20 +34,17 @@ lazy val commonSettings = Seq(
 
 lazy val root = (project in file("."))
   .settings(commonSettings: _*)
-  .settings(libraryDependencies ++= generalDependencies)
 
 lazy val common = (project in file("common"))
   .dependsOn(root)
   .settings(commonSettings: _*)
 
-lazy val mesaPoke = (project in file("mesa-poke"))
+lazy val wavePlan = (project in file("wave-plan"))
   .dependsOn(root)
   .dependsOn(common)
   .settings(commonSettings: _*)
-  .settings(resolvers ++= extraResolvers)
 
-lazy val wavePoke = (project in file("wave-poke"))
+lazy val mesaPlan = (project in file("mesa-plan"))
   .dependsOn(root)
   .dependsOn(common)
   .settings(commonSettings: _*)
-  .settings(resolvers ++= extraResolvers)
