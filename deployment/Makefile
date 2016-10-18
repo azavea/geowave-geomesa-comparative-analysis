@@ -25,7 +25,7 @@ export EXECUTOR_CORES := 2
 export YARN_OVERHEAD := 700
 
 # Docker image of benchmarking service
-export SERVICE_TAG := eac42
+export SERVICE_TAG := eac43
 export SERVICE_IMG := quay.io/geotrellis/comparative-analysis-query-server:${SERVICE_TAG}
 
 SPARK_PARAMS := --driver-memory ${DRIVER_MEMORY} \
@@ -39,12 +39,13 @@ SPARK_PARAMS := --driver-memory ${DRIVER_MEMORY} \
 SPARK_OPTIONS := --master yarn \
 --deploy-mode cluster ${SPARK_PARAMS}
 
-GEODOCKER_BOOTSTRAP=s3://geotrellis-test/geodocker/bootstrap-geodocker-accumulo.sh
+GEODOCKER_BOOTSTRAP=s3://geotrellis-test/geodocker/accumulo-0.2/bootstrap-geodocker-accumulo.sh
 
 EMR_IP=$(shell $(warning "Waiting for emr cluster ${1}") \
   aws emr wait cluster-running --cluster-id ${1} 1>&2 \
 	&& aws emr describe-cluster --output json  --cluster-id ${1} | jq -r '.Cluster.MasterPublicDnsName')
 
+ACCUMULO_ARGS="-e=MASTER_XMX=3g,-e=TSERVER_XMX=24g,-e=TSERVER_CACHE_DATA_SIZE=16g,-e=TSERVER_CACHE_INDEX_SIZE=4g"
 define EMR_CREATE_CLUSTER
 	$(warning "Creating ${1} cluster")
 	aws emr create-cluster --name "CA ${STACK_NAME} ${1}" \
@@ -57,7 +58,7 @@ define EMR_CREATE_CLUSTER
 --instance-groups \
 Name=Master,InstanceCount=1,InstanceGroupType=MASTER,InstanceType=${MASTER_INSTANCE} \
 Name=Workers,InstanceCount=${WORKER_COUNT},InstanceGroupType=CORE,InstanceType=${WORKER_INSTANCE} \
---bootstrap-actions Name=bootstrap-${1},Path=${GEODOCKER_BOOTSTRAP},Args=[-i=${2},-n=gis,-p=secret] \
+--bootstrap-actions Name=bootstrap-${1},Path=${GEODOCKER_BOOTSTRAP},Args=[-i=${2},-n=gis,-p=secret,${ACCUMULO_ARGS}] \
 | tee ${STACK_NAME}-${1}-cluster-id.txt
 endef
 
@@ -68,10 +69,10 @@ GEOWAVE_ZOOKEEPER=$(call EMR_IP,${GEOWAVE_CLUSTER_ID})
 GEOMESA_ZOOKEEPER=$(call EMR_IP,${GEOMESA_CLUSTER_ID})
 
 ${STACK_NAME}-geomesa-cluster-id.txt:
-	$(call EMR_CREATE_CLUSTER,geomesa,quay.io/geodocker/accumulo-geomesa)
+	$(call EMR_CREATE_CLUSTER,geomesa,quay.io/geodocker/accumulo-geomesa:0.2)
 
 ${STACK_NAME}-geowave-cluster-id.txt:
-	$(call EMR_CREATE_CLUSTER,geowave,quay.io/geodocker/accumulo-geowave)
+	$(call EMR_CREATE_CLUSTER,geowave,quay.io/geodocker/accumulo-geowave:0.2)
 
 rwildcard=$(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
 
