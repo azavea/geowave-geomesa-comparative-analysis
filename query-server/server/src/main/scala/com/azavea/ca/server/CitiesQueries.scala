@@ -526,13 +526,7 @@ object CitiesQueries
                         (regionName, geom) <- regions) yield {
                     val suffix = s"$timeSuffix-$city-$regionName"
                     val query = ECQL.toFilter(CQLUtils.intersects(geomField, geom) + " AND " + tq.toCQL(timeField))
-                    // captureAndSave(s"${queryName}-${suffix}", isTestOpt, isLooseOpt, waveOrMesa, query)
-                     val mesa: TestResult = captureGeoMesaQuery(query)
-                     val wave: TestResult = captureGeoWaveQuery(query)
-
-                     val result = RunResult(s"${queryName}-${suffix}", mesa, wave, isTest)
-                     DynamoDB.saveResult(result)
-                     result
+                    captureAndSave(s"${queryName}-${suffix}", isTestOpt, isLooseOpt, waveOrMesa, query)
                   }).toArray
 
                 }
