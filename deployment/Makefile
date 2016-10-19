@@ -45,7 +45,6 @@ EMR_IP=$(shell $(warning "Waiting for emr cluster ${1}") \
   aws emr wait cluster-running --cluster-id ${1} 1>&2 \
 	&& aws emr describe-cluster --output json  --cluster-id ${1} | jq -r '.Cluster.MasterPublicDnsName')
 
-ACCUMULO_ARGS="-e=MASTER_XMX=3g,-e=TSERVER_XMX=24g,-e=TSERVER_CACHE_DATA_SIZE=16g,-e=TSERVER_CACHE_INDEX_SIZE=4g"
 define EMR_CREATE_CLUSTER
 	$(warning "Creating ${1} cluster")
 	aws emr create-cluster --name "CA ${STACK_NAME} ${1}" \
@@ -61,6 +60,8 @@ Name=Workers,InstanceCount=${WORKER_COUNT},InstanceGroupType=CORE,InstanceType=$
 --bootstrap-actions Name=bootstrap-${1},Path=${GEODOCKER_BOOTSTRAP},Args=[-i=${2},-n=gis,-p=secret,${ACCUMULO_ARGS}] \
 | tee ${STACK_NAME}-${1}-cluster-id.txt
 endef
+
+ACCUMULO_ARGS:=-e=MASTER_XMX=3G,-e=TSERVER_XMX=24G,-e=TSERVER_CACHE_DATA_SIZE=16G,-e=TSERVER_CACHE_INDEX_SIZE=4G
 
 GEOWAVE_CLUSTER_ID=$(shell cat ${STACK_NAME}-geowave-cluster-id.txt)
 GEOMESA_CLUSTER_ID=$(shell cat ${STACK_NAME}-geomesa-cluster-id.txt)
