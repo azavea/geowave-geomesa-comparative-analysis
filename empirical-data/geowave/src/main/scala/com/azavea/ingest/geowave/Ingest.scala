@@ -22,7 +22,7 @@ import mil.nga.giat.geowave.core.index.simple.HashKeyIndexStrategy
 import mil.nga.giat.geowave.core.index.simple.RoundRobinKeyIndexStrategy
 import mil.nga.giat.geowave.core.store.DataStore
 import mil.nga.giat.geowave.core.store.index.{PrimaryIndex, CustomIdIndex}
-import mil.nga.giat.geowave.core.store.index.writer.IndexWriter
+import mil.nga.giat.geowave.core.store.IndexWriter
 import mil.nga.giat.geowave.core.store.operations.remote.options.IndexPluginOptions
 import mil.nga.giat.geowave.core.store.operations.remote.options.IndexPluginOptions.PartitionStrategy
 import mil.nga.giat.geowave.datastore.accumulo._
@@ -142,10 +142,10 @@ object Ingest {
     val ops = getOperations(params)
     for(index <- indexes(params)) {
       ops.createTable(
-	StringUtils.stringFromBinary(index.getId.getBytes),
-	true,
+        StringUtils.stringFromBinary(index.getId.getBytes),
         true,
-	index.getIndexStrategy.getNaturalSplits
+        true,
+        index.getIndexStrategy.getNaturalSplits
       )
     }
 

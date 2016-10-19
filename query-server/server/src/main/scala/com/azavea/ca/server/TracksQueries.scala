@@ -27,21 +27,6 @@ object TracksQueries
   val gmTableName = "geomesa.tracks"
   val gmFeatureTypeName = "generated-tracks"
 
-  def capture(isLooseOpt: Option[String], waveOrMesa: String, cql: String): (Option[TestResult], Option[TestResult]) = {
-    val query = ECQL.toFilter(cql)
-    if(waveOrMesa == "wm") {
-      val mesa: TestResult = captureGeoMesaQuery(query, checkIfIsLoose(isLooseOpt))
-      val wave: TestResult = captureGeoWaveQuery(query)
-      (Some(mesa), Some(wave))
-    } else if (waveOrMesa == "w") {
-      val wave: TestResult = captureGeoWaveQuery(query)
-      (None, Some(wave))
-    } else {
-      val mesa: TestResult = captureGeoMesaQuery(query, checkIfIsLoose(isLooseOpt))
-      (Some(mesa), None)
-    }
-  }
-
   def queryRoute(queryName: String, cql: String) = get {
     pathEndOrSingleSlash {
       parameters('test ?, 'loose ?, 'waveOrMesa ? "wm") { (isTestOpt, isLooseOpt, waveOrMesa) =>
@@ -82,7 +67,7 @@ object TracksQueries
       pathPrefix("ping") {
         pathEndOrSingleSlash {
           get {
-            complete { Future { "pong?" } } }
+            complete { Future { "pong42" } } }
         }
       } ~
       pathPrefix("reset") {
@@ -160,7 +145,7 @@ object TracksQueries
             queryGridRoute(s"TRACKS-USA-GRID-${testContext.toUpperCase}-5DAY", Period.ofDays(5))
           } ~
           pathPrefix("1-week") {
-            queryGridRoute(s"TRACKS-USA-GRID--${testContext.toUpperCase}-1WEEK", Period.ofWeeks(1))
+            queryGridRoute(s"TRACKS-USA-GRID-${testContext.toUpperCase}-1WEEK", Period.ofWeeks(1))
           } ~
           pathPrefix("9-day") {
             queryGridRoute(s"TRACKS-USA-GRID-${testContext.toUpperCase}-9DAY", Period.ofDays(9))
