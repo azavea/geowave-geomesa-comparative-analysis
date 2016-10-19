@@ -10,7 +10,7 @@ import scala.util.Random
 
 object CitiesSimulation {
   val IS_TEST = "false"
-  val TEST_CONTEXT = "MT3"
+  val TEST_CONTEXT = "MT3_G"
 
   def cityTests = Vector(
     "in-city-buffers-six-days",
@@ -107,18 +107,10 @@ class GdeltStress(target: GeoTarget, host: String) extends Simulation {
 
 class WaveGdeltStress extends GdeltStress(
   target = GeoWave,
-  host = "http://tf-lb-20160930144456278182977zdu-1322523926.us-east-1.elb.amazonaws.com"
+  host = "http://tf-lb-20161019111842216872374e2y-767728130.us-east-1.elb.amazonaws.com"
 )
 
-class MesaV2GdeltStress extends GdeltStress (
+class MesaGdeltStress extends GdeltStress (
   target = GeoMesa,
-  host = "http://tf-lb-20160930193253991640372343-1540097209.us-east-1.elb.amazonaws.com"
+  host = "http://tf-lb-20161019112001173307627lkn-392956086.us-east-1.elb.amazonaws.com"
 )
-
-class MesaV3GdeltStress extends GdeltStress (
-  target = GeoMesa,
-  host = "http://tf-lb-20160930220530447354535arq-954826942.us-east-1.elb.amazonaws.com"
-)
-
-// GDELT_V2    host = "http://tf-lb-20160930193253991640372343-1540097209.us-east-1.elb.amazonaws.com"
-  // GDELT_V3 host = "http://tf-lb-20160930220530447354535arq-954826942.us-east-1.elb.amazonaws.com"
