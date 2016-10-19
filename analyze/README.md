@@ -1,5 +1,10 @@
-AWS DynamoDBtoCSV
-==================
+# Analyze
+
+```
+node dynamoDBtoCSV.js -t gwgm-ca-run-results > gwgm-ca-run-results-Sept27.csv
+```
+
+## README from DynamoDBtoCSV project
 
 [![Join the chat at https://gitter.im/edasque/DynamoDBtoCSV](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/edasque/DynamoDBtoCSV?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
@@ -40,7 +45,7 @@ Full syntax is:
     	-h, --help               output usage information
     	-V, --version            output the version number
     	-t, --table [tablename]  Add the table you want to output to csv
-    	-d, --describe           
+    	-d, --describe
 
 
 Pre-requisites
@@ -48,10 +53,10 @@ Pre-requisites
 You'll need to install a few modules, including:
 * aws-sdk
 * commander
-	
+
 	npm install
 
-should do it. 
+should do it.
 
 Example output
 --------------

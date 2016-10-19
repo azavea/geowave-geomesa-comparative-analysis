@@ -24,6 +24,8 @@ all_good = ['j-Q6SLDGT5OIA0',
             'j-224ANWOQ9RL3V',
             'j-3G1WOHPKBA7HO']
 
+cluserIds = all_good
+
 results = {}
 
 with open(path, 'rb') as csvfile:

@@ -1,5 +1,15 @@
 # Comparative Analysis Deployment
 
+Though equivalence of development and deployment environments is ideal, it is often difficult to achieve in practice. While a local cluster with GeoDocker can currently be brought online with a single command, we opted to use the YARN, Zookeeper, and HDFS which is distributed on Amazon EMR to support GeoDocker’s Accumulo processes. This was done primarily out of expedience: both projects currently document an EMR-based deployment and the administration of these EMR managed technologies is complex enough to warrant some slippage between development and deployment if the differences mitigate the complexity of running long-lived clusters.
+	Pictured below is a rough diagram of the deployment most consistently used throughout our efforts. The entire infrastructure for actually running queries and collecting timings runs on AWS and orchestrated through a combination of makefiles (a simple tool for organizing common tasks) and Hashicorp’s Terraform which provides the means for specifying, in an idempotent fashion, a set of AWS resources. The machines and the software running on top of them were not especially tuned for performance. Instead, we opted to use default settings to see how each system operates under plausible (though likely non-optimal) circumstances.
+
+![Test environment architecture](../docs/img/test-environment-architecture.png)
+
+To bring this system online, requests are sent over the AWS command line client to bring up EMR clusters of whatever size is required (typically 3 or 5 workers) for each of GeoMesa and GeoWave. Once the bare EMR cluster is online, Docker images for GeoServer, Accumulo and the GeoWave or GeoMesa iterators are pulled down and run. Upon loading both GeoWave and GeoMesa their generated cluster IDs are used to register them with a cluster of ECS query servers (each of which is identical and stateless to allow for simple scaling). These ECS-backed query servers all sit behind an AWS load balancer to ensure adequate throughput so that the likelihood of testing artifacts due to network problems is reduced.
+Once the system is online with data ingested (see the next section for details on our handling of this task), there’s still the question of persisting the results of queries. To simplify and centralize the process, we opted to use an AWS DynamoDB table which the query servers write timings and other important data to at the end of their response cycles. By keeping all timings in Amazon’s cloud, results are further insulated from network-related artifacts.
+
+## Details
+
 To run a benchmark requires three components:
     - An Accumulo cluster running GeoWave
     - An Accumulo cluster running GeoMesa
@@ -13,6 +23,7 @@ We use Terraform to simplify the deployment of somewhat large number of componen
 
 Inputs to ECS service are listed in `variables.tf`.
 
+You can quickly update the container used by ECS for a given set of GeoWave and GeoMesa clusters by altering the tag (or, indeed, the image name) of the query server’s container in the deployment Makefile, modified query server code is pulled down and run by the machines on Amazon ECS.
 
 ## Accumulo Clusters
 Both the GeoWave and GeoMesa clusters are started on EMR, using GeoDocker images.

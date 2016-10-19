@@ -45,10 +45,10 @@ object GdeltIngest {
       csvExtension = ".gz",
       temporal = true,
       pointOnly = true,
-      calcStats = false,
-      period = "year",
-      numPartitions = 4,
-      partitionStrategy = "HASH"
+      calcStats = false//,
+      // period = "year",
+      // numPartitions = 4,
+      // partitionStrategy = "HASH"
     )
     println("Params initialized")
     val tybuilder = new SimpleFeatureTypeBuilder
