@@ -1,0 +1,42 @@
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}
+\DeclarePairedDelimiter\parens{(}{)}
+\DeclarePairedDelimiter\curly{\{}{\}}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+%% star versus non-star.
+\makeatletter
+ \let\oldabs\abs
+ \def\abs{\@ifstar{\oldabs}{\oldabs*}}
+ \let\oldnorm\norm
+ \def\norm{\@ifstar{\oldnorm}{\oldnorm*}}
+ \let\oldparens\parens
+ \def\parens{\@ifstar{\oldparens}{\oldparens*}}
+\makeatother
+
+\algnewcommand{\LineComment}[1]{\State \(\triangleright\) #1}
+
+\newcommand{\suchthat}{\, \mid \,}
+\newcommand{\bigO}[1]{\mathcal{O}{\parens{#1}}}
+\newcommand{\bigOmega}[1]{\Omega{\parens{#1}}}
+\newcommand{\bigTheta}[1]{\Theta{\parens{#1}}}
+\newcommand{\littleO}[1]{o{\parens{#1}}}
+\newcommand{\littleOmega}[1]{\omega{\parens{#1}}}
+
+\newcommand{\kmax}{k_{\max}}
+\newcommand{\logkmax}{\log_{2}{\kmax}}
+\newcommand{\topk}[2]{\mathrm{top}_{#1}\parens{#2}}
+\newcommand{\topkmax}[1]{\topk{\kmax}{#1}}
+\newcommand{\dataset}{\curly{f_{i}}}
+\newcommand{\bigassexpression}{\bigO{ \frac{N}{B}\alpha \parens{\frac{N}{B}} \parens{\sqrt{\log{\frac{N}{B}}} + \log{\frac{\kmax}{B}}}} }
+
+\newcommand{\listj}{\texttt{list}_{j}}
+\newcommand{\tmplist}{\texttt{list}}
+\newcommand{\tmptopk}{\texttt{topk}}
+\newcommand{\tree}{\texttt{tree}_{j}}
+\newcommand{\key}{\texttt{key}}
+\newcommand{\val}{\texttt{value}}
+
+\newcommand{\na}{\textit{n/a}}
+\newcommand{\ditto}{\textit{do.}}
