@@ -1,0 +1,57 @@
+\subsection{Other features}
+\label{sec:featurecompare:other}
+
+This section gives a summary of features that are either found in one project and not the other,
+or are found in both projects with considerable differences.
+
+
+\subsubsection{Features Found in GeoWave and not in GeoMesa}
+\label{sec:featurecompare:other:wave}
+
+\begin{itemize}
+\item Integration with Mapnik
+\item Integration with PDAL for reading and writing point cloud data from/to GeoWave
+\item Time interval queries: The ability to index data that exists within an interval of time, and query for intersecting intervals
+\item Pixel-level subsampling: A visualization performance optimization that returns a subset of the resulting data based on pixel width
+\item DBScan clustering
+\end{itemize}
+
+
+\subsubsection{Features Found in GeoMesa and not in GeoWave}
+\label{sec:featurecompare:other:mesa}
+
+\begin{itemize}
+\item Tube selection analysis: Given a collection of points (with associated times), return a similar collections of points in terms of where the lines connecting said points exist
+\item Loose bounding box queries: Return all points where the index matches the space filling curve index query, and skip secondary filtering
+\item JSON configurable ingest tooling
+\item Cassandra backend (alpha support)
+\item Google BigTable support (marked experimental)
+\item Kafka GeoTools DataStore
+\item Cost-based query optimization
+\item Querying for a subset of SimpleFeature attributes and only returning the necessary data
+\end{itemize}
+
+
+\subsubsection{Raster Support}
+\label{sec:featurecompare:other:raster}
+
+Both projects have some level of raster support; however, GeoWave's raster support appears to be more mature than GeoMesa's.
+According to GeoMesa's documentation, rasters must be pre-tiled to a specific size, projection, have non-overlapping extents, and must only single band rasters.
+GeoWave supports multiband rasters, and includes tiling and merging strategies that allow you to ingest rasters that are not pre-tiled.
+While GeoWave's raster support is more mature than GeoMesa's, both project's support of raster data is not entirely mature; for instance,
+there is no support for anything but spatial rasters (i.e. you cannot ingest spatiotemporal raster data such as timestamped imagery).
+
+  
+\subsubsection{HBase Backend}
+\label{sec:featurecompare:other:hbase}
+
+Both projects have support for an HBase backend; however, GeoWave's support for HBase is more mature.
+The GeoWave development team has expressed the amount of work that has gone into trying to match the performance of the HBase backend to that of their Accumulo backend.
+The GeoMesa team expressed that there has not yet been an equal level of effort to achieve relative parity between their Accumulo and HBase backends.
+
+
+\subsubsection{Attribute/Secondary indexing}
+\label{sec:featurecompare:other:secondary}
+
+GeoMesa and GeoWave both have features around secondary indexing that are quire different.
+A detailed comparison of those features for both GeoMesa and GeoWave can be found in Appendix A: Details of GeoMesa and GeoWave features.

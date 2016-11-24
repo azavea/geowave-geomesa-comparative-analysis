@@ -1,0 +1,16 @@
+\subsection{Generality of the Architecture}
+\label{sec:featurecompare:generality}
+
+A major difference between the projects is the generality of the architectures when it comes to supporting
+various backends\footnote{Backend refers to the specific mechanism for storing vector, data and the related geospatial index (ex: Accumulo, HBase).}
+and indexing strategies.
+GeoWave API has a focus on being an N-Dimensional indexing mechanism for arbitrary backends.
+The fact that this document focuses on its ability to handle geospatial data (2-Dimensional spatial and 3-Dimensional spatiotemporal data) is only based on the currently known GeoWave use cases.
+However, the project aims at supporting data with arbitrary dimensionality.
+GeoMesa API, on other hand, is directly tailored to geospatial indexing allowing for clearer interface, implementation, and paths for optimization.
+
+GeoWave specifically is designed around abstractions that remain agnostic about the storage and access implementations.
+This could provide more flexibility for developing backend support, which might explain why GeoWave HBase support is more mature than GeoMesa's.
+GeoMesa focuses on using GeoTools' abstractions, and thus is more dependent on GeoTools as a base library.
+GeoMesa also focuses less on dealing with abstractions; this may have an effect that features written for one backend are difficult to translate to another backend.
+However, dealing with less abstraction can be more straightforward, and some developers may find it easier to understand and work with the GeoMesa API.
