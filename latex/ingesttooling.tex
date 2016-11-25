@@ -1,0 +1,29 @@
+\section{Details of Ingest Tooling}
+\label{appendix:ingest}
+
+The datasets that were tested as part of the performance testing were ingested into GeoWave and GeoMesa through the development of a Spark based ingest tool.
+This ingest tool has a common codebase for creating an RDD[SimpleFeature] out of the various raw data formats; it also includes Spark-based writers for writing those RDD[SimpleFeature] 's into GeoMesa and GeoWave.
+While the tooling uses GeoWave and GeoMesa functionality for writing the data to Accumulo, and has been reviewed by the GeoWave and GeoMesa core development teams, we felt it necessary to explain our reasons for not using the project's own ingest tooling for this effort.
+This can be explained in the following reasons:
+
+\begin{itemize}
+\item{
+  Though both tools are relatively well documented, the large number of arguments necessary for even the simplest interaction can make it difficult for users who are unfamiliar with the tooling to not fall into traps and get stuck on errors.
+  The unwieldy nature of both tools is likely fallout from the high degree of complexity in the underlying systems rather than any obvious inadequacy in the design of either project.
+}
+\item{
+  We were not able to complete early experiments with GeoWave’s command line tooling for the out-of-the-box MapReduce ingest support.
+  This was likely because of Hadoop classpath issues.
+  Due to the size and scope of the data being used, local ingests were deemed insufficiently performant.
+}
+\item{
+  Because the systems we were comparing for usability and performance are so complex, equivalent (to the extent that this is possible) schemas, which are encoded GeoTools SimpleFeatureTypes for our purposes, were desirable.
+  Building simple features and their types explicitly within the body of a program proved to be relatively simple to reason about, and there were concerns about the ingesting data exactly matching.
+  By using our own tooling we had better control over this aspect of the ingest process.
+}
+\end{itemize}
+
+For these reason, we chose to develop our own ingest tooling.
+As a consequence we were unable to compare the performance of the ingest process between the tools.
+A potential positive result that can be gained from this effort would be for ingest tooling codebase to be merged with GeoMesa and GeoWave ingest tooling and concepts, as well as similar ingest tooling for projects such as GeoTrellis,
+to provide a common platform for performing ingests into big geospatial data systems.
