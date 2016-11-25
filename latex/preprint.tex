@@ -5,11 +5,12 @@
 \usepackage{enumitem}
 \usepackage{graphicx}
 \usepackage{mathtools}
-\usepackage{multicol,fullpage}
+\usepackage{multicol,multirow,fullpage}
 \usepackage{url}
 \usepackage{subfigure}
 \usepackage{listings}
 \usepackage{xltxtra,fontspec,xunicode}
+\usepackage{longtable}
 \defaultfontfeatures{Scale=MatchLowercase}
 \setmonofont{VTScreenplayUnderwoodB}
 
@@ -34,17 +35,15 @@
 \maketitle
 
 \input{abstract.tex}
-%% \begin{multicols}{2}
-  \input{intro.tex}
-  \input{featurecompare.tex}
-  \input{perftests.tex}
-  \input{results.tex}
-  %% \input{previous.tex}
-  %% \input{algo.tex}
-  %% \input{experiments}
-  \input{outro.tex}
-  \input{appendix.tex}
-  %% \input{biblio.tex}
-%% \end{multicols}
+\input{intro.tex}
+\input{featurecompare.tex}
+\input{perftests.tex}
+\input{results.tex}
+%% \input{previous.tex}
+%% \input{algo.tex}
+%% \input{experiments}
+\input{outro.tex}
+\input{appendix.tex}
+%% \input{biblio.tex}
 
 \end{document}
