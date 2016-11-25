@@ -16,8 +16,38 @@ license, and can be found at \url{https://github.com/azavea/geowave-geomesa-comp
 \subsection{Environment}
 \label{sec:performance:environment}
 
-For all deployments, the following versions were used:
+For all deployments, the software versions shown in Table \ref{table:software} were used:
 
+\begin{table}[h!tb]
+  \centering
+  \begin{tabular}{ | l || c | c | c | c | c | c | }
+    \hline
+    Software & Hadoop & Spark & Zookeeper & Accumulo & GeoMesa & GeoWave \\ \hline
+    Version  & 2.7.2  & 2.0.0 & 3.4.8 & 1.7.2 & 1.2.6 & 0.9.3-SNAPSHOT \\
+    \hline
+  \end{tabular}
+  \caption{Software versions.}
+  \label{table:software}
+\end{table}
+
+For GeoWave, we used a snapshot version based on the code that can be found at commit SHA \texttt{8760ce2cbc5c8a65c4415de62210303c3c1a9710}.
+
+Across all tests, Amazon Web Service (AWS) Elastic Cloud Compute (EC2) instances were used.
+The machine types used are displayed in Table \ref{table:machines}.
+
+\begin{table}[h!tb]
+  \centering
+  \begin{tabular}{ | l | c | c | c | c | }
+    \hline
+    & Instance Type & vCPU & Mem (GB) & Storage (Drives x GB) \\ \hline
+    Query Server & \texttt{m3.large} & $2$ & $7.5$ & $1\times32$ \\
+    Cluster Master & \texttt{m3.xlarge} & $4$ & $15$ & $2\times40$ \\
+    Cluster Worker & \texttt{m3.2xlarge} & $8$ & $30$ & $2\times80$ \\
+    \hline
+  \end{tabular}
+  \caption{Amazon machine types.}
+  \label{table:machines}
+\end{table}
 
 \subsection{Deployment}
 \label{sec:performance:deployment}
@@ -106,7 +136,8 @@ There was approximately $35.88$ GB of data compressed and stored as $729$ Apache
 The tracks were generated through a statistical process using Global OpenStreetMap data and Global Landscan data as inputs.
 The dataset is available at \url{s3://geotrellis-sample-datasets/generated-tracks/}.
 
-Figure \ref{geoserver} is a view of the data for a specific time slice of the data, as shown in GeoServer:
+Figure \ref{geoserver} is a view of the data for a specific time slice of the data, as shown in GeoServer.
+Table \ref{table:lengths} gives a statistical summary of the dataset.
 
 \begin{figure}[h!tb]
   \centering
@@ -114,3 +145,15 @@ Figure \ref{geoserver} is a view of the data for a specific time slice of the da
   \caption{Synthetic Tracks}
   \label{geoserver}
 \end{figure}
+
+\begin{table}[h!tb]
+  \centering
+  \begin{tabular}{ | c | c | c | c | c | c | c | c | }
+    \hline
+    count & min & max & mean & std dev & median & skewness & kurtosis \\ \hline
+    $2054751$ & $0.064998$ & $2839.198486$ & $38.829134$ & $115.975988$ & $29.791367$ & $15.466978$ & $266.782216$ \\
+    \hline
+  \end{tabular}
+  \caption{Track Length Stats (in miles).}
+  \label{table:lengths}
+\end{table}
