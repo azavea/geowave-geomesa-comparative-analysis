@@ -29,7 +29,14 @@ The solution to repeatability under this complexity that we arrived at was to de
 A system of deploying the necessary components, which exists under the name GeoDocker, was improved to the point that we could consistently deploy Accumulo with the necessary components for GeoMesa and GeoWave to identical Hadoop clusters on Amazon Web Service's (AWS) Elastic Map Reduce (EMR).
 We opted to use the YARN, Zookeeper, and HDFS which is distributed on Amazon EMR to support GeoDocker’s Accumulo processes.
 
-Pictured below is a rough diagram of the deployment used throughout our efforts.
+Pictured in Figure \ref{deployment} is a rough diagram of the deployment used throughout our efforts.
+
+\begin{figure}[h!tb]
+  \centering
+  \includegraphics[width=0.60\textwidth]{../docs/img/test-environment-architecture.png}
+  \caption{Test environment architecture.}
+  \label{deployment}
+\end{figure}
 
 The entire infrastructure for running queries and collecting timings results ran as a set of REST endpoints, created using the akka-http project.
 Each endpoint represented a different test case, and timing results were taken from inside of the application to only measure GeoWave and GeoMesa performance.
@@ -99,4 +106,11 @@ There was approximately $35.88$ GB of data compressed and stored as $729$ Apache
 The tracks were generated through a statistical process using Global OpenStreetMap data and Global Landscan data as inputs.
 The dataset is available at \url{s3://geotrellis-sample-datasets/generated-tracks/}.
 
-Here is a view of the data for a specific time slice of the data, as shown in GeoServer:
+Figure \ref{geoserver} is a view of the data for a specific time slice of the data, as shown in GeoServer:
+
+\begin{figure}[h!tb]
+  \centering
+  \includegraphics[width=0.60\textwidth]{../docs/img/tracks/synthetic-tracks.png}
+  \caption{Synthetic Tracks}
+  \label{geoserver}
+\end{figure}
