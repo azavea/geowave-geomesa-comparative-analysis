@@ -1,0 +1,27 @@
+\section{Performance Test Conclusions}
+\label{sec:results}
+
+A complete analysis of the performance test can be found in the following appendices:
+
+\begin{itemize}
+\item Appendix D: Details of Serial Queries and Results
+\item Appendix E: Details of Multitenancy Stress Tests
+\item Appendix F: Details of Performance Test Conclusions
+\end{itemize}
+
+This section summarizes our findings from the "Serial Queries" and "Multitenancy Stress" tests.
+
+A general conclusion that we reached was that differences in the query planning approaches can explain a variety of the performance differences seen. GeoWave uses a sophisticated algorithm to compute its query plans, and GeoMesa uses a faster (but less thorough) algorithm. The net effect is that GeoWave tends to spend more time on query planning, but with greater selectivity (fewer false positives in the ranges which must later be filtered out). For the point query case, the effect of this is that GeoWave tends to be faster for highly selective queries, which extract a specific slice of space or time out of a large set of indexed data. GeoMesa performs better when there is less selective queries that grab larger swaths of the data. 
+
+There are four major results that we believe can be explained by this difference in query planning algorithms:
+
+\begin{itemize}
+\item GeoMesa tends to perform better as the result set size of queries increases, and the selectivity of the queries decrease.
+\item GeoMesa tends to perform worse as the temporal window of queries increases. This result can be mitigated by the configuration of the periodicity of the GeoMesa index.
+\item GeoMesa consistently outperformed GeoWave in the non-point use case.
+\item GeoWave consistently performed much better in multitenancy situations.
+\end{itemize}
+
+Details on how the query planning affects these results can be found in Appendix F: Details of Performance Test Conclusions.
+
+One notable result found is that GeoWave performs better on the GDELT dataset if a hashing partition strategy is used with four partitions. For analogous use cases, we recommend using the partitioning feature of GeoWave.
