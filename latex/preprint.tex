@@ -8,6 +8,7 @@
 \usepackage{multicol,fullpage}
 \usepackage{url}
 \usepackage{subfigure}
+\usepackage{listings}
 \usepackage{xltxtra,fontspec,xunicode}
 \defaultfontfeatures{Scale=MatchLowercase}
 \setmonofont{VTScreenplayUnderwoodB}
@@ -33,7 +34,7 @@
 \maketitle
 
 \input{abstract.tex}
-\begin{multicols}{2}
+%% \begin{multicols}{2}
   \input{intro.tex}
   \input{featurecompare.tex}
   \input{perftests.tex}
@@ -42,7 +43,8 @@
   %% \input{algo.tex}
   %% \input{experiments}
   \input{outro.tex}
+  \input{appendix.tex}
   %% \input{biblio.tex}
-\end{multicols}
+%% \end{multicols}
 
 \end{document}

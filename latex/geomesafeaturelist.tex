@@ -1,0 +1,175 @@
+\subsection{GeoMesa Feature List}
+\label{appendix:features:geomesa}
+
+\subsubsection*{Data Ingest/Input}
+
+\begin{itemize}
+\item{Command line tools for interacting with geomesa, which provides the ability to:
+  \begin{itemize}
+  \item Create a geomesa datastore for accumulo
+  \item{Ingest SimpleFeature data
+    \begin{itemize}
+    \item Predefined, common SimpleFeatureTypes are provided - gdelt, geolife, geonames, gtd, nyctaxi, osm-gpx, tdrive, twitter
+    \end{itemize}
+  }
+  \item{Ingest rasters
+    \begin{itemize}
+    \item Supported file formats: ``tif'', ``tiff'', ``geotiff'', ``dt0'', ``dt1'', ``dt2''
+    \item Note: Raster support is limited; e.g. you are required to have the rasters pre-tiled, and they must be in the EPSG:4326 projection.
+    \end{itemize}
+  }
+  \end{itemize}
+}
+\item{Tools for converting various serialization formats to SimpleFeatures for ingest:
+  \begin{itemize}
+  \item{Conversion mechanisms are specified by way of configuration files.  Supported formats include:
+    \begin{itemize}
+    \item Delimited text: CSV, DEFAULT, EXCEL, MYSQL, TDF, TSV, RFC4180, QUOTED, QUOTE\_ESCAPE, QUOTED\_WITH\_QUOTE\_ESCAPE
+    \item Fixed Width
+    \item Avro
+    \item JSON
+    \item XML
+    \end{itemize}
+  }
+  \end{itemize}
+}
+\item{Support for streaming input:
+  \begin{itemize}
+  \item A datastore which listens for updates from a supported streaming source
+  \item Generic apache-camel based implementation of a streaming source
+  \item Hooks for updating GeoServer on stream update
+  \end{itemize}
+}
+\item Storm/Kafka ingest (mentioned in "Other Features" below)
+\end{itemize}
+
+
+\subsubsection*{Data Processing}
+
+\begin{itemize}
+\item{Spark integration
+  \begin{itemize}
+  \item Generating RDDs of SimpleFeatures
+  \item Initial support for carrying out spark SQL queries to process geomesa data
+  \end{itemize}
+}
+\item{Hadoop integration
+  \begin{itemize}
+    \item Reading data for use in a custom MapReduce job
+  \end{itemize}
+}
+\item{Processing on Accumulo backed GeoMesa instances
+  \begin{itemize}
+  \item Computing a heatmap from a provided CQL query
+  \item {
+    Computing statistics from a CQL query:
+    \begin{itemize}
+    \item Currently supported statistics: count, enumeration, frequency (countMinSketch), histogram, top-$k$, and min/max (bounds).
+    \item Command line tools expose the following statistics: count, histogram, min/max (bounds), and top-$k$.
+    \end{itemize}
+    }
+  \item{
+    ``Tube selection'' (space/time correlated queries): This is a pretty sophisticated query mechanism.
+    The basic idea is that, given a collection of points (with associated times),
+    you should be able to return similar collections of points (in terms of where the lines connecting said points exist).
+    Constraints on the query include the size of the spatial and temporal buffers (this is the sense in which we're dealing with 'tubes') and maximum speed attained by the entity whose points make up a given trajectory.
+    Read more here: \url{http://www.geomesa.org/documentation/tutorials/geomesa-tubeselect.html}.
+  }
+  \item{
+    Proximity Search: Given a set of vectors to search through and a set of vectors to establish proximity,
+    return the members of the former set which lie within the (specified) proximity of members of the latter set.
+  }
+  \item Queries take advantage of accumulo optimization to carry out geomesa queries
+  \item Find the $k$-nearest neighbors to a given point
+  \item Identify unique values for an attribute in results of a CQL query
+  \item{
+    Convert points to lines: Convert a collection of points into a collection of line segments given a middle term parameter.
+    Optionally break on the day of occurrence. This feature isn't really advertised.
+  }
+  \end{itemize}
+}
+\end{itemize}
+
+  
+\subsubsection*{Indices}
+
+\begin{itemize}
+\item{Default Indices
+  \begin{itemize}
+  \item{
+    {\bf XZ3.}
+    This is the default for 3D objects with extent in GeoMesa 1.2.5.
+    Objects are indexed with a maximum resolution of $36$ bits ($12$ divisions) into eighths.
+  }
+  \item{
+    {\bf XZ2.}
+    This is the default for 2D objects with extent in GeoMesa 1.2.5.
+    Objects are indexed with a maximum resolution of $24$ bits ($12$ divisions) into quarters.
+  }
+  \item{
+    {\bf Z3.}
+    This is used for points; $x$, $y$, and $t$ (time) have resolutions of $21$, $21$, and $20$ bits, respectively.
+  }
+  \item{
+    {\bf Z2.}
+    This is used for points; $x$ and $y$ both have resolutions of $31$ bits.
+  }
+  \item{
+    {\bf Record.}
+    This is an index over object \texttt{UUID}s.
+  }
+  \end{itemize}
+}
+\item{Optional Indices
+  \begin{itemize}
+  \item{
+    {\bf Attribute.}
+    This is an index over SimpleFeature attributes.
+    Allows one to create a join index over the \texttt{UUID}, date, and geometry.
+  }
+  \item{{\bf ST.}  This Spatio-Temporal Index is deprecated.}
+  \end{itemize}
+}
+\item Cost-Based Optimization (CBO): Used to select which index to use for a query when data have been ingested with multiple indexes.
+\end{itemize}
+
+
+\subsubsection*{Output}
+
+\begin{itemize}
+\item{
+  Accumulo output:
+  \begin{itemize}
+  \item A reader for directly querying a datastore in java/scala
+  \item Direct map/reduce exports
+  \end{itemize}
+}
+\item{
+  Command line tools for interacting with geomesa:
+  \begin{itemize}
+  \item Serialize and export stored features (vectors).  Supported export formats include : CSV, shapefile, geojson, GML, BIN, and Avro.
+  \end{itemize}
+}
+\item The ability to return only a subset of SimpleFeature attributes, reducing the size of return values.
+\end{itemize}
+
+
+\subsubsection*{Other Features}
+
+\begin{itemize}
+\item{
+  GeoMesa Native API.
+  This is an alternative to the geotools interface for interaction with GeoMesa stores.
+}
+\item HBase backend
+\item Google BigTable backend
+\item BLOB backend
+\item Sampling of data for custom statistics
+\item Cassandra backend (alpha quality)
+\item A Kafka geotools datastore to pipe simplefeature types from producers, through kafka, to consumers
+\item{
+  Metrics reporting.
+  This offers real time reporting of performance for GeoMesa instances.
+  Supports multiple reporting backends - Ganglia, Graphite, and CSV/TSV.
+}
+\end{itemize}
