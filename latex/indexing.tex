@@ -15,7 +15,7 @@ You can read more about the differences in performance characteristics in Append
 \subsubsection{Sharding}
 \label{sec:featurecompare:indexing:sharding}
 
-By default, GeoMesa uses "sharding", a technique of prefixing indices with a discrete number of shard IDs in order to better distribute the data across nodes of a cluster.
+By default, GeoMesa uses ``sharding'', a technique of prefixing indices with a discrete number of shard IDs in order to better distribute the data across nodes of a cluster.
 There is a trade-off between increasing distribution while decreasing locality.
 Index sharding leads to more even per-query cluster resource utilization, which covers the common use cases GeoWave has the ability to shard, although in GeoWave it's called partitioning the data.
 You can create a compound index with any of the GeoWave indexing strategies in order to partition.
@@ -28,7 +28,7 @@ In our benchmarks we had to enable index partitioning in GeoWave in order to imp
 \subsubsection{Periodicity}
 \label{sec:featurecompare:indexing:periodicity}
 
-To get around the problem of unbounded dimensions, such as time, the concept of "periodicity" is used in both GeoMesa and GeoWave.
+To get around the problem of unbounded dimensions, such as time, the concept of ``periodicity'' is used in both GeoMesa and GeoWave.
 This feature is similar to a shard, in that it prefixes an index with some ID.
 A simple way to think of periodicity is that it bins each space filling curve into one period; for example, for one week.
 In GeoWave, you can configure any dimension to have a periodicity of a configurable length.
