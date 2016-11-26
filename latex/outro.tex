@@ -14,9 +14,9 @@ Although it was not a primary focus of our evaluation, we concluded that GeoMesa
 This does not reflect the capabilities of the projects but rather the amount of effort that has been spent on supporting varying use cases and developing tooling for common workflows.
 While this is a general conclusion that the team feel confident to report given our overall experiences with the two projects, we will talk through some of the examples that led us to that conclusion.
 First of all and very importantly, GeoMesa documentation is more clear and covers more specific questions arising from attempting to use the product.
-Other considerations are, for instance, that geomesa-convert project provides a way to convert data (Avro, JSON, XML, CSV) to SimpleFeature with ability to specify the convert format using JSON structure.
+Other considerations are, for instance, that geomesa-convert project provides a way to convert data (Avro, JSON, XML, CSV) to \texttt{SimpleFeature} with ability to specify the convert format using JSON structure.
 GeoWave has command line tools for importing features but they are newer and do not provide the same level of functionality as they ultimately require Avro records that are in GeoWave defined schema.
-Similarly GeoMesaOutputFormat has logic to optimize index distribution based on simple feature ids or generate them if they're not present.
+Similarly \texttt{GeoMesaOutputFormat} has logic to optimize index distribution based on simple feature ids or generate them if they're not present.
 The question of how to index a user’s data is fully on the user of GeoWave.
 Also with the command line tooling for GeoWave, the distribution story of how to run the map-reduce tooling on a Hadoop cluster followed a specific and undocumented workflow that we never got running.
 It was possible to do so, and given enough time we could have learned the mechanism to get that to work, but a measure of maturity of open source projects is the ease in which people outside the core team can use the project.
@@ -34,7 +34,7 @@ We are certain GeoWave will continue gaining maturity as they address issues dis
 One important take-away from this experience is that the GeoMesa and GeoWave projects are not one tool, or feature, or capability; they both exist as umbrellas under which a number of technologies exist.
 For instance, a Kafka Datastore is part of GeoMesa, but there is no reason that users of GeoWave could not take advantage of that part of GeoMesa.
 In fact, you can install GeoMesa and GeoWave iterators on the same Accumulo cluster, and save certain data in GeoMesa tables while saving other data in GeoWave tables.
-These technologies are not incompatible, and we urge potential users of the software to not consider this an "either/or" decision, and instead to look into what useful portions each project contains.
+These technologies are not incompatible, and we urge potential users of the software to not consider this an ``either/or'' decision, and instead to look into what useful portions each project contains.
 This also highlights the importance of the two projects collaborating; the more collaboration that exists between the two projects, the easier it will be for users to pick out the features and technologies from either projects that help solve their big geospatial data problems.
 
 
@@ -57,7 +57,7 @@ Which language does that codebase choose, Java or Scala? What architecture and d
 
 These difficulties are not insurmountable.
 For instance, the GeoTrellis, GeoMesa and GeoWave projects collaborated on the initial development of the LocationTech project SFCurve, for dealing with space filling curve indexing.
-GeoMesa currently depends on that project, and it is on GeoTrellis's roadmap to depend on the project.
+GeoMesa currently depends on that project, and it is on GeoTrellis' roadmap to depend on the project.
 This will mark an example of two projects in the big geospatial data community relying on a collaboratively developed external project.
 Collaboration between GeoTrellis, GeoMesa and SFCurve is facilitated by the fact that are three all developed in Scala.
 The fact that GeoWave is written in Java makes external direct contribution between projects more difficult, but concepts and approaches can be shared and worked on collaboratively.
@@ -68,9 +68,9 @@ There are two key areas where we would suggest collaboration:
 \subsubsection{Ingest tooling}
 \label{sec:conclusions:collaboration:ingest}
 
-GeoMesa's ingest tooling includes several converters from formats such as CSV, JSON and XML to GeoTools SimpleFeatures.
+GeoMesa's ingest tooling includes several converters from formats such as CSV, JSON and XML to GeoTools \texttt{SimpleFeature}s.
 These converters are configurable through a JSON-like configuration file.
-Because the tooling converts data to a GeoTools SimpleFeature, which both projects work with, either project could benefit from this feature.
+Because the tooling converts data to a GeoTools \texttt{SimpleFeature}, which both projects work with, either project could benefit from this feature.
 The GeoWave developers have expressed interest in an external project that would support this type of ingest tooling for ingesting into both GeoMesa and GeoWave, and it seems like a good point of collaboration.
 
 Also, as part of this comparative analysis' performance testing, the Azavea team created ingest tools that are based on Apache Spark, which use common code between the GeoMesa and GeoWave ingests.
@@ -78,15 +78,15 @@ This already exists as an external codebase which is demonstratively useful for 
 The codebase is available for use and could serve as a starting point for collaborative ingest tooling.
 
 
-\subsubsection{Common SimpleFeature serialization}
+\subsubsection{Common \texttt{SimpleFeature} serialization}
 \label{sec:conclusions:collaboration:serialization}
 
-Another common aspect of GeoMesa and GeoWave is the use of the Apache Avro and Kryo serialization libraries to serialize SimpleFeatures.
-If both projects were to rely on an external project to serialize and deserialize SimpleFeatures, data would much more simply be exchanged through the different systems.
+Another common aspect of GeoMesa and GeoWave is the use of the Apache Avro and Kryo serialization libraries to serialize \texttt{SimpleFeature}s.
+If both projects were to rely on an external project to serialize and deserialize \texttt{SimpleFeature}s, data would much more simply be exchanged through the different systems.
 
-For instance, if GeoWave were to export data as a set of Apache Avro files, those files would be able to be read into SimpleFeatures and ingested into GeoMesa.
-In fact, because the serialization logic would be the same between projects, an Accumulo table that is indexed by GeoMesa could be moved to a table that is indexed by GeoWave by changing the Accumulo entry Keys, leaving the Values (the serialized SimpleFeatures) unchanged.
+For instance, if GeoWave were to export data as a set of Apache Avro files, those files would be able to be read into \texttt{SimpleFeature}s and ingested into GeoMesa.
+In fact, because the serialization logic would be the same between projects, an Accumulo table that is indexed by GeoMesa could be moved to a table that is indexed by GeoWave by changing the Accumulo entry Keys, leaving the Values (the serialized \texttt{SimpleFeature}s) unchanged.
 
-Serialization of SimpleFeatures is most likely of interest to the community even outside of these two projects.
-If the projects and the community were to standardize on specific ways to serialize and deserialize SimpleFeatures, interoperability in general would benefit.
+Serialization of \texttt{SimpleFeature}s is most likely of interest to the community even outside of these two projects.
+If the projects and the community were to standardize on specific ways to serialize and deserialize \texttt{SimpleFeature}s, interoperability in general would benefit.
 Also any performance improvements to serialization within the external project would benefit any project that used it.

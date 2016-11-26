@@ -5,7 +5,7 @@
 \subsection{Methods}
 \label{sec:performance:methods}
 
-In this section, we briefly describe the technical means by which we were able to test the relative performance of GeoWave and GeoMesa for indexing SimpleFeatures in Accumulo.
+In this section, we briefly describe the technical means by which we were able to test the relative performance of GeoWave and GeoMesa for indexing \texttt{SimpleFeature}s in Accumulo.
 
 The ultimate aim of the method of deployment, ingesting, and running the tests was to ensure results were both repeatable and could be iterated on quickly.
 This implies these methods and the associated software are useful beyond the needs of this comparative analysis.
@@ -82,10 +82,10 @@ Initial attempts to use the command line tools provided by each of the projects 
 Both teams were consulted about our ingest tooling to verify their correct operation.
 Using our own version of ingest tooling has the disadvantage that ingest timing results cannot be considered in the comparative analysis; however we determined that our Spark-based tooling was the best path forward to provide consistent and successful ingests of our test datasets into both systems with exactly the same data.
 
-See Appendix B: Details of Ingest Tooling for a more complete description of the ingest tooling.
+See Appendix \ref{appendix:ingest}: Details of Ingest Tooling for a more complete description of the ingest tooling.
 
 We recorded the size on disk, number of entries, tablet server information and other details for each dataset ingested.
-These can be found in Appendix C: Details of Ingested Data
+These can be found in Appendix \ref{appendix:data}: Details of Ingested Data
 
 
 \subsection{Querying}

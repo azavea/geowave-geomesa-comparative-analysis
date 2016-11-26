@@ -21,7 +21,7 @@ but with greater selectivity (fewer false-positives in the ranges which must lat
 \subsection{Query Planning Experiments}
 
 We performed a series of query planning experiments which mirror our GDELT experiments.
-In an earlier section, we described at set of experiments in which we performed buffered queries around city centers using the GDELT dataset, here we used the excact same set CQL queries that were generated in the experimenet, but we gather different data.
+In an earlier section, we described at set of experiments in which we performed buffered queries around city centers using the GDELT dataset, here we used the excact same set \texttt{CQL} queries that were generated in the experimenet, but we gather different data.
 That was done by isolating the parts of the respective systems responsible for query-planning and putting them into stand-alone programs (\url{https://github.com/azavea/geowave-geomesa-comparative-analysis/tree/master/query-planning}).
 
 We used those stand-alone programs to measure the amount of time spent on query-planning, as well as the results of the planning (the number of ranges generated and the lengths of those ranges).

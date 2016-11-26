@@ -16,7 +16,7 @@ What follows is a window into how we have dissected the results, and the conclus
 Notes:
 \begin{itemize}
 \item In the following results, if we specify that outliers were removed, they were removed via the interquartile range rule.
-\item All maps were generated with `geojson.io`, basemaps are copyright OpenStreetMap contributors.
+\item All maps were generated with \url{http://geojson.io}, basemaps are copyright OpenStreetMap contributors.
 \end{itemize}
 
 Throughout all results, unless otherwise noted, we follow this general color scheme:
@@ -42,7 +42,7 @@ See the appendix for details about machine specs and ingest results.
 
 \subsubsection{Spatial queries of Beijing}
 
-We used the Beijing geojson from Mapzen's borders dataset, which can be found in the resources of the `core` subproject.
+We used the Beijing geojson from Mapzen's borders dataset, which can be found in the resources of the \texttt{core} subproject.
 This represents the multipolygon seen in Figure \ref{beijingpolygon}.
 
 \begin{figure}[h!tb]
@@ -53,7 +53,7 @@ This represents the multipolygon seen in Figure \ref{beijingpolygon}.
 \end{figure}
 
 We then queried the city of Beijing over the whole time of the dataset.
-We tracked results for both iterating over the resulting SimpleFeatures.
+We tracked results for both iterating over the resulting \texttt{SimpleFeature}s.
 The timing results for that test, with outliers removed are shown in Figure \ref{beijingiterate}.
 
 \begin{figure}[h!tb]
@@ -189,7 +189,7 @@ Test for GDELT were performed on EMR 5.0.0 clusters of one \texttt{m3.2xlarge} m
 
 \subsubsection{Spatiotemporal queries of areas around cities: City Buffers}
 
-For these queries, which we call the "city buffer" tests, queries are taken from center points corresponding to the following cities:
+For these queries, which we call the ``city buffer'' tests, queries are taken from center points corresponding to the following cities:
 Paris, Philadelphia, Istanbul, Baghdad, Tehran, Beijing, Tokyo, Oslo, Khartoum, and Johannesburg.
 For instance, the Paris city buffers can be seen in Figure \ref{paris}.
 
@@ -273,7 +273,7 @@ We attempted to test a configuration where both systems had a periodicity of one
 produces GeoWave results that were incorrect.
 
 The last configuration in the list above produced improvements in timing results for the City Buffer queries, which we will explore below,
-and be referred to as the "matched" index configuration.
+and be referred to as the ``matched'' index configuration.
 
 Figure \ref{matching14} shows the durations of $14$ day queries averages broken into the same result count quartiles.
 We can see a marked improvement in GeoMesas results.
@@ -472,25 +472,24 @@ we see GeoMesa consistently outperforming GeoWave.
   \centering
   \includegraphics[width=0.60\textwidth]{../docs/img/tracks/duration-by-result-count.png}
   \caption{Durations by result, by level.}
-  \label{tracksduration}
+  \label{tracksdurationresult}
 \end{figure}
 
 To understand if there is a relationship between the temporal bounds of the query and performance,
 we can look at the above chart broken down by the $5$ day, $18$ day and $27$ day queries.
-For GeoMesa, we do not see a clear behavior (Figure \ref{tracksdurationdays}).
+For GeoMesa, we do not see a clear behavior (Figure \ref{tracksgm2}).
+But for GeoWave, the performance seems to be correlated with the size of the temporal query bounds (Figure \ref{tracksgw2}).
 
 \begin{figure}[h!tb]
   \centering
   \includegraphics[width=0.60\textwidth]{../docs/img/tracks/geomesa-duration-by-result-count-and-days.png}
   \caption{Durations by result, by level for GeoMesa.}
-  \label{tracksgm}
+  \label{tracksgm2}
 \end{figure}
-
-But for GeoWave, the performance seems to be correlated with the size of the temporal query bounds.
 
 \begin{figure}[h!tb]
   \centering
   \includegraphics[width=0.60\textwidth]{../docs/img/tracks/geowave-duration-by-result-count-and-days.png}
   \caption{Durations by result, by level for GeoWave.}
-  \label{tracksgw}
+  \label{tracksgw2}
 \end{figure}

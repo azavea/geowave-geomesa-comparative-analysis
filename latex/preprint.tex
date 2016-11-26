@@ -11,6 +11,7 @@
 \usepackage{listings}
 \usepackage{xltxtra,fontspec,xunicode}
 \usepackage{longtable}
+
 \defaultfontfeatures{Scale=MatchLowercase}
 \setmonofont{VTScreenplayUnderwoodB}
 
@@ -23,6 +24,10 @@
 \hyphenation{Geo-Trellis}
 \hyphenation{Simple-Feature}
 \hyphenation{Simple-Feature-Type}
+
+\makeatletter
+\renewcommand{\ALG@name}{Code Sample}
+\makeatother
 
 \begin{document}
 
@@ -40,7 +45,7 @@
 \input{perftests.tex}
 \input{results.tex}
 \input{outro.tex}
-%% \input{appendix.tex}
+\input{appendix.tex}
 %% \input{biblio.tex}
 
 \end{document}

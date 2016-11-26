@@ -15,35 +15,34 @@ For certain applications it is a matter of practical necessity that such fields 
 It is worth mentioning that the documentation provided by both projects suggests that secondary/attribute indices are an area that will receive future focus by their respective teams.
 In what follows, we briefly compare the features provided by each.
 
-
 \subsubsection{GeoMesa Attribute Indices}
 
-In GeoMesa, any attribute can be indexed with a simple modification to the UserData which is associated with a SimpleFeatureType's attribute.
+In GeoMesa, any attribute can be indexed with a simple modification to the \texttt{UserData} which is associated with a \texttt{SimpleFeatureType}'s attribute.
 Each attribute index is stored in a single, associated \texttt{attr\_idx} table.
-By fiat, let's imagine we have a SimpleFeatureType which describes car accidents as described above.
-The following code will add the appropriate information to our type so that, upon ingest, indices are created to the values in our ``severity'' field:
+By fiat, let's imagine we have a \texttt{SimpleFeatureType} which describes car accidents as described above.
+The code shown in Code Sample \ref{alg:geomesa} will add the appropriate information to our type so that, upon ingest, indices are created to the values in our ``severity'' field:
 
 \begin{algorithm}[htb]
-\caption{GeoMesa attribute indexing code snippet.}
-\footnotesize{\begin{lstlisting}
+\caption{GeoMesa attribute indexing code snippet.}\label{alg:geomesa}
+{\footnotesize\begin{lstlisting}
 val sft: SimpleFeatureType = ??? // Our feature's schema
 sft.getDescriptor("severity").getUserData().put("index", "join");
 sft.getDescriptor("severity").getUserData().put("cardinality", "high");
 \end{lstlisting}}
 \end{algorithm}
 
-As seen above, two properties on this attribute index are exposed through the UserData : ``index'' (the type of index operation) and ``cardinality'' (the number of distinct values).
+As seen above, two properties on this attribute index are exposed through the \texttt{UserData}: ``index'' (the type of index operation) and ``cardinality'' (the number of distinct values).
 
 {\bf Full/Join Indices.}
 This type of index - ``full'' or ``join'' - determines how much data is replicated in the lookup table of the attribute index.
-Full indices store the entire SimpleFeature of a record, allowing for quick replies to indexed-attribute queries without joining against the records table.
+Full indices store the entire \texttt{SimpleFeature} of a record, allowing for quick replies to indexed-attribute queries without joining against the records table.
 This is preferable under circumstances in which the attribute in question is regularly queried against and especially if the expected queries don't necessarily rely upon other fields for filtration.
 The ``join'' index stores only the data necessary for identifying the values in the records table which satisfy the provided predicate and is therefore useful for preserving storage resources.
 
 {\bf Low/High Index Cardinality.}
 The utility of this distinction is somewhat unclear.
 A high cardinality index has enough values that we can expect any filtering it does to significantly slim down the number of returned records (thus, a query against a high cardinality index is given priority) while a low cardinality index seems to be ignored.
-The user documentation under 'Data Management' notes (as of 10/01/2016) that ``technically you may also specify attributes as low-cardinality - but in that case it is better to just not index the attribute at all.''
+The user documentation under ``Data Management'' notes (as of 10/01/2016) that ``technically you may also specify attributes as low-cardinality - but in that case it is better to just not index the attribute at all.''
 
 {\bf Client Code Difficulties.}
 As of 1.2.6, it appears as though a library which is shaded in GeoMesa client code needs to be appropriately shaded in any ingest client code which intends to take advantage of attribute indices.
@@ -53,11 +52,11 @@ The fix for this issue can be found in a commit which made its way into 1.2.6.
   
 Unlike GeoMesa, each secondary index gets its own table. Unlike GeoMesa, setting these secondary indices up is not a simple, two-line affair. Figuring out how to actually use these secondary indices was not obvious or straightforward from the documentation.
 
-Here we modify the same SimpleFeatureType for extra indexing on ingest as above:
+In Code Sample \ref{alg:geowave}  we modify the same \texttt{SimpleFeatureType} for extra indexing on ingest as before:
 
 \begin{algorithm}[htb]
-\caption{GeoWave secondary indexing code snippet.}
-\footnotesize{\begin{lstlisting}
+\caption{GeoWave secondary indexing code snippet.}\label{alg:geowave}
+{\footnotesize\begin{lstlisting}
 val sft: SimpleFeatureType = ???
 val secondaryIndexingConfigs = mutable.ArrayBuffer[SimpleFeatureUserDataConfiguration]()
 val textFieldsToIndex = Set("severity")

@@ -8,14 +8,15 @@ The data reported in this section are based on ingests into a cluster with $5$ \
 
 For GeoWave, The entries per tablet server server showed that all entires were on one of the $5$ workers, which would have dramatically affected performance.
 In order to correct that, we changed the split size and compacted the table.
-To get more splits, we executed the following command in the accumulo shell
-{\footnotesize
-\begin{verbatim}
+To get more splits, we executed the commands shown in Code Sample \ref{alg:splitting} in the Accumulo shell, then we compacted the tables.
+
+\begin{algorithm}[htb]
+\caption{Procedure for splitting GeoWave tables.}\label{alg:splitting}
+{\footnotesize\begin{lstlisting}
 config -t geowave.geolife_SPATIAL_IDX -s table.split.threshold=100M
 config -t geowave.geolife_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR_POINTONLY -s table.split.threshold=100M
-\end{verbatim}
-}
-then we compacted the tables.
+\end{lstlisting}}
+\end{algorithm}
 
 \begin{table}[h!tb]
   \centering

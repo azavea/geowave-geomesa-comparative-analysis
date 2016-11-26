@@ -4,12 +4,12 @@
 \subsubsection*{Data Ingest/Input}
 
 \begin{itemize}
-\item{Command line tools for interacting with geomesa, which provides the ability to:
+\item{Command line tools for interacting with GeoMesa, which provides the ability to:
   \begin{itemize}
-  \item Create a geomesa datastore for accumulo
-  \item{Ingest SimpleFeature data
+  \item Create a GeoMesa datastore for Accumulo
+  \item{Ingest \texttt{SimpleFeature} data
     \begin{itemize}
-    \item Predefined, common SimpleFeatureTypes are provided - gdelt, geolife, geonames, gtd, nyctaxi, osm-gpx, tdrive, twitter
+    \item Predefined, common \texttt{SimpleFeatureType}s are provided - GDELT, Geolife, geonames, gtd, nyctaxi, osm-gpx, tdrive, twitter
     \end{itemize}
   }
   \item{Ingest rasters
@@ -20,7 +20,7 @@
   }
   \end{itemize}
 }
-\item{Tools for converting various serialization formats to SimpleFeatures for ingest:
+\item{Tools for converting various serialization formats to \texttt{SimpleFeature}s for ingest:
   \begin{itemize}
   \item{Conversion mechanisms are specified by way of configuration files.  Supported formats include:
     \begin{itemize}
@@ -40,7 +40,7 @@
   \item Hooks for updating GeoServer on stream update
   \end{itemize}
 }
-\item Storm/Kafka ingest (mentioned in "Other Features" below)
+\item Storm/Kafka ingest (mentioned in ``Other Features'' below)
 \end{itemize}
 
 
@@ -49,8 +49,8 @@
 \begin{itemize}
 \item{Spark integration
   \begin{itemize}
-  \item Generating RDDs of SimpleFeatures
-  \item Initial support for carrying out spark SQL queries to process geomesa data
+  \item Generating RDDs of \texttt{SimpleFeature}s
+  \item Initial support for carrying out Spark \texttt{SQL} queries to process GeoMesa data
   \end{itemize}
 }
 \item{Hadoop integration
@@ -60,9 +60,9 @@
 }
 \item{Processing on Accumulo backed GeoMesa instances
   \begin{itemize}
-  \item Computing a heatmap from a provided CQL query
+  \item Computing a heatmap from a provided \texttt{CQL} query
   \item {
-    Computing statistics from a CQL query:
+    Computing statistics from a \texttt{CQL} query:
     \begin{itemize}
     \item Currently supported statistics: count, enumeration, frequency (countMinSketch), histogram, top-$k$, and min/max (bounds).
     \item Command line tools expose the following statistics: count, histogram, min/max (bounds), and top-$k$.
@@ -79,9 +79,9 @@
     Proximity Search: Given a set of vectors to search through and a set of vectors to establish proximity,
     return the members of the former set which lie within the (specified) proximity of members of the latter set.
   }
-  \item Queries take advantage of accumulo optimization to carry out geomesa queries
+  \item Queries take advantage of Accumulo optimization to carry out GeoMesa queries
   \item Find the $k$-nearest neighbors to a given point
-  \item Identify unique values for an attribute in results of a CQL query
+  \item Identify unique values for an attribute in results of a \texttt{CQL} query
   \item{
     Convert points to lines: Convert a collection of points into a collection of line segments given a middle term parameter.
     Optionally break on the day of occurrence. This feature isn't really advertised.
@@ -124,7 +124,7 @@
   \begin{itemize}
   \item{
     {\bf Attribute.}
-    This is an index over SimpleFeature attributes.
+    This is an index over \texttt{SimpleFeature} attributes.
     Allows one to create a join index over the \texttt{UUID}, date, and geometry.
   }
   \item{{\bf ST.}  This Spatio-Temporal Index is deprecated.}
@@ -145,12 +145,12 @@
   \end{itemize}
 }
 \item{
-  Command line tools for interacting with geomesa:
+  Command line tools for interacting with GeoMesa:
   \begin{itemize}
   \item Serialize and export stored features (vectors).  Supported export formats include : CSV, shapefile, geojson, GML, BIN, and Avro.
   \end{itemize}
 }
-\item The ability to return only a subset of SimpleFeature attributes, reducing the size of return values.
+\item The ability to return only a subset of \texttt{SimpleFeature} attributes, reducing the size of return values.
 \end{itemize}
 
 

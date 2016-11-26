@@ -4,7 +4,7 @@
 In multitenancy tests we are interested in examining the behavior of the systems under heavy and dynamic query load.
 This simulates a common deployment in which the Accumulo cluster is a shared resource backing a group of application servers.
 The benchmark service acts as our application server, receiving the full query result-set and producing a digested view for the client.
-We’ve formulate this test to make the Accumulo cluster and its SimpleFeature index the only contested resource.
+We’ve formulate this test to make the Accumulo cluster and its \texttt{SimpleFeature} index the only contested resource.
 
 \subsection{Summary}
 
@@ -85,8 +85,9 @@ These results contain two GeoMesa clusters and we do not see the effects of perf
 \end{figure}
 
 {\bf Configuration 3: 6 Application Servers.}
-We increase the application server count to six to verify that we have removed any performance impact from this parameter, as we expect the duration and concurrency distributions remain consistent, indicating that in both `MT2` and `MT3` results the cluster resources are the only remaining constraint.
-However, at this point one of the two GeoMesa clusters started experiencing similar performance degradation as after `MT1` round of tests. This can be seen as two distinct distributions of GeoMesa results.
+We increase the application server count to six to verify that we have removed any performance impact from this parameter, as we expect the duration and concurrency distributions remain consistent, indicating that in both \texttt{MT2} and \texttt{MT3} results the cluster resources are the only remaining constraint.
+However, at this point one of the two GeoMesa clusters started experiencing similar performance degradation as after \texttt{MT1} round of tests.
+This can be seen as two distinct distributions of GeoMesa results.
 \begin{figure}[h!tb]
   \centering
   \includegraphics[width=0.60\textwidth]{../docs/img/multitenancy/graph_100k_mt3.png}

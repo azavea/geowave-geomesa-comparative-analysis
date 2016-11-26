@@ -4,12 +4,12 @@
 A complete analysis of the performance test can be found in the following appendices:
 
 \begin{itemize}
-\item Appendix D: Details of Serial Queries and Results
-\item Appendix E: Details of Multitenancy Stress Tests
-\item Appendix F: Details of Performance Test Conclusions
+\item Appendix \ref{appendix:queries}: Details of Serial Queries and Results
+\item Appendix \ref{appendix:multitenancy}: Details of Multitenancy Stress Tests
+\item Appendix \ref{appendix:planning}: Details of Performance Test Conclusions
 \end{itemize}
 
-This section summarizes our findings from the "Serial Queries" and "Multitenancy Stress" tests.
+This section summarizes our findings from the ``Serial Queries'' and ``Multitenancy Stress'' tests.
 
 A general conclusion that we reached was that differences in the query planning approaches can explain a variety of the performance differences seen. GeoWave uses a sophisticated algorithm to compute its query plans, and GeoMesa uses a faster (but less thorough) algorithm. The net effect is that GeoWave tends to spend more time on query planning, but with greater selectivity (fewer false positives in the ranges which must later be filtered out). For the point query case, the effect of this is that GeoWave tends to be faster for highly selective queries, which extract a specific slice of space or time out of a large set of indexed data. GeoMesa performs better when there is less selective queries that grab larger swaths of the data. 
 

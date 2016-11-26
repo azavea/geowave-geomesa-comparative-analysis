@@ -3,14 +3,12 @@
 
 The two projects approach indexing in Accumulo in a similar way, but there are some key differences.
 
-
 \subsubsection{Choice of Space Filling Curve}
 \label{sec:featurecompare:indexing:curve}
 
 GeoMesa supports the space filling curve indices named Z-order and XZ indices, while GeoWave supports Hilbert curves.
 These space filling curve implementations have different properties that affect performance, such as the number of false positives returned and number of duplicate entries to be indexed.
-You can read more about the differences in performance characteristics in Appendix F: Details of Performance Test Conclusions.
-
+You can read more about the differences in performance characteristics in Appendix \ref{appendix:planning}: Details of Performance Test Conclusions.
 
 \subsubsection{Sharding}
 \label{sec:featurecompare:indexing:sharding}
@@ -24,7 +22,6 @@ It is also configurable: you can decide on the number of partitions (i.e. shards
 GeoMesa's sharding seems to only use a hashing algorithm and a non-configurable number of shards.
 In our benchmarks we had to enable index partitioning in GeoWave in order to improve its performance and make the benchmarks comparable.
 
-
 \subsubsection{Periodicity}
 \label{sec:featurecompare:indexing:periodicity}
 
@@ -33,7 +30,6 @@ This feature is similar to a shard, in that it prefixes an index with some ID.
 A simple way to think of periodicity is that it bins each space filling curve into one period; for example, for one week.
 In GeoWave, you can configure any dimension to have a periodicity of a configurable length.
 With GeoMesa, you can configure the periodicity of the time dimension to day, week, month, or year.
-
 
 \subsubsection{Tiered indexing vs XZ index}
 \label{sec:featurecompare:indexing:versus}

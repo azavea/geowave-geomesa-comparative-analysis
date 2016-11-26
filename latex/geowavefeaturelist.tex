@@ -13,7 +13,7 @@
   \item Stage from filesystem $\rightarrow$ Kafka
   \item Ingest from Kafka $\rightarrow$ GeoWave
   \item Ingest from HDFS $\rightarrow$ GeoWave
-  \item Notes: Requires plugins for each input file format, which are listed below in "File Formats Supported"
+  \item Notes: Requires plugins for each input file format, which are listed below in ``File Formats Supported''
   \end{itemize}
 }
 \item{
@@ -89,7 +89,7 @@
 \item Clustering via Map-Reduce
 \item Convex Hulls of Clusters via Map-Reduce
 \item \texttt{DBSCAN} via Map-Reduce
-\item Spark Support: Ability to load an RDD of SimpleFeatures
+\item Spark Support: Ability to load an RDD of \texttt{SimpleFeature}s
 \end{itemize}
 
 \subsubsection*{Output}
@@ -98,7 +98,7 @@
 \item{
   GeoServer Plugin
   \begin{itemize}
-  \item Includes the "decimation" feature, which allows large datasets to be shown interactively by subsampling at the pixel level.
+  \item Includes the ``decimation'' feature, which allows large datasets to be shown interactively by subsampling at the pixel level.
   \end{itemize}
 }
 \item Hadoop integration
@@ -106,7 +106,7 @@
   Query
   \begin{itemize}
     \item GeoWave DataStore: directly construct queries via the GeoWave API
-    \item GeoTools DataStore: construct queries via CQL
+    \item GeoTools DataStore: construct queries via \texttt{CQL}
     \item Ability to query data that has start and end times to find intersecting time intervals.
   \end{itemize}
 }
