@@ -1,0 +1,112 @@
+{\small
+  \begin{longtable}{ | l | c c | }
+    \hline & GeoMesa & GeoWave \\ \hline \endfirsthead
+    \hline & GeoMesa & GeoWave \\ \hline \endhead
+    \hline \multicolumn{3}{|r|}{{Continued on next page}} \\ \hline \endfoot
+
+    \endlastfoot
+
+    \multicolumn{3}{| l |}{INGEST/INPUT} \\ \hline
+    Datastore for Accumulo & \checkmark & \checkmark \\
+    Ingest vectors & \checkmark & \checkmark \\
+    Predefined \texttt{SimpleFeatureTypes} & \checkmark & \checkmark \\
+    GDELT & \checkmark & \checkmark \\
+    GeoLife & \checkmark & \checkmark \\
+    geonames & \checkmark & \\
+    gtd & \checkmark & \\
+    NYCtaxi & \checkmark & \\
+    osm-gpx & \checkmark & \\
+    tdrive & \checkmark & \checkmark \\
+    twitter & \checkmark & \\
+    Avro & & \checkmark \\
+    geotools-vector & & \checkmark \\
+    GPX & & \checkmark \\
+    stanag4676 & & \checkmark \\
+    Ingest rasters & \checkmark & \checkmark \\
+    TIF & \checkmark & \\
+    GeoTIFF & \checkmark & \\
+    dt0 & \checkmark & \\
+    dt0 & \checkmark & \\
+    dt2 & \checkmark & \\
+    geotools-raster & & \checkmark \\
+    GEOMESA convert tools & \checkmark & \\
+    delimited text & \checkmark & \\
+    Avro & \checkmark & \\
+    JSON & \checkmark & \\
+    XML & \checkmark & \\
+    GeoMesa Stream & \checkmark & \\
+    Storm/Kafka ingest & \checkmark & \checkmark \\
+
+    \hline \multicolumn{3}{| l |}{BACKENDS} \\ \hline
+    Accumulo & \checkmark & \checkmark \\
+    HBase & \checkmark & \checkmark \\
+    Integration
+    MrGEO (reading) & & \checkmark \\
+    GeoTrellis & & \checkmark \\
+    via c++ bindings - pdal mapnik & & \checkmark \\
+    Data Processing
+    generate RDD of simple features & \checkmark & \\
+    Spark SQL & \checkmark & \\
+    geo-mesa jobs - custom M/R jobs & \checkmark & \\
+    Query against Accumulo store & \checkmark & \\
+    heatmap from cql & \checkmark & \\
+    compute state from cql results & \checkmark & \\
+    tube selection & \checkmark & \\
+    proximity search & \checkmark & \\
+    query $k$-nearest neighbors given point & \checkmark & \checkmark \\
+    identify unique valus from cql query & \checkmark & \\
+    convert points to lines & \checkmark & \\
+    $k$-means & & \checkmark \\
+    jump method ($k$ discovery) & & \checkmark \\
+    sampling & & \checkmark \\
+    kernel density estimation & & \checkmark \\
+    clustering & & \checkmark \\
+    convex hulls of cluster & & \checkmark \\
+    dbscan & & \checkmark \\
+    Spark support & & \checkmark \\
+
+    \hline \multicolumn{3}{| l |}{PRIMARY INDICES} \\ \hline
+    default & \checkmark & \\
+    xz3 & \checkmark & \\
+    xz2 & \checkmark & \\
+    z3 & \checkmark & \\
+    z2 & \checkmark & \\
+    record & \checkmark & \\
+    Hilbert & & \checkmark \\
+
+    \hline \multicolumn{3}{| l |}{SECONDARY INDICES} \\ \hline
+    attribute & \checkmark & \\
+    ST & \checkmark & \\
+    Cost-Based Optimization (selects index) & \checkmark & \\
+    Numerical & & \checkmark \\
+    Temporal & & \checkmark \\
+    Textual & & \checkmark \\
+    User-Defined & & \checkmark \\
+    No Cost-based Optimization & & \checkmark \\
+
+    \hline \multicolumn{3}{| l |}{OUTPUT} \\ \hline
+    Accumulo & \checkmark & \\
+    reader for querying datastore in java & \checkmark & \\
+    produce collection of features from datastore & \checkmark & \\
+    direct map/reduce exports & \checkmark & \\
+    command line tools & \checkmark & \\
+    serialize export vectors & \checkmark & \\
+    CSV & \checkmark & \\
+    shapefile & \checkmark & \\
+    GeoJSON & \checkmark & \\
+    gml & \checkmark & \\
+    bin & \checkmark & \\
+    Avro & \checkmark & \\
+    GeoServer Plugin & & \checkmark \\
+    Query - RDD & & \checkmark \\
+    Query - Iterator & & \checkmark \\
+
+    \hline \multicolumn{3}{| l |}{OTHER FEATURES} \\ \hline
+    gpm native API & \checkmark & \\
+    HBase backend & \checkmark & \\
+
+    \hline
+    \caption{Feature Summary}
+    \label{table:summary}
+  \end{longtable}
+}

@@ -1,0 +1,81 @@
+\section{Details of GeoMesa and GeoWave features}
+\label{appendix:features}
+
+Note: This appendix refers to features in GeoMesa 1.2.6 and GeoWave 0.9.2.
+
+\input{geomesafeaturelist.tex}
+\input{geowavefeaturelist.tex}
+
+\subsection{Comparison of Attribute/Secondary Indices Feature}
+\label{appendix:features:indices}
+
+Often, spatial coordinates aren't the only important condition used in searching for and filtering through a dataset.
+Paramedics might want to find only accidents within their geographic region but they also might only want those accidents whose ``severity'' attribute is ``fatal''.
+For certain applications it is a matter of practical necessity that such fields are indexed for quick lookup later and both GeoMesa and GeoWave provide some tools for these purposes.
+It is worth mentioning that the documentation provided by both projects suggests that secondary/attribute indices are an area that will receive future focus by their respective teams.
+In what follows, we briefly compare the features provided by each.
+
+\subsubsection{GeoMesa Attribute Indices}
+
+In GeoMesa, any attribute can be indexed with a simple modification to the \texttt{UserData} which is associated with a \texttt{SimpleFeatureType}'s attribute.
+Each attribute index is stored in a single, associated \texttt{attr\_idx} table.
+By fiat, let's imagine we have a \texttt{SimpleFeatureType} which describes car accidents as described above.
+The code shown in Code Sample \ref{alg:geomesa} will add the appropriate information to our type so that, upon ingest, indices are created to the values in our ``severity'' field:
+
+\begin{algorithm}[htb]
+\caption{GeoMesa attribute indexing code snippet.}\label{alg:geomesa}
+{\footnotesize\begin{lstlisting}
+val sft: SimpleFeatureType = ??? // Our feature's schema
+sft.getDescriptor("severity").getUserData().put("index", "join");
+sft.getDescriptor("severity").getUserData().put("cardinality", "high");
+\end{lstlisting}}
+\end{algorithm}
+
+As seen above, two properties on this attribute index are exposed through the \texttt{UserData}: ``index'' (the type of index operation) and ``cardinality'' (the number of distinct values).
+
+{\bf Full/Join Indices.}
+This type of index - ``full'' or ``join'' - determines how much data is replicated in the lookup table of the attribute index.
+Full indices store the entire \texttt{SimpleFeature} of a record, allowing for quick replies to indexed-attribute queries without joining against the records table.
+This is preferable under circumstances in which the attribute in question is regularly queried against and especially if the expected queries don't necessarily rely upon other fields for filtration.
+The ``join'' index stores only the data necessary for identifying the values in the records table which satisfy the provided predicate and is therefore useful for preserving storage resources.
+
+{\bf Low/High Index Cardinality.}
+The utility of this distinction is somewhat unclear.
+A high cardinality index has enough values that we can expect any filtering it does to significantly slim down the number of returned records (thus, a query against a high cardinality index is given priority) while a low cardinality index seems to be ignored.
+The user documentation under ``Data Management'' notes (as of 10/01/2016) that ``technically you may also specify attributes as low-cardinality - but in that case it is better to just not index the attribute at all.''
+
+{\bf Client Code Difficulties.}
+As of 1.2.6, it appears as though a library which is shaded in GeoMesa client code needs to be appropriately shaded in any ingest client code which intends to take advantage of attribute indices.
+The fix for this issue can be found in a commit which made its way into 1.2.6.
+
+\subsubsection{GeoWave Secondary Indices}
+  
+Unlike GeoMesa, each secondary index gets its own table. Unlike GeoMesa, setting these secondary indices up is not a simple, two-line affair. Figuring out how to actually use these secondary indices was not obvious or straightforward from the documentation.
+
+In Code Sample \ref{alg:geowave}  we modify the same \texttt{SimpleFeatureType} for extra indexing on ingest as before:
+
+\begin{algorithm}[htb]
+\caption{GeoWave secondary indexing code snippet.}\label{alg:geowave}
+{\footnotesize\begin{lstlisting}
+val sft: SimpleFeatureType = ???
+val secondaryIndexingConfigs = mutable.ArrayBuffer[SimpleFeatureUserDataConfiguration]()
+val textFieldsToIndex = Set("severity")
+
+secondaryIndexingConfigs += new TextSecondaryIndexConfiguration(textFieldsToIndex.asJava)
+val config = new SimpleFeatureUserDataConfigurationSet(sft, secondaryIndexingConfigs.asJava)
+config.updateType(sft)
+\end{lstlisting}}
+\end{algorithm}
+
+{\bf Index Cardinality.}
+Unlike GeoMesa, cardinality of indices isn't a static feature configured by the user.
+GeoWave's query planning and optimization attempts to determine the usefulness of an index for a given query based on the statistics it gathers on ingest.
+
+{\bf Specialized Index Types.}
+Another point of divergence between these projects in terms of extra index support is GeoWave's intent to support specialized indices which can take advantage of various assumptions which are domain specific.
+Exact-match (as opposed to fuzzy) indices for text are not the same as exact indices for numbers or dates or even fuzzy indexing (through n-grams) of that same text.
+The specialization here makes it possible for GeoWave to index in ways that are sensitive to the types of data in question and even to the expectations of use (i.e. fuzzy vs exact and range-based vs exact queries).
+
+{\bf Future Development.}
+Documentation for GeoWave mentions the possibility of adding n-gram based fuzzy indexing of text fields (so that searches based on a subset of the data in a field can be used).
+It appears as though this feature is already in the works, as an n-gram table is currently generated on ingest in the development branch of GeoWave.

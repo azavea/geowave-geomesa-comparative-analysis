@@ -1,0 +1,238 @@
+\section{Details of Ingested Data}
+\label{appendix:data}
+
+\subsection{Geolife}
+
+The data reported in this section are based on ingests into a cluster with $5$ \texttt{m3.2xlarge} workers.
+(Please note that our performance tests were performed against a $3$ node cluster with a similar setup.)
+
+For GeoWave, The entries per tablet server server showed that all entires were on one of the $5$ workers, which would have dramatically affected performance.
+In order to correct that, we changed the split size and compacted the table.
+To get more splits, we executed the commands shown in Code Sample \ref{alg:splitting} in the Accumulo shell, then we compacted the tables.
+
+\begin{algorithm}[htb]
+\caption{Procedure for splitting GeoWave tables.}\label{alg:splitting}
+{\footnotesize\begin{lstlisting}
+config -t geowave.geolife_SPATIAL_IDX -s table.split.threshold=100M
+config -t geowave.geolife_SPATIAL_TEMPORAL_IDX_BALANCED_YEAR_POINTONLY -s table.split.threshold=100M
+\end{lstlisting}}
+\end{algorithm}
+
+\begin{table}[h!tb]
+  \centering
+  \begin{tabular}{ | l || c | c | c | }
+    \hline
+    & Disk Used & DFS Used & Total Entries \\
+    \hline
+    GeoMesa & $1.68$G & $34.85$GB ($4.84$\%) & $71.59$M \\
+    GeoWave & $1.45$G & $12.5$GB ($1.74$\%) & $47.24$M \\
+    \hline
+  \end{tabular}
+  \caption{Disk usage for the GeoLife dataset.}
+  \label{table:geolife:disk}
+\end{table}
+
+\begin{table}[h!tb]
+  \centering
+  \begin{tabular}{ | l | l | }
+    \hline
+    Table Name & Number of Entries \\
+    \hline
+    \texttt{geomesa.geolife} & $10$ \\
+    \texttt{geomesa.geolife\_gmtrajectory\_z3} & $24.60$M \\
+    \texttt{geomesa.geolife\_records} & $24.35$M \\
+    \texttt{geomesa.geolife\_stats} & $8.00$K \\
+    \texttt{geomesa.geolife\_z2} & $24.55$M \\
+    \hline
+  \end{tabular}
+  \caption{GeoMesa tables for the GeoLife dataset.}
+  \label{table:geolife:geomesa:tables}
+\end{table}
+
+\begin{table}[h!tb]
+  \centering
+  \begin{tabular}{ | l | l | }
+    \hline
+    Table Name & Number of Entries \\ \hline
+    \texttt{geowave.geolife\_SPATIAL\_TEMPORAL\_IDX\_BALANCED\_YEAR\_POINTONLY} & $23.44$M \\
+    \texttt{geowave.geolife\_GEOWAVE\_METADATA} & $30$ \\
+    \texttt{geowave.geolife\_SPATIAL\_IDX} & $23.82$M \\
+    \hline
+  \end{tabular}
+  \caption{GeoWave tables for the GeoLife dataset}
+  \label{table:geolife:geowave:tables}
+\end{table}
+
+\begin{table}[h!tb]
+  \centering
+  \begin{tabular}{ | c | l | l | }
+    \hline
+    Tablet Server & GeoMesa Entries & GeoWave Entries \\
+    \hline
+    1 & $11.95$M & $14.57$M \\
+    2 & $11.67$M & $8.81$M \\ 
+    3 & $11.67$M & $8.70$M \\ 
+    4 & $11.95$M & $2.92$M \\ 
+    5 & $24.35$M & $11.67$M \\
+    \hline
+  \end{tabular}
+  \caption{Entries per tablet server for the GeoLife dataset.  Each tablet server had only one tablet.}
+  \label{table:geolife:tablets}
+\end{table}
+
+Table \ref{table:geolife:disk} contains the disk and DFS usage of both GeoMesa and GeoWave after the GeoLife dataset had been ingested.
+Please see Tables \ref{table:geolife:geomesa:tables} and \ref{table:geolife:geowave:tables} for information concerning the tables created by GeoMesa and GeoWave, respectively.
+Table \ref{table:geolife:tablets} contains information concerning the distribution of data across the cluster for the respective systems.
+
+% ---------------------------------
+
+\subsection{GDELT}
+
+The data reported in this section are based on ingests into a cluster with $5$ \texttt{m3.2xlarge} workers.
+These stats were taken after ingest completed and compaction was done to all tables containing many entries.
+
+We had problems ingesting GDELT, where the \texttt{geowave.gdelt\_GEOWAVE\_METADATA} table had way too many entries, all stored to memory,
+and never flushing to disk although there was one minor compaction running the whole time.
+Any query or compact command to that table would hang and timeout.
+We got around this issue by not saving any statistics to the table, by using the \texttt{AccumuloOptions.setPersistDataStatistics(false)} method for our datastore options.
+An attempt was made to use the \texttt{recalcstats} command in the geowave geotools, however we were unable to get this to work.
+
+\begin{table}[h!tb]
+  \centering
+  \begin{tabular}{ | l || c | c | c | }
+    \hline
+    & Disk Used & DFS Used & Total Entries \\
+    \hline
+    GeoMesa & $98.75$G & $202.61$GB ($28.16$\%) & $1.22$B \\
+    GeoWave & $73.81$ & $156.6$ GB ($21.76$\%) & $813.19$M \\
+    \hline
+  \end{tabular}
+  \caption{Disk usage for the GeoLife dataset.}
+  \label{table:gdelt:disk}
+\end{table}
+
+\begin{table}[h!tb]
+  \centering
+  \begin{tabular}{ | l | l | }
+    \hline
+    Table Name & Number of Entries \\ \hline
+    \texttt{geomesa.gdelt} & $10$ \\
+    \texttt{geomesa.gdelt\_gdelt\_2devent\_z3} & $406.51$M \\
+    \texttt{geomesa.gdelt\_records} & $406.51$M \\
+    \texttt{geomesa.gdelt\_stats} & $7.88$K \\
+    \texttt{geomesa.gdelt\_z2} & $406.51$M \\
+    \hline
+  \end{tabular}
+  \caption{GeoMesa tables for the GDELT dataset.}
+  \label{table:gdelt:geomesa:tables}
+\end{table}
+
+\begin{table}[h!tb]
+  \centering
+  \begin{tabular}{ | l | l | }
+    \hline
+    Table Name & Number of Entries \\ \hline
+    \texttt{geowave.gdelt\_SPATIAL\_TEMPORAL\_IDX\_BALANCED\_WEEK\_HASH\_4\_POINTONLY} & $406.60$M \\
+    \texttt{geowave.gdelt\_GEOWAVE\_METADATA} & $4$ \\
+    \texttt{geowave.gdelt\_SPATIAL\_IDX\_HASH\_4} & $406.60$M \\
+    \hline
+  \end{tabular}
+  \caption{GeoWave tables for the GDELT dataset.}
+  \label{table:gdelt:geowave:tables}
+\end{table}
+
+\begin{table}[h!tb]
+  \centering
+  \begin{tabular}{ | c| | l | l || l | l |}
+    \hline
+    & \multicolumn{2}{c||}{GeoMesa} & \multicolumn{2}{c|}{GeoWave} \\ \hline
+    Tablet Server & Tablets & Entries & Tablets & Entries \\ \hline
+    1 & $47$ & $242.86$M & $28$ & $166.40$M \\
+    2 & $44$ & $234.28$M & $26$ & $151.95$M \\
+    3 & $48$ & $237.68$M & $27$ & $158.78$M \\
+    4 & $46$ & $241.10$M & $29$ & $170.14$M \\
+    5 & $46$ & $263.62$M & $29$ & $165.92$M \\
+    \hline
+  \end{tabular}
+  \caption{Tablets and entries per tablet server for the GDELT dataset.}
+  \label{table:gdelt:tablets}
+\end{table}
+
+Table \ref{table:gdelt:disk} contains the disk and DFS usage of both GeoMesa and GeoWave after the GDELT dataset had been ingested.
+Please see Tables \ref{table:gdelt:geomesa:tables} and \ref{table:gdelt:geowave:tables} for information concerning the tables created by GeoMesa and GeoWave, respectively.
+Table \ref{table:gdelt:tablets} contains information concerning the distribution of data across the cluster for the respective systems.
+
+% ---------------------------------
+
+\subsection{Tracks}
+
+Based on ingests into a cluster with $5$ \texttt{m3.2xlarge} workers.
+These stats were pulled from a cluster that had undergone extensive performance testing.
+
+We found that there were more entries in GeoWave than in GeoMesa.
+That can be explained by the fact that GeoWave can store up to 3 duplicates per entry based on their indexing scheme.
+
+\begin{table}[h!tb]
+  \centering
+  \begin{tabular}{ | l || c | c | c | }
+    \hline
+    & Disk Used & DFS Used & Total Entries \\
+    \hline
+    GeoMesa & $58.12$G & $120.6$GB ($16.76$\%) & $19.59$M \\
+    GeoWave & $106.24$G & $218.93$ GB ($30.43$\%) & $35.83$M \\
+    \hline
+  \end{tabular}
+  \caption{Disk usage for the GeoLife dataset.}
+  \label{table:tracks:disk}
+\end{table}
+
+\begin{table}[h!tb]
+  \centering
+  \begin{tabular}{ | l | l | }
+    \hline
+    Table Name & Number of Entries \\ \hline
+    \texttt{geomesa.tracks} & $10$ \\
+    \texttt{geomesa.tracks\_records} & $6.41$M \\
+    \texttt{geomesa.tracks\_stats} & $68$ \\
+    \texttt{geomesa.tracks\_xz2} & $6.33$M \\
+    \texttt{geomesa.tracks\_xz3} & $6.57$M \\
+    \hline
+  \end{tabular}
+  \caption{GeoMesa tables for the Tracks dataset.}
+  \label{table:tracks:geomesa:tables}
+\end{table}
+
+\begin{table}[h!tb]
+  \centering
+  \begin{tabular}{ | l | l | }
+    \hline
+    Table Name & Number of Entries \\ \hline
+    \texttt{geowave.tracks\_SPATIAL\_TEMPORAL\_IDX\_BALANCED\_YEAR} & $18.04$M \\
+    \texttt{geowave.tracks\_GEOWAVE\_METADATA} & $38$ \\
+    \texttt{geowave.gdelt\_SPATIAL\_IDX\_HASH\_4} & $17.78$M \\
+    \hline
+  \end{tabular}
+  \caption{GeoWave tables for the Tracks dataset.}
+  \label{table:tracks:geowave:tables}
+\end{table}
+
+\begin{table}[h!tb]
+  \centering
+  \begin{tabular}{ | c| | l | l || l | l |}
+    \hline
+    & \multicolumn{2}{c||}{GeoMesa} & \multicolumn{2}{c|}{GeoWave} \\ \hline
+    Tablet Server & Tablets & Entries & Tablets & Entries \\ \hline
+    1 & $45$ & $4.22$M & $37$ & $7.37$M \\
+    2 & $43$ & $3.79$M & $41$ & $6.59$M \\
+    3 & $45$ & $3.66$M & $39$ & $5.75$M \\
+    4 & $47$ & $3.80$M & $37$ & $6.26$M \\
+    5 & $44$ & $4.13$M & $37$ & $9.85$M \\
+    \hline
+  \end{tabular}
+  \caption{Tablets and entries per tablet server for the Tracks dataset.}
+  \label{table:tracks:tablets}
+\end{table}
+
+Table \ref{table:tracks:disk} contains the disk and DFS usage of both GeoMesa and GeoWave after the GDELT dataset had been ingested.
+Please see Tables \ref{table:tracks:geomesa:tables} and \ref{table:tracks:geowave:tables} for information concerning the tables created by GeoMesa and GeoWave, respectively.
+Table \ref{table:tracks:tablets} contains information concerning the distribution of data across the cluster for the respective systems.

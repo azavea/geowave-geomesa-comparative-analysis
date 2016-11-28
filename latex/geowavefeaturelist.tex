@@ -1,0 +1,113 @@
+\subsection{GeoWave Feature List}
+\label{appendix:features:geowave}
+
+\subsubsection*{Input}
+
+\begin{itemize}
+\item{
+  Ingest from the CLI
+  \begin{itemize}
+  \item Ingest from filesystem $\rightarrow$ GeoWave
+  \item Ingest from filesystem $\rightarrow$ HDFS $\rightarrow$ GeoWave
+  \item Stage from filesystem $\rightarrow$ HDFS
+  \item Stage from filesystem $\rightarrow$ Kafka
+  \item Ingest from Kafka $\rightarrow$ GeoWave
+  \item Ingest from HDFS $\rightarrow$ GeoWave
+  \item Notes: Requires plugins for each input file format, which are listed below in ``File Formats Supported''
+  \end{itemize}
+}
+\item{
+  Ingest Using the API
+  \begin{itemize}
+  \item Bulk ingest via Hadoop
+  \item Piecemeal via a writer object
+  \end{itemize}
+}
+\item{
+  File Formats Supported
+  \begin{itemize}
+  \item avro
+  \item gdelt
+  \item geolife
+  \item geotools-raster (GeoTools-supported raster data)
+  \item geotools-vector (GeoTools-supported vector data)
+  \item gpx
+  \item stanag4676
+  \item tdrive
+  \item{
+    Formats supported via Extensions existing outside the GeoWave repository:
+    \begin{itemize}
+    \item Landsat 8
+    \item OpenStreetMap
+    \end{itemize}
+  }
+  \end{itemize}
+}
+\end{itemize}
+
+
+\subsubsection*{Backends}
+
+\begin{itemize}
+\item Accumulo
+\item HBase
+\end{itemize}
+
+\subsubsection*{Integrations}
+
+\begin{itemize}
+\item MrGeo (reading)
+\item GeoTrellis - (raster and vector, reading and writing)
+\item{
+  Via C++ bindings
+  \begin{itemize}
+  \item PDAL (reading and writing)
+  \item mapnik (reading)
+  \end{itemize}
+}
+\end{itemize}
+
+
+\subsubsection*{Secondary Indices}
+
+\begin{itemize}
+\item Numerical
+\item Temporal
+\item Textual
+\item User Defined
+\item See section on comparision of secondary indexing below for more details
+\end{itemize}
+
+\subsubsection*{Processing}
+
+\begin{itemize}
+\item $k$-means via CLI or Map-Reduce
+\item Jump Method ($k$-discovery) via CLI and Map-Reduce
+\item Sampling via Map-Reduce
+\item Kernel Density Estimation via CLI or MapReduce
+\item Nearest Neighbors via CLI or MapReduce
+\item Clustering via Map-Reduce
+\item Convex Hulls of Clusters via Map-Reduce
+\item \texttt{DBSCAN} via Map-Reduce
+\item Spark Support: Ability to load an RDD of \texttt{SimpleFeature}s
+\end{itemize}
+
+\subsubsection*{Output}
+
+\begin{itemize}
+\item{
+  GeoServer Plugin
+  \begin{itemize}
+  \item Includes the ``decimation'' feature, which allows large datasets to be shown interactively by subsampling at the pixel level.
+  \end{itemize}
+}
+\item Hadoop integration
+\item{
+  Query
+  \begin{itemize}
+    \item GeoWave DataStore: directly construct queries via the GeoWave API
+    \item GeoTools DataStore: construct queries via \texttt{CQL}
+    \item Ability to query data that has start and end times to find intersecting time intervals.
+  \end{itemize}
+}
+\end{itemize}

@@ -1,0 +1,50 @@
+\documentclass[10pt]{article}
+
+\usepackage{amssymb,amsfonts,amsmath,amsthm}
+\usepackage{algorithm,algpseudocode}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{mathtools}
+\usepackage{multicol,multirow,fullpage}
+\usepackage{url}
+\usepackage{subfigure,wrapfig}
+\usepackage{listings}
+\usepackage{xltxtra,fontspec,xunicode}
+\usepackage{longtable}
+
+\defaultfontfeatures{Scale=MatchLowercase}
+
+\input{newcommand}
+
+\newtheorem{lemma}{Lemma}
+
+\hyphenation{Geo-Wave}
+\hyphenation{Geo-Mesa}
+\hyphenation{Geo-Trellis}
+\hyphenation{Simple-Feature}
+\hyphenation{Simple-Feature-Type}
+
+\makeatletter
+\renewcommand{\ALG@name}{Code Sample}
+\makeatother
+
+\begin{document}
+
+\title{GeoMesa and GeoWave Comparative Analysis: Final Report}
+
+\author{Azavea, Inc.}
+
+\date{}
+
+\maketitle
+
+\input{abstract.tex}
+\input{intro.tex}
+\input{featurecompare.tex}
+\input{perftests.tex}
+\input{results.tex}
+\input{outro.tex}
+\input{appendix.tex}
+%% \input{biblio.tex}
+
+\end{document}

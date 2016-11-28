@@ -1,0 +1,41 @@
+\subsection{Accumulo Indexing}
+\label{sec:featurecompare:indexing}
+
+The two projects approach indexing in Accumulo in a similar way, but there are some key differences.
+
+\subsubsection{Choice of Space Filling Curve}
+\label{sec:featurecompare:indexing:curve}
+
+GeoMesa supports the space filling curve indices named Z-order and XZ indices, while GeoWave supports Hilbert curves.
+These space filling curve implementations have different properties that affect performance, such as the number of false positives returned and number of duplicate entries to be indexed.
+You can read more about the differences in performance characteristics in Appendix \ref{appendix:planning}: Details of Performance Test Conclusions.
+
+\subsubsection{Sharding}
+\label{sec:featurecompare:indexing:sharding}
+
+By default, GeoMesa uses ``sharding'', a technique of prefixing indices with a discrete number of shard IDs in order to better distribute the data across nodes of a cluster.
+There is a trade-off between increasing distribution while decreasing locality.
+Index sharding leads to more even per-query cluster resource utilization, which covers the common use cases GeoWave has the ability to shard, although in GeoWave it's called partitioning the data.
+You can create a compound index with any of the GeoWave indexing strategies in order to partition.
+Unlike GeoMesa, GeoWave partitioning is not enabled by default.
+It is also configurable: you can decide on the number of partitions (i.e. shards) you want, and determine whether or not it's a round robin or hashing strategy that determines the partition ID.
+GeoMesa's sharding seems to only use a hashing algorithm and a non-configurable number of shards.
+In our benchmarks we had to enable index partitioning in GeoWave in order to improve its performance and make the benchmarks comparable.
+
+\subsubsection{Periodicity}
+\label{sec:featurecompare:indexing:periodicity}
+
+To get around the problem of unbounded dimensions, such as time, the concept of ``periodicity'' is used in both GeoMesa and GeoWave.
+This feature is similar to a shard, in that it prefixes an index with some ID.
+A simple way to think of periodicity is that it bins each space filling curve into one period; for example, for one week.
+In GeoWave, you can configure any dimension to have a periodicity of a configurable length.
+With GeoMesa, you can configure the periodicity of the time dimension to day, week, month, or year.
+
+\subsubsection{Tiered indexing vs XZ index}
+\label{sec:featurecompare:indexing:versus}
+
+GeoMesa uses an XZ index to handle non-point data, which allows the data to be stored at specific space filling curve resolutions based on the size of the geometry.
+GeoWave uses a technique called tiered indexing to handle this issue.
+The technical differences between the two approaches are beyond the scope of this document.
+Broadly, they have comparable theoretical performance with tiering being more flexible of the two, allowing for more use-case specific optimization.
+However one major difference between the two approaches is that the XZ approach does not store any duplicates of data, while the tiered strategy can store up to four copies of an entry.
