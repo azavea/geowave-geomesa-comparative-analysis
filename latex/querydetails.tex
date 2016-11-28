@@ -43,7 +43,7 @@ See the appendix for details about machine specs and ingest results.
 \subsubsection{Spatial queries of Beijing}
 
 We used the Beijing geojson from Mapzen's borders dataset, which can be found in the resources of the \texttt{core} subproject.
-This represents the multipolygon seen in Figure \ref{beijingpolygon}.
+The multipolygon can be seen in Figure \ref{beijingpolygon}.
 
 \begin{figure}[h!tb]
   \centering
@@ -173,13 +173,14 @@ We see that GeoMesa performs better in this query.
 If we plot the histogram of GeoMesa durations with outliers removed,
 for both exact and loose (red and yellow, respectively), and compare it to the histogram of durations for GeoWave queries with outliers removed,
 we see that there is a wider spread of timing results coming from GeoWave for this query.
+Please see Figure \ref{beijingfeb2011}.
 
 \begin{figure}[h!tb]
   \centering
   \includegraphics[width=0.45\textwidth]{../docs/img/geolife-beijing-center-feb-2011-bbox-gm.png}
   \includegraphics[width=0.45\textwidth]{../docs/img/geolife-beijing-center-feb-2011-bbox-gw.png}
   \caption{Beijing February 2011 iterations.}
-  \label{beijingfebg2011}
+  \label{beijingfeb2011}
 \end{figure}
 
 
