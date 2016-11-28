@@ -34,7 +34,7 @@ With GeoMesa, you can configure the periodicity of the time dimension to day, we
 \subsubsection{Tiered indexing vs XZ index}
 \label{sec:featurecompare:indexing:versus}
 
-GeoMesa uses an XZ index to handle non-point data, which allows the data to be stored at specific space filling curve resolutions based on the the size of the geometry.
+GeoMesa uses an XZ index to handle non-point data, which allows the data to be stored at specific space filling curve resolutions based on the size of the geometry.
 GeoWave uses a technique called tiered indexing to handle this issue.
 The technical differences between the two approaches are beyond the scope of this document.
 Broadly, they have comparable theoretical performance with tiering being more flexible of the two, allowing for more use-case specific optimization.
