@@ -51,7 +51,7 @@ Please see Figure \ref{config1}.
 \begin{figure}[h!tb]
   \centering
   \includegraphics[width=0.60\textwidth]{../docs/img/multitenancy/graph_uncut_mt1.png}
-  \caption{Results for configuration 1.}
+  \caption{GDELT multitenancy results, configuration 1.}
   \label{config1}
 \end{figure}
 
@@ -66,7 +66,7 @@ Please see Figure \ref{config2}.
 \begin{figure}[h!tb]
   \centering
   \includegraphics[width=0.60\textwidth]{../docs/img/multitenancy/graph_100k_mt2.png}
-  \caption{Results for configuration 2.}
+  \caption{GDELT multitenancy results, configuration 2.}
   \label{config2}
 \end{figure}
 
@@ -80,21 +80,21 @@ Please see Figures \ref{config3}, \ref{config3distrogw}, and \ref{config3distrog
 \begin{figure}[h!tb]
   \centering
   \includegraphics[width=0.60\textwidth]{../docs/img/multitenancy/graph_100k_mt3.png}
-  \caption{Results for configuration 3.}
+  \caption{GDELT multitenancy results, configuration 3.}
   \label{config3}
 \end{figure}
 
 \begin{figure}[h!tb]
   \centering
   \includegraphics[width=0.60\textwidth]{images/mt3-2-gw.png}
-  \caption{GeoWave response times for configuration 3.}
+  \caption{GeoWave/GDELT response times, configuration 3.}
   \label{config3distrogw}
 \end{figure}
 
 \begin{figure}[h!tb]
   \centering
   \includegraphics[width=0.60\textwidth]{images/mt3-2-gm.png}
-  \caption{GeoMesa response times for configuration 3.}
+  \caption{GeoMesa/GDELT response times, configuration 3.}
   \label{config3distrogm}
 \end{figure}
 
@@ -108,7 +108,7 @@ and re-ran the benchmark with six application servers for both systems.
   \centering
   \begin{tabular}{ | l | c c | }
     \hline
-    & Default & Updated \\
+    & Initial & Updated \\
     \hline
     \multicolumn{3}{| l |}{CONFIGURATION} \\ \hline
     master JVM -Xmx & $2$G & $3$G \\ \hline
@@ -119,7 +119,7 @@ and re-ran the benchmark with six application servers for both systems.
     GeoWave Query Volume & $3072$ & $2808$ \\ \hline
     GeoMesa Query Volume & $863$ & $2107$ \\ \hline
   \end{tabular}
-  \caption{Comparison of configurations.}
+  \caption{GDELT multitenancy Accumulo memory configurations.}
   \label{table:troubleshoot}
 \end{table}
 
@@ -130,21 +130,21 @@ and re-ran the benchmark with six application servers for both systems.
   \label{config4}
 \end{figure}
 
-While increased memory helped GeoWave performance some, brining average query duration down, it made massive improvement to GeoMesa performance and consistency.
+While increased cache helped GeoWave performance some, brining average query duration down, it made massive improvement to GeoMesa performance and consistency.
 The final difference in the query volume was only $30$\%.
 Please see Figures \ref{config4}, \ref{config4distrogw}, and \ref{config4distrogm}.
 
 \begin{figure}[h!tb]
   \centering
   \includegraphics[width=0.60\textwidth]{images/mt4-gw.png}
-  \caption{GeoWave response times for the updated configuration.}
+  \caption{GeoWave/GDELT response times, configuration 3 with increased cache.}
   \label{config4distrogw}
 \end{figure}
 
 \begin{figure}[h!tb]
   \centering
   \includegraphics[width=0.60\textwidth]{images/gm-4.png}
-  \caption{GeoMesa response times for the updated configuration.}
+  \caption{GeoMesa/GDELT response times, configuration 3 with increased cache.}
   \label{config4distrogm}
 \end{figure}
 
@@ -178,27 +178,27 @@ Please see Figures \ref{geowave16}, \ref{geowave32}, \ref{geomesa16}, and \ref{g
 \begin{figure}[h!tb]
   \centering
   \includegraphics[width=0.60\textwidth]{../docs/img/multitenancy/gw-16-responses.png}
-  \caption{GeoWave, 16 users.}
+  \caption{GeoWave/Tracks response times, 16 users.}
   \label{geowave16}
 \end{figure}
 
 \begin{figure}[h!tb]
   \centering
   \includegraphics[width=0.60\textwidth]{../docs/img/multitenancy/gw-32-responses.png}
-  \caption{GeoWave, 32 users.}
+  \caption{GeoWave/Tracks response times, 32 users.}
   \label{geowave32}
 \end{figure}
 
 \begin{figure}[h!tb]
   \centering
   \includegraphics[width=0.60\textwidth]{../docs/img/multitenancy/gm-16-responses.png}
-  \caption{GeoMesa, 16 users.}
+  \caption{GeoMesa/Tracks response times, 16 users.}
   \label{geomesa16}
 \end{figure}
 
 \begin{figure}[h!tb]
   \centering
   \includegraphics[width=0.60\textwidth]{../docs/img/multitenancy/gm-32-responses.png}
-  \caption{GeoWave, 32 users.}
+  \caption{GeoWave/Tracks response times, 32 users.}
   \label{geomesa32}
 \end{figure}
