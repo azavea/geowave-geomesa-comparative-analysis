@@ -102,6 +102,7 @@ As before, GeoWave remains consistently lower in this area.
 \subsection{Performance Observations vis-a-vis Query Planning}
 
 In those experiments, GeoMesa tended to do better than GeoWave as the size of the result sets increased.
+Conversely, we also found that GeoWave performs better as the selectively of the query increases.
 Examination of the respective query-planning strategies of the systems shows that GeoMesa submits fewer ranges of keys to Accumulo, but those ranges are wider in length.
 These fewer-but-larger ranges could provide an advantage in this context.
 
