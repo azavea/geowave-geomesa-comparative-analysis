@@ -2,6 +2,7 @@
 \label{sec:subjective}
 
 Although it was not a primary focus of our evaluation, we concluded that GeoMesa is a more mature open source project.
+
 This does not reflect the capabilities of the projects but rather the amount of effort that has been spent on supporting varying use cases and developing tooling for common workflows.
 While this is a general conclusion that the team feel confident to report given our overall experiences with the two projects, we will talk through some of the examples that led us to that conclusion.
 First of all and very importantly, GeoMesa documentation is more clear and covers more specific questions arising from attempting to use the product.
@@ -9,12 +10,13 @@ Other considerations are, for instance, that geomesa-convert project provides a 
 GeoWave has command line tools for importing features but they are newer and do not provide the same level of functionality as they ultimately require Avro records that are in GeoWave defined schema.
 Similarly \texttt{GeoMesaOutputFormat} has logic to optimize index distribution based on simple feature ids or generate them if they're not present.
 The question of how to index a user’s data is fully on the user of GeoWave.
+
 Also with the command line tooling for GeoWave, the distribution story of how to run the map-reduce tooling on a Hadoop cluster followed a specific and undocumented workflow that we never got running.
 It was possible to do so, and given enough time we could have learned the mechanism to get that to work, but a measure of maturity of open source projects is the ease in which people outside the core team can use the project.
 This type of beginner usability issue was one of the main differences we felt between the GeoMesa and GeoWave projects.
 In addition, while performing the benchmarks we encountered fewer instances of unexpected behavior when using less common feature configurations in GeoMesa.
 For instance, in GeoWave we faced an issue with a failure to calculate statistics during GDELT ingest, which remained unsolved after much debugging and help from the GeoWave team.
-Smaller issues were present, for example the time we wanted to use an index-only query (or “loose bounding box”).
+Smaller issues were present, for example the time we wanted to use an index-only query (or ``loose bounding box'').
 This feature was present, but inaccessible because it was only exposed through the GeoServer plugin, and not through the query API.
 This is a quick fix, but speaks to another measure of open source maturity: the level at which API and features are exposed to community users, designed with community users in mind, and have been kicked around by community users enough to work out kinks.
 While we don’t believe GeoWave is that far behind GeoMesa in open source maturity, and the GeoWave core team is improving the project daily, we felt it was appropriate to convey our conclusion as such.
