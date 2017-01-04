@@ -14,24 +14,24 @@
     GeoLife & \checkmark & \checkmark \\
     geonames & \checkmark & \\
     gtd & \checkmark & \\
-    NYCtaxi & \checkmark & \\
-    osm-gpx & \checkmark & \\
+    NYCtaxi & \checkmark & \checkmark \\
+    osm-gpx & \checkmark & \checkmark \\
     tdrive & \checkmark & \checkmark \\
-    twitter & \checkmark & \\
-    Avro & & \checkmark \\
+    twitter & \checkmark & \checkmark \\
+    Avro & \checkmark & \checkmark \\
     geotools-vector & & \checkmark \\
     GPX & & \checkmark \\
     stanag4676 & & \checkmark \\
-    Ingest rasters & \checkmark & \checkmark \\
-    TIF & \checkmark & \\
-    GeoTIFF & \checkmark & \\
-    dt0 & \checkmark & \\
-    dt0 & \checkmark & \\
-    dt2 & \checkmark & \\
+
+    \hline \multicolumn{3}{| l |}{RASTER INGESTS} \\ \hline
+    TIF & \checkmark & \checkmark \\
+    GeoTIFF & \checkmark & \checkmark \\
+    dt0 & \checkmark & \checkmark \\
+    dt0 & \checkmark & \checkmark \\
+    dt2 & \checkmark & \checkmark \\
     geotools-raster & & \checkmark \\
     GEOMESA convert tools & \checkmark & \\
     delimited text & \checkmark & \\
-    Avro & \checkmark & \\
     JSON & \checkmark & \\
     XML & \checkmark & \\
     GeoMesa Stream & \checkmark & \\
@@ -40,29 +40,31 @@
     \hline \multicolumn{3}{| l |}{BACKENDS} \\ \hline
     Accumulo & \checkmark & \checkmark \\
     HBase & \checkmark & \checkmark \\
-    Integration
+
+    \hline \multicolumn{3}{| l |}{INTEGRATION} \\ \hline
     MrGEO (reading) & & \checkmark \\
     GeoTrellis & & \checkmark \\
     via c++ bindings - pdal mapnik & & \checkmark \\
-    Data Processing
-    generate RDD of simple features & \checkmark & \\
+
+    \hline \multicolumn{3}{| l |}{DATA PROCESSING} \\ \hline
+    Generate RDD of simple features & \checkmark & \checkmark \\
     Spark SQL & \checkmark & \\
-    geo-mesa jobs - custom M/R jobs & \checkmark & \\
-    Query against Accumulo store & \checkmark & \\
-    heatmap from cql & \checkmark & \\
-    compute state from cql results & \checkmark & \\
-    tube selection & \checkmark & \\
-    proximity search & \checkmark & \\
-    query $k$-nearest neighbors given point & \checkmark & \checkmark \\
-    identify unique valus from cql query & \checkmark & \\
-    convert points to lines & \checkmark & \\
+    Custom M/R jobs & \checkmark & \checkmark \\
+    Query against Accumulo store & \checkmark & \checkmark \\
+    Heatmap from CQL & \checkmark & \checkmark \\
+    Compute state from CQL results & \checkmark & \\
+    Tube selection & \checkmark & \\
+    Proximity search & \checkmark & \\
+    Query $k$-nearest neighbors given point & \checkmark & \checkmark \\
+    Identify unique valus from cql query & \checkmark & \\
+    Convert points to lines & \checkmark & \\
     $k$-means & & \checkmark \\
-    jump method ($k$ discovery) & & \checkmark \\
-    sampling & & \checkmark \\
-    kernel density estimation & & \checkmark \\
-    clustering & & \checkmark \\
-    convex hulls of cluster & & \checkmark \\
-    dbscan & & \checkmark \\
+    Jump method ($k$ discovery) & & \checkmark \\
+    Sampling & & \checkmark \\
+    Kernel density estimation & & \checkmark \\
+    Clustering & & \checkmark \\
+    Convex hulls of cluster & & \checkmark \\
+    DBSCAN & & \checkmark \\
     Spark support & & \checkmark \\
 
     \hline \multicolumn{3}{| l |}{PRIMARY INDICES} \\ \hline
@@ -75,7 +77,7 @@
     Hilbert & & \checkmark \\
 
     \hline \multicolumn{3}{| l |}{SECONDARY INDICES} \\ \hline
-    attribute & \checkmark & \\
+    attribute & \checkmark & \checkmark \\
     ST & \checkmark & \\
     Cost-Based Optimization (selects index) & \checkmark & \\
     Numerical & & \checkmark \\
@@ -85,20 +87,20 @@
     No Cost-based Optimization & & \checkmark \\
 
     \hline \multicolumn{3}{| l |}{OUTPUT} \\ \hline
-    Accumulo & \checkmark & \\
-    reader for querying datastore in java & \checkmark & \\
-    produce collection of features from datastore & \checkmark & \\
-    direct map/reduce exports & \checkmark & \\
-    command line tools & \checkmark & \\
-    serialize export vectors & \checkmark & \\
-    CSV & \checkmark & \\
-    shapefile & \checkmark & \\
-    GeoJSON & \checkmark & \\
-    gml & \checkmark & \\
-    bin & \checkmark & \\
-    Avro & \checkmark & \\
-    GeoServer Plugin & & \checkmark \\
-    Query - RDD & & \checkmark \\
+    Accumulo & \checkmark & \checkmark \\
+    reader for querying datastore in java & \checkmark & \checkmark \\
+    produce collection of features from datastore & \checkmark & \checkmark \\
+    direct map/reduce exports & \checkmark & \checkmark \\
+    command line tools & \checkmark & \checkmark \\
+    serialize export vectors & \checkmark & \checkmark \\
+    CSV & \checkmark & \checkmark \\
+    shapefile & \checkmark & \checkmark \\
+    GeoJSON & \checkmark & \checkmark \\
+    gml & \checkmark & \checkmark \\
+    bin & \checkmark & \checkmark \\
+    Avro & \checkmark & \checkmark \\
+    GeoServer Plugin & \checkmark & \checkmark \\
+    Query - RDD & \checkmark & \checkmark \\
     Query - Iterator & & \checkmark \\
 
     \hline \multicolumn{3}{| l |}{OTHER FEATURES} \\ \hline
