@@ -15,7 +15,8 @@ You can read more about the differences in performance characteristics in Append
 
 By default, GeoMesa uses ``sharding'', a technique of prefixing indices with a discrete number of shard IDs in order to better distribute the data across nodes of a cluster.
 There is a trade-off between increasing distribution while decreasing locality.
-Index sharding leads to more even per-query cluster resource utilization, which covers the common use cases GeoWave has the ability to shard, although in GeoWave it's called partitioning the data.
+Index sharding leads to more even per-query cluster resource utilization, which covers the common use cases.
+GeoWave has the ability to shard, although in GeoWave it's called partitioning the data.
 You can create a compound index with any of the GeoWave indexing strategies in order to partition.
 Unlike GeoMesa, GeoWave partitioning is not enabled by default.
 It is also configurable: you can decide on the number of partitions (i.e. shards) you want, and determine whether or not it's a round robin or hashing strategy that determines the partition ID.

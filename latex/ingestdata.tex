@@ -6,7 +6,7 @@
 The data reported in this section are based on ingests into a cluster with $5$ \texttt{m3.2xlarge} workers.
 (Please note that our performance tests were performed against a $3$ node cluster with a similar setup.)
 
-For GeoWave, The entries per tablet server server showed that all entires were on one of the $5$ workers, which would have dramatically affected performance.
+For GeoWave, the entries per tablet server server showed that all entries were on one of the $5$ workers, which would have dramatically affected performance.
 In order to correct that, we changed the split size and compacted the table.
 To get more splits, we executed the commands shown in Code Sample \ref{alg:splitting} in the Accumulo shell, then we compacted the tables.
 

@@ -260,7 +260,7 @@ In this case it actually never crosses the threshold where it starts outperformi
 
 We hypothesized that some of the timing differences we were seeing here was because of differences in the configuration
 of their indexing mechanisms. As described in the section comparing the index configurations, the default periodicity
-for GeoMesa is one week, while in GeoWave it is one year. Also, GeoWave does not shard it's data by default.
+for GeoMesa is one week, while in GeoWave it is one year. Also, GeoWave does not shard its data by default.
 To find out how this configuration might be affecting the timing results, we tested with both systems set
 to having the following configuration:
 
@@ -277,7 +277,7 @@ The last configuration in the list above produced improvements in timing results
 and be referred to as the ``matched'' index configuration.
 
 Figure \ref{matching14} shows the durations of $14$ day queries averages broken into the same result count quartiles.
-We can see a marked improvement in GeoMesas results.
+We can see a marked improvement in GeoMesa's results.
 
 \begin{figure}[h!tb]
   \centering

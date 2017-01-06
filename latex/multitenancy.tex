@@ -29,7 +29,7 @@ Our initial tests have produced a surprising differentiation between the two sys
 In this scenario GeoWave was able to process a $3.5 \times$ higher request volume than GeoMesa.
 Also during this time we witnessed two instances where GeoMesa clusters entered degraded performance mode,
 where query duration seems to increase permanently after a round of load testing.
-After increasing the accumulo memory allocations as described below the performance gap shrunk, with GeoWave delivering $30$\% higher request volume.
+After increasing the Accumulo memory allocations as described below the performance gap shrunk, with GeoWave delivering $30$\% higher request volume.
 
 \subsubsection{Test Results}
 
@@ -44,7 +44,7 @@ Before each round of testing we verified that all clusters were idle, not underg
 {\bf Configuration 1: 1 Application Server.}
 This configuration is expected to degenerate; a single application server does not have the network bandwidth to pull the requested records and we see query duration spike well past usual levels.
 From the client perspective this scenario produced cumulative timeout rates of about $50$\% for both systems.
-After this round of testing GeoMesa cluster experienced an unexpected severity of degradation in query performance.
+After this round of testing, the GeoMesa cluster experienced an unexpected severity of degradation in query performance.
 This prompted us to bring up two replacements for future tests.
 Please see Figure \ref{config1}.
 
@@ -130,7 +130,7 @@ and re-ran the benchmark with six application servers for both systems.
   \label{config4}
 \end{figure}
 
-While increased cache helped GeoWave performance some, brining average query duration down, it made massive improvement to GeoMesa performance and consistency.
+While increased caching helped GeoWave performance some, brining average query duration down, it made massive improvement to GeoMesa performance and consistency.
 The final difference in the query volume was only $30$\%.
 Please see Figures \ref{config4}, \ref{config4distrogw}, and \ref{config4distrogm}.
 
@@ -151,7 +151,7 @@ Please see Figures \ref{config4}, \ref{config4distrogw}, and \ref{config4distrog
 It is difficult to attribute performance improvement in a distributed system but our speculation that remains consistent with our other findings is as follows: The failure cases seen in the initial set of results are likely due to garbage collection pressure as they were not reproduced with increased heap size.
 Also it is clear that GeoMesa benefits significantly more from generous memory cache allocations than GeoWave.
 In highly concurrent situations Accumulo performance is limited by tablet contention.
-GeoWave more sophisticated query planner minimizes this contention by producing tighter query ranges.
+GeoWave's more sophisticated query planner minimizes this contention by producing tighter query ranges.
 Increasing the cache size also mitigates the tablet contention.
 
 \subsection{Generated Tracks}
