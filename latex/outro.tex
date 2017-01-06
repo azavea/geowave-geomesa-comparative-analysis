@@ -10,12 +10,6 @@ In our tests GeoWave has delivered $30$\% higher spatio-temporal query throughpu
 It required less memory to deliver such performance which is beneficial if Accumulo must share cluster resources.
 In both cases it produced tighter distribution of query response times.
 
-Separately from our objective assessments of the two projects,
-our work with GeoMesa and GeoWave led us to develop some subjective opinions which may benefit the reader.
-We were impressed by both projects, but it is our assessment that GeoMesa is a more mature open source project than is GeoWave.
-This view is primarily based on the documentation and tooling available for the respective projects
-and the level of difficulty of executing various use cases (please see \S \ref{sec:subjective} for more).
-
 An important take-away from our experience is that the GeoMesa and GeoWave projects are not one tool, or feature, or capability; they both exist as umbrellas under which a number of technologies exist.
 For instance, a Kafka Datastore is part of GeoMesa, but there is no reason that users of GeoWave could not take advantage of that part of GeoMesa.
 In fact, you can install GeoMesa and GeoWave iterators on the same Accumulo cluster, and save certain data in GeoMesa tables while saving other data in GeoWave tables.
